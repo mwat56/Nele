@@ -15,7 +15,7 @@ import (
 	"os"
 	"strings"
 
-	"go.mwat.de/blog"
+	"github.com/mwat56/go-blog"
 )
 
 type (

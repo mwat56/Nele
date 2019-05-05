@@ -8,7 +8,7 @@ package main
 import (
 	"fmt"
 
-	"go.mwat.de/blog"
+	"github.com/mwat56/go-blog"
 )
 
 func main() {

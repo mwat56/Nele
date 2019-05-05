@@ -1,4 +1,4 @@
-module go.mwat.de/blog
+module github.com/mwat56/go-blog
 
 go 1.12
 

@@ -16,8 +16,8 @@ import (
 	"syscall"
 
 	"github.com/mwat56/go-apachelogger"
+	"github.com/mwat56/go-blog"
 	"github.com/mwat56/go-errorhandler"
-	"go.mwat.de/blog"
 )
 
 // `doConsole()` checks for the `add` commandline argument, adds the

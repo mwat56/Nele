@@ -6,7 +6,7 @@
 
 You can use `Go` to install this package for you:
 
-    go get go.mwat.de/blog
+    go get github.com/mwat56/go-blog
 
 ## Usage
 
