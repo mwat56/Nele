@@ -1,0 +1,22 @@
+{{- define "index" -}}
+{{template "htmlpage" .}}
+{{- end -}}
+
+{{- define "bodypage" -}}
+{{if isPostlist $.Postings -}}
+<dl class="posting">
+	{{- $lastDate := change -}}
+	{{- range $i, $post := $.Postings -}}
+		{{if lt 0 $i -}}
+			{{$date := $post.Date -}}
+			{{if $lastDate.Changed $date -}}
+				<dt>{{$date}}</dt>
+			{{- end -}}
+			{{$ID := postID $post -}}
+			<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}">[*]</a>
+			{{- postText $post -}}</dd>
+		{{- end -}}
+	{{- end -}}
+</dl>
+{{- end -}}
+{{- end -}}

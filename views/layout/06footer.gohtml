@@ -1,0 +1,27 @@
+{{- define "footer" -}}
+	<footer><p><small>
+	{{- $lang := "de" -}}
+	{{- if .Lang}}{{$lang = .Lang}}{{ end -}}
+	{{- $monthURL := monthURL -}}
+	{{- $weekURL := weekURL -}}
+	{{- if eq $lang "de" -}}
+		– <a href="/">Startseite</a>
+		– <a href="{{$weekURL}}" title="laufende Woche">Woche</a>
+		– <a href="{{$monthURL}}" title="laufender Monat">Monat</a>
+		– <a href="/imprint/">Impressum</a>
+		– <a href="/privacy/">Datenschutz</a>
+		– <a href="/faq/">FAQ</a>
+		– <a href="/licence/">Lizenz</a>
+		–
+	{{- else -}}
+		– <a href="/">Startpage</a>
+		– <a href="{{$weekURL}}" title="current week">Week</a>
+		– <a href="{{$monthURL}}" title="current month">Month</a>
+		– <a href="/imprint/">Imprint</a>
+		– <a href="/privacy/">Privacy</a>
+		– <a href="/faq/">FAQ</a>
+		– <a href="/licence/">Licence</a>
+		–
+	{{- end -}}
+	</small></p></footer>
+{{- end -}}

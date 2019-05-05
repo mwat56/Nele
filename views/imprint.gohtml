@@ -1,0 +1,15 @@
+{{- define "imprint" -}}
+{{template "htmlpage" .}}
+{{- end -}}
+
+{{- define "bodypage" -}}
+	{{- $lang := "de" -}}
+	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+	{{- if eq $lang "de" -}}
+		<h2>Impressum</h2>
+
+	{{- else -}}
+		<h2>Imprint</h2>
+
+	{{- end -}}
+{{- end -}}

@@ -1,0 +1,10 @@
+*~
+*.db
+.git/
+*.ini
+*.log
+postings/
+TODO*
+.vscode/
+addTest.md
+Markdown_Syntax.*

@@ -1,0 +1,6 @@
+{{- define "htmlhead" -}}
+	<title>{{- if .Title}}{{.Title}}{{end -}}</title>
+	{{- if .CSS}}{{.CSS}}{{end -}}
+	{{- if .Robots}}<meta name="robots" content="{{.Robots}}">{{end -}}
+	{{- if .Script}}{{.Script}}{{end -}}
+{{- end -}}

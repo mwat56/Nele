@@ -1,0 +1,9 @@
+{{- define "error" -}}
+{{template "htmlpage" .}}
+{{- end -}}
+
+{{- define "bodypage" -}}
+{{- if .Error -}}
+<h3>{{.Error}}</h3>
+{{- end -}}
+{{- end -}}

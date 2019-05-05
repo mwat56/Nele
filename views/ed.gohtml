@@ -1,0 +1,22 @@
+{{- define "ed" -}}
+{{template "htmlpage" .}}
+{{- end -}}
+
+{{- define "bodypage" -}}
+	{{- if .Manuscript -}}
+		{{- $lang := "de" -}}
+		{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+		<form method="post" action="{{.BackURL}}">
+			<textarea id="manuscript" name="manuscript">{{.Manuscript}}</textarea>
+			<p class="right">
+			{{- if eq $lang "de" -}}
+				<input type="reset" name="reset" title="" value=" Zurücksetzen "> &nbsp;
+				<input type="submit" name="submit" title="" value=" Speichern ">
+			{{- else -}}
+				<input type="reset" name="reset" title="" value=" Reset "> &nbsp;
+				<input type="submit" name="submit" title="" value=" Save ">
+			{{- end -}}
+			</p>
+		</form>
+	{{- end -}}
+{{- end -}}
