@@ -1,10 +1,12 @@
 *~
+addTest.md
+blog
 *.db
 .git/
 *.ini
 *.log
+Markdown_Syntax.*
+md2htm
 postings/
 TODO*
 .vscode/
-addTest.md
-Markdown_Syntax.*
