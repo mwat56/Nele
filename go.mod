@@ -8,9 +8,7 @@ require (
 	github.com/mwat56/go-ini v0.0.0-20190504160039-e4168b397c01
 	github.com/mwat56/go-passlist v0.0.0-20190505110607-f1be27ce6ce3
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
-	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 )
-
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1

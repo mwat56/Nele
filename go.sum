@@ -6,6 +6,7 @@ github.com/mwat56/go-ini v0.0.0-20190504160039-e4168b397c01 h1:GC5ZAYcAF5E64Oa9q
 github.com/mwat56/go-ini v0.0.0-20190504160039-e4168b397c01/go.mod h1:/odwG1ZML10LavEamjuq+NdwEWBgEwsGY7ki4A104fU=
 github.com/mwat56/go-passlist v0.0.0-20190505110607-f1be27ce6ce3 h1:4g3+kxh9Tu0l6RU6mT0BlIRRaPDGyJWqmkuxddCEkKk=
 github.com/mwat56/go-passlist v0.0.0-20190505110607-f1be27ce6ce3/go.mod h1:UZlnjNt2BkpJxXg1p7jpwS1g/ZXwM7Xq9qzib+tJSfA=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
