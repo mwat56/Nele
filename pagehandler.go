@@ -1,7 +1,7 @@
 /*
-    Copyright © 2019 M.Watermann, 10247 Berlin, Germany
-                All rights reserved
-            EMail : <support@mwat.de>
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+               All rights reserved
+           EMail : <support@mwat.de>
 */
 
 package blog
@@ -28,17 +28,30 @@ import (
 type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
-		addr    string       // listen address ("1.2.3.4:5678")
-		basedir string       // base of directories holding the posts
-		css     http.Handler // static CSS files
-		img     http.Handler // static image files
-		// js       http.Handler        // static JS files
+		addr     string              // listen address ("1.2.3.4:5678")
+		basedir  string              // base of directories holding the posts
+		cssD     string              // configured CSS directory
+		cssH     http.Handler        // static CSS file handler
+		imgD     string              // configured image directopry
+		imgH     http.Handler        // static image file handler
+		jsD      string              // configured JavaScript directory
+		jsH      http.Handler        // static JS files
 		lang     string              // default language
 		realm    string              // host/domain to secure by BasicAuth
-		// robots   bool                // whether to handle web-crawlers
-		static   http.Handler        // other static files
+		staticD  string              // configured static directory
+		staticH  http.Handler        // other static files
 		ul       *passlist.TPassList // user/password list
 		viewList *TViewList
+	}
+
+	tBoolMap map[bool]string
+)
+
+var (
+	// simple lookup table for daily changing style sheets
+	styles = tBoolMap{
+		true:  "light",
+		false: "dark",
 	}
 )
 
@@ -49,8 +62,10 @@ func (ph *TPageHandler) Address() string {
 
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TDataList {
+	day := time.Now().Day()
+	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, styles[1 == day&1])
 	pageData := NewDataList().
-		Add("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" />`)).
+		Add("CSS", template.HTML(css)).
 		Add("Lang", ph.lang).
 		Add("Robots", "index,follow")
 
@@ -103,9 +118,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Add("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
 
-	case "css":
-		aRequest.URL.Path = tail
-		ph.css.ServeHTTP(aWriter, aRequest)
+	case ph.cssD:
+		if 0 < len(tail) {
+			aRequest.URL.Path = tail
+		}
+		ph.cssH.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 < len(tail) {
@@ -142,25 +159,26 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "faq", "faq.html":
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
-	case "img", "favicon.ico":
+	case ph.imgD, "favicon.ico":
 		if 0 < len(tail) {
 			aRequest.URL.Path = tail
 		}
-		ph.img.ServeHTTP(aWriter, aRequest)
+		ph.imgH.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "imprint.html":
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
-		http.Redirect(aWriter, aRequest, "/", http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+
+	case ph.jsD:
+		if 0 < len(tail) {
+			aRequest.URL.Path = tail
+		}
+		ph.jsH.ServeHTTP(aWriter, aRequest)
 
 	case "licence", "license":
 		ph.viewList.Render("licence", aWriter, pageData.Add("Lang", "en"))
-
-		/*
-			case "js":
-				ph.js.ServeHTTP(aWriter, aRequest)
-		*/
 
 	case "m": // handle a given month
 		if 0 < len(tail) {
@@ -234,6 +252,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			return
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+
+	case ph.staticD:
+		if 0 < len(tail) {
+			aRequest.URL.Path = tail
+		}
+		ph.staticH.ServeHTTP(aWriter, aRequest)
 
 	case "w": // handle a given week
 		if 0 < len(tail) {
@@ -415,19 +439,20 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("css"); nil != err {
 		return nil, err
 	}
-	result.css = http.FileServer(http.Dir(s))
+	result.cssD = filepath.Base(s)
+	result.cssH = http.FileServer(http.Dir(s))
 
 	if s, err = AppArguments.Get("img"); nil != err {
 		return nil, err
 	}
-	result.img = http.FileServer(http.Dir(s))
+	result.imgD = filepath.Base(s)
+	result.imgH = http.FileServer(http.Dir(s))
 
-	/*
-		if s, err = AppArguments.Get("jsdir"); nil != err {
-			return nil, err
-		}
-		result.js = http.FileServer(http.Dir(s))
-	*/
+	if s, err = AppArguments.Get("js"); nil != err {
+		return nil, err
+	}
+	result.jsD = filepath.Base(s)
+	result.jsH = http.FileServer(http.Dir(s))
 
 	if s, err = AppArguments.Get("lang"); nil == err {
 		result.lang = s
@@ -459,16 +484,11 @@ func NewPageHandler() (*TPageHandler, error) {
 		result.realm = s
 	}
 
-/*
-	if s, err = AppArguments.Get("robots"); nil == err {
-		result.robots = ("true" == s)
-	}
- */
-
-	if s, err = AppArguments.Get("staticdir"); nil != err {
+	if s, err = AppArguments.Get("static"); nil != err {
 		return nil, err
 	}
-	result.static = http.FileServer(http.Dir(s))
+	result.staticD = filepath.Base(s)
+	result.staticH = http.FileServer(http.Dir(s))
 
 	if s, err = AppArguments.Get("tpldir"); nil != err {
 		return nil, err
