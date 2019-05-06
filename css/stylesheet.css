@@ -2,13 +2,15 @@
 * http://meyerweb.com/eric/thoughts/2007/04/18/reset-reasoning/
 */
 html,body,a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video {
-margin:0;padding:0;border:0;
-/*color:#000; /* */
-color:#fffff0;
-font:inherit;font-size:100%;font-weight:normal;line-height:1.3;vertical-align:baseline; }
+margin:0;
+padding:0;
+border:0;
+font:inherit;
+font-size:100%;
+font-weight:normal;
+line-height:1.3;
+vertical-align:baseline; }
 article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section { display:block; }
-/*body { background:#fffffc; } /* */
-body { background:#090900; color: #fffff0;}
 ol,ul { list-style:none; }
 blockquote,q { quotes:none; }
 blockquote:before,blockquote:after,q:before,q:after { content:none; }
@@ -16,22 +18,14 @@ table { border-collapse:collapse;border-spacing:0.1ex; }
 
 /* individual site styles */
 html, body {
-	font-size: 12pt;
+	font-size: 13pt;
 	font-family: serif, sans-serif, monospace;
 }
 a:link, a[href] {
-	/*color: #03c; /* */
-	color: #06f;
 	text-decoration: none;
 }
 a:hover {
-	/*color: #c30;/* */
-	color: #cc0;
 	text-decoration: underline;
-}
-a:visited {
-	/*color: #630;/* */
-	color: #f30;
 }
 a.idlink {
 	color: inherit;
@@ -73,8 +67,6 @@ br, div {
 	text-indent: 0;
 }
 code, .code, kbd, pre, tt, xmp {
-	/*background-color:#f0f0f0;/* */
-	background-color:#333;
 	color: inherit;
 	font-family: monospace;
 	font-size: 0.987em;
@@ -84,14 +76,10 @@ code, .code, kbd, pre, tt, xmp {
 	padding: 0.1ex 0.3ex;
 	white-space: normal;
 }
-del {
-	/*color: #666;/* */
-	color: #999;
-}
 dl,
 ol,
 ul {
-	font-family: serif;
+	/*font-family: serif;	/* */
 	font-size: 1em;
 	margin: 1ex 0 1ex 1ex;
 	page-break-before: avoid;
@@ -117,9 +105,7 @@ dl.posting dt {
 	max-width: 98%;
 }
 dl.posting dd {
-	background: #131316;
-/*	border: thin solid #fcfcfc;/* */
-	border: thin solid #131310;
+	border-radius: 1ex;
 	margin: 1ex 0 2ex 0;
 	max-height: 78ex;
 	max-width: 98%;
@@ -133,7 +119,6 @@ i, .italic {
 	font-style: italic;
 }
 footer {
-	border-top: thin solid #ccc;
 	margin: 1em 1ex 0 1ex;
 }
 footer, footer p {
@@ -141,9 +126,7 @@ footer, footer p {
 }
 h1, h2, h3, h4, h5, h6 {
 	border: 0;
-	/*color: #033;/* */
-	color: #ffeedd;
-	font-family: sans-serif, monospace;
+	/* font-family: sans-serif, monospace; /* */
 	font-weight: 600;
 	margin-top: 1em;
 	margin-right: auto;
@@ -166,15 +149,11 @@ h4 {
 h3 {
 	font-size: 1.3em;
 	letter-spacing: 0.1ex;
-	/*text-shadow: 0.05ex 0.05ex 0.09ex #666;/* */
-	text-shadow: -0.1ex -0.1ex 0.02ex #fff;
 }
 h2 {
 	font-size: 1.6em;
 	letter-spacing: 0.2ex;
 	margin-bottom: 1.1em;
-	/*text-shadow: 0.05ex 0.05ex 0.1ex #666;/* */
-	text-shadow: -0.1ex -0.1ex 0.02ex #fff;
 }
 h1 {
 	font-size: 1.9em;
@@ -182,23 +161,16 @@ h1 {
 	margin-top: 1.4em;
 	margin-bottom: 1.2em;
 	page-break-before: always;
-	/*text-shadow: 0.06ex 0.06ex 0.3ex #666;/* */
-	text-shadow: -0.1ex -0.1ex 0.02ex #fff;
 }
 header {
-	border-bottom: thin solid #ccc;
-	margin: 0 1ex 1em 1ex;
+	margin: 0 1ex 1em 0;
 	text-align: right;
 }
 hr {
-	/*border-color: #ccc;/* */
-	border-color: #ffc;
 	border-style: inset;
 	/* remove all borders except the top one: */
 	border-width: 1pt 0 0 0;
 	clear: both;
-	/*color: #999;/* */
-	color: #ccc;
 	display: block;
 	max-height: 1pt;
 	max-width: 46%;
@@ -244,9 +216,6 @@ blockquote p {
 }
 
 pre, xmp {
-	/*background-color: #f0f0f0;/* */
-	/*border-left: thin solid #999;/* */
-	border-left: thin solid #666;
 	display: block;
 	font-family: monospace;
 	font-size: 88%;
@@ -259,7 +228,7 @@ pre, xmp {
 	text-align: left;
 	text-indent: 0;
 	white-space: pre-wrap;
-	max-width: 90ex;
+	/* max-width: 90ex;	/* */
 }
 pre + p {
 	text-indent: 0;
@@ -288,7 +257,7 @@ ul li {
 	margin-left: 2.6ex; /* matching P text-indent */
 }
 #bodypage {
-	margin: 1ex;
+	margin: 1ex 0;
 	min-height: 3em;
 }
 #main {
@@ -322,14 +291,11 @@ a.idlink {
 	margin-right: 1ex;
 }
 p.matches {
-	/*background: #f9f9f0;/* */
-	background: #333;
-	/*border: thin solid #eeeeee;/* */
-	border: thin solid #666;
-	clear: right;	/* */
-	float: right;	/* */
+	border-radius: 1ex;
+	clear: right;
+	float: right;
 	font-style: italic;
-	margin: 0 0 -2ex 0;
-	padding: 0.3ex 1ex 0.3ex 0;
+	margin: -1ex 1ex 0 0;
+	padding: 0.5ex 2ex 0.5ex 0;
 }
 /* _EoF_ */
