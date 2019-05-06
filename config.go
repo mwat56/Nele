@@ -1,7 +1,7 @@
 /*
-    Copyright © 2019 M.Watermann, 10247 Berlin, Germany
-                All rights reserved
-            EMail : <support@mwat.de>
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+               All rights reserved
+           EMail : <support@mwat.de>
 */
 
 package blog
@@ -85,8 +85,8 @@ func initArguments() {
 		data.AddSectionKey("", "inifile", defIniFile)
 		// s, _ = filepath.Abs("./intl.ini")
 		// data.AddSectionKey("", "intl", s)
-		// s, _ = filepath.Abs("./js/")
-		// data.AddSectionKey("", "jsdir", s)
+		s, _ = filepath.Abs("./js/")
+		data.AddSectionKey("", "js", s)
 		data.AddSectionKey("", "lang", "de")
 		data.AddSectionKey("", "listen", "127.0.0.1")
 		data.AddSectionKey("", "logfile", "")
@@ -95,8 +95,8 @@ func initArguments() {
 		s, _ = filepath.Abs("./postings/")
 		data.AddSectionKey("", "postdir", s)
 		data.AddSectionKey("", "realm", "")
-		// s, _ = filepath.Abs("./static/")
-		// data.AddSectionKey("", "staticdir", s)
+		s, _ = filepath.Abs("./static/")
+		data.AddSectionKey("", "static", s)
 		s, _ = filepath.Abs("./views/")
 		data.AddSectionKey("", "tpldir", s)
 	}
@@ -123,12 +123,10 @@ func initArguments() {
 	flag.StringVar(&iniStr, "ini", iniStr,
 		"<fileName> the path/filename of the INI file\n")
 
-	/*
-		s, _ = defaults.AsString("jsdir")
-		jsStr, _ := filepath.Abs(s)
-		flag.StringVar(&jsStr, "jsdir", jsStr,
-			"<dirName> the directory with JavaScript\n")
-	*/
+	s, _ = defaults.AsString("js")
+	jsStr, _ := filepath.Abs(s)
+	flag.StringVar(&jsStr, "js", jsStr,
+		"<dirName> the directory with JavaScript\n")
 
 	langStr, _ := defaults.AsString("lang")
 	flag.StringVar(&langStr, "lang", langStr,
@@ -141,6 +139,12 @@ func initArguments() {
 	logStr, _ := defaults.AsString("logfile")
 	flag.StringVar(&logStr, "log", logStr,
 		"(optional) name of the logfile to write to\n")
+
+	/*
+		ndBool := false
+		flag.BoolVar(&ndBool, "nd", ndBool,
+			"(optional) no daemon: whether daemonise the program")
+	*/
 
 	portInt, _ := defaults.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
@@ -164,12 +168,10 @@ func initArguments() {
 	flag.StringVar(&realStr, "realm", realStr,
 		"(optional) <hostName> name of host/domain to secure by BasicAuth\n")
 
-	/*
-		s, _ = defaults.AsString("staticdir")
-		stcStr, _ := filepath.Abs(s)
-		flag.StringVar(&stcStr, "static", stcStr,
-			"<dirName> the directory with static files\n")
-	*/
+	s, _ = defaults.AsString("static")
+	stcStr, _ := filepath.Abs(s)
+	flag.StringVar(&stcStr, "static", stcStr,
+		"<dirName> the directory with static files\n")
 
 	s, _ = defaults.AsString("tpldir")
 	tplStr, _ := filepath.Abs(s)
@@ -230,12 +232,10 @@ func initArguments() {
 			AppArguments.add("intl", intlStr)
 	*/
 
-	/*
-		if 0 == len(jsStr) {
-			jsStr, _ = filepath.Abs(jsStr)
-		}
-			AppArguments.add("jsdir", jsStr)
-	*/
+	if 0 < len(jsStr) {
+		jsStr, _ = filepath.Abs(jsStr)
+	}
+	AppArguments.add("js", jsStr)
 
 	if 0 == len(langStr) {
 		langStr = "en"
@@ -252,6 +252,13 @@ func initArguments() {
 		AppArguments.add("logfile", logStr)
 	}
 
+	/*
+		if ndBool {
+			s = fmt.Sprintf("%v", ndBool)
+			AppArguments.add("nd", s)
+		}
+	*/
+
 	portStr = fmt.Sprintf("%d", portInt)
 	AppArguments.add("port", portStr)
 
@@ -265,15 +272,15 @@ func initArguments() {
 		AppArguments.add("pf", pfStr)
 	}
 
-	postStr, _ = filepath.Abs(postStr)
+	if 0 < len(postStr) {
+		postStr, _ = filepath.Abs(postStr)
+	}
 	AppArguments.add("postdir", postStr)
 
-	/*
-		if 0 < len(stcStr) {
-			stcStr, _ = filepath.Abs(stcStr)
-		}
-		AppArguments.add("staticdir", stcStr)
-	*/
+	if 0 < len(stcStr) {
+		stcStr, _ = filepath.Abs(stcStr)
+	}
+	AppArguments.add("static", stcStr)
 
 	if 0 < len(tplStr) {
 		tplStr, _ = filepath.Abs(tplStr)
