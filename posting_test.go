@@ -1,8 +1,6 @@
 package blog
 
 import (
-	"fmt"
-	"html/template"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -385,7 +383,7 @@ func TestTPosting_Clear(t *testing.T) {
 	md2 := []byte("Oh dear! This is a posting.")
 	p2 := newPosting(bd, id).Set(md2)
 	p3 := newPosting(bd, id)
-	p3.Set(md2).Posting() // force generating of HTML property
+	p3.Set(md2).Markdown()
 
 	type fields struct {
 		p *TPosting
@@ -437,7 +435,7 @@ func TestTPosting_clone(t *testing.T) {
 		})
 	}
 } // TestTPosting_clone()
-
+/*
 func TestTPosting_Posting(t *testing.T) {
 	bd, _ := filepath.Abs("/tmp/postings/")
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
@@ -476,7 +474,7 @@ func TestTPosting_Posting(t *testing.T) {
 		})
 	}
 } // TestTPosting_Posting()
-
+*/
 func TestTPosting_Set(t *testing.T) {
 	bd, _ := filepath.Abs("/tmp/postings/")
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
