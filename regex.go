@@ -14,11 +14,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	blackfriday "github.com/russross/blackfriday/v2"
@@ -324,9 +324,12 @@ var (
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
 // `rPath` holds the remaining part of `aURL`.
 //
-// Depending on the actual value of `aURL` both return values might be empty
-// or both may be filled. None of both will hold a leading slash.
+// Depending on the actual value of `aURL` both return values may be
+// empty or both may be filled; none of both will hold a leading slash.
 func URLparts(aURL string) (rDir, rPath string) {
+	if result, err := url.QueryUnescape(aURL); nil == err {
+		aURL = result
+	}
 	matches := routeRE.FindStringSubmatch(aURL)
 	if 2 < len(matches) {
 		return matches[1], matches[2]
@@ -334,40 +337,5 @@ func URLparts(aURL string) (rDir, rPath string) {
 
 	return aURL, ""
 } // URLparts()
-
-// var (
-// 	routeRE2 = regexp.MustCompile("^/([\\w\\._-]+)?(/[\\w\\._-]*)?(\\?[=\\w\\._-]+)?")
-// )
-//
-// // URLpath2 is a testing proc
-// func URLpath2(aURL string) (rHead, rTail, rQuery string) {
-// 	matches := routeRE2.FindStringSubmatch(aURL)
-// 	rHead = matches[1]
-// 	rTail = matches[2]
-// 	rQuery = matches[3]
-//
-// 	return
-// } // URLpath()
-
-// ShiftPath splits off the first component of p, which will be
-// cleaned of relative components before processing.
-//
-// `rHead` will never contain a slash and `rTail` will always
-// be a rooted path without trailing slash.
-//
-// see https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html
-func ShiftPath(aPath string) (rHead, rTail string) {
-	aPath = path.Clean("/" + aPath)
-	i := strings.Index(aPath[1:], "/") + 1
-	if 0 > i {
-		return aPath[1:], "/"
-	}
-	if 0 == i {
-		return "", aPath[i:]
-
-	}
-
-	return aPath[1:i], aPath[i:]
-} // ShiftPath()
 
 /* _EoF_ */

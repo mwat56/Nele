@@ -97,38 +97,6 @@ func TestSearchPostings(t *testing.T) {
 	}
 } // TestSearchPostings()
 
-/*
-func TestURLpath(t *testing.T) {
-	type args struct {
-		aURL string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		// TODO: Add test cases.
-		{" 1", args{"/"}, "/"},
-		{" 2", args{"/css"}, "css"},
-		{" 2a", args{"css"}, "css"},
-		{" 3", args{"/css/styles.css"}, "css/"},
-		{" 3a", args{"css/styles.css"}, "css/"},
-		{" 4", args{"/?q=searchterm"}, "/"},
-		{" 5", args{"/article/abcdef1122334455"}, "article/"},
-		{" 6", args{"/q/searchterm"}, "q/"},
-		{" 7", args{"/q/search?s=term"}, "q/"},
-		{" 7a", args{"q/search?s=term"}, "q/"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := urlPath0(tt.args.aURL); got != tt.want {
-				t.Errorf("URLpath() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-} // TestURLpath()
-*/
-
 func TestURLparts(t *testing.T) {
 	type args struct {
 		aURL string
@@ -168,79 +136,6 @@ func TestURLparts(t *testing.T) {
 	}
 } // TestURLparts()
 
-// func TestURLpath2(t *testing.T) {
-// 	type args struct {
-// 		aURL string
-// 	}
-// 	tests := []struct {
-// 		name       string
-// 		args       args
-// 		wantRHead  string
-// 		wantRTail  string
-// 		wantRQuery string
-// 	}{
-// 		// TODO: Add test cases.
-// 		{" 1", args{"/"}, "", "", ""},
-// 		{" 2", args{"/css"}, "css", "", ""},
-// 		{" 3", args{"/css/styles.css"}, "css", "/styles.css", ""},
-// 		{" 4", args{"/?q=searchterm"}, "", "", "?q=searchterm"},
-// 		{" 5", args{"/article/abcdef1122334455"},
-// 			"article", "/abcdef1122334455", ""},
-// 		{" 6", args{"/q/searchterm"}, "q", "/searchterm", ""},
-// 		{" 7", args{"/q/search?s=term"}, "q", "/search", "?s=term"},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			gotRHead, gotRTail, gotRQuery := URLpath2(tt.args.aURL)
-// 			if gotRHead != tt.wantRHead {
-// 				t.Errorf("URLpath2() gotRHead = {%v}, want {%v}", gotRHead, tt.wantRHead)
-// 			}
-// 			if gotRTail != tt.wantRTail {
-// 				t.Errorf("URLpath2() gotRTail = {%v}, want {%v}", gotRTail, tt.wantRTail)
-// 			}
-// 			if gotRQuery != tt.wantRQuery {
-// 				t.Errorf("URLpath2() gotRQuery = {%v}, want {%v}", gotRQuery, tt.wantRQuery)
-// 			}
-// 		})
-// 	}
-// } // TestURLpath2()
-
-func TestShiftPath(t *testing.T) {
-	type args struct {
-		aPath string
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantRHead string
-		wantRTail string
-	}{
-		// TODO: Add test cases.
-		{" 1", args{"/"}, "", "/"},
-		{" 2", args{"css"}, "", "/css"},
-		{" 3", args{"/css/styles.css"}, "css", "/styles.css"},
-		{" 3a", args{"css/styles.css"}, "css", "/styles.css"},
-		{" 4", args{"/?q=searchterm"}, "", "/?q=searchterm"},
-		{" 4a", args{"?q=searchterm"}, "", "/?q=searchterm"},
-		{" 5", args{"/article/abcdef1122334455"},
-			"article", "/abcdef1122334455"},
-		{" 6", args{"/q/searchterm"}, "q", "/searchterm"},
-		{" 6a", args{"q/searchterm"}, "q", "/searchterm"},
-		{" 7", args{"/q/search?s=term"}, "q", "/search?s=term"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotRHead, gotRTail := ShiftPath(tt.args.aPath)
-			if gotRHead != tt.wantRHead {
-				t.Errorf("ShiftPath() gotRHead = {%v}, want {%v}", gotRHead, tt.wantRHead)
-			}
-			if gotRTail != tt.wantRTail {
-				t.Errorf("ShiftPath() gotRTail = {%v}, want {%v}", gotRTail, tt.wantRTail)
-			}
-		})
-	}
-} // TestShiftPath()
-
 func BenchmarkMDtoHTML(b *testing.B) {
 	page, _ := ioutil.ReadFile("./Markdown_Syntax.md")
 	// page, _ := ioutil.ReadFile("./TODO.md")
@@ -252,34 +147,6 @@ func BenchmarkMDtoHTML(b *testing.B) {
 		}
 	}
 } // BenchmarkMDtoHTML()
-
-/*
-func BenchmarkMDtoHTv1(b *testing.B) {
-	page, _ := ioutil.ReadFile("./Markdown_Syntax.md")
-	// page, _ := ioutil.ReadFile("./TODO.md")
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		if html := MDtoHTv1(page); nil == html {
-			continue
-		}
-	}
-} // BenchmarkMDtoHTv1()
-*/
-
-/*
-func BenchmarkMDtoHTv0(b *testing.B) {
-	page, _ := ioutil.ReadFile("./Markdown_Syntax.md")
-	// page, _ := ioutil.ReadFile("./TODO.md")
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		if html := MDtoHTv0(page); nil == html {
-			continue
-		}
-	}
-} // BenchmarkMDtoHTv0()
-*/
 
 func Test_getHMS(t *testing.T) {
 	type args struct {
