@@ -14,8 +14,7 @@
 			</dl>
 		{{- end -}}
 	{{- else -}}
-		{{- if isPostlist $.Postings}}{{$posting := index $.Postings 1 -}}
-		<!-- in this template we accept only the second (i.e. index 1) -->
+		{{- if isPostlist $.Postings}}{{$posting := index $.Postings 0 -}}
 			<dl class="posting"><dt>{{- $posting.Date -}}</dt>
 				{{- $ID := $posting.ID -}}
 				<dd><a class="idlink" href="{{postWeekURL $posting}}/#p{{$ID}}">[*]</a>
