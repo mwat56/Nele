@@ -178,7 +178,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.jsH.ServeHTTP(aWriter, aRequest)
 
 	case "licence", "license":
-		ph.viewList.Render("licence", aWriter, pageData.Add("Lang", "en"))
+		ph.viewList.Render("licence", aWriter, pageData)
 
 	case "m": // handle a given month
 		if 0 < len(tail) {
@@ -191,7 +191,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
-		http.Redirect(aWriter, aRequest, "/", http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "n": // handle newest postings
 		num := 20

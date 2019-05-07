@@ -201,7 +201,7 @@ func initArguments() {
 
 	uuStr := ""
 	flag.StringVar(&uuStr, "uu", uuStr,
-		"<userName> (optional) user update: update a username from the password file")
+		"<userName> (optional) user update: update a username in the password file")
 
 	flag.Usage = ShowHelp
 	flag.Parse()

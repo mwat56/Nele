@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/russross/blackfriday/v2"
+	blackfriday "github.com/russross/blackfriday/v2"
 	// "gopkg.in/russross/blackfriday.v2"
 )
 

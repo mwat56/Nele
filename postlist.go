@@ -1,7 +1,7 @@
 /*
-    Copyright © 2019  M.Watermann, 10247 Berlin, Germany
-                All rights reserved
-            EMail : <support@mwat.de>
+   Copyright © 2019  M.Watermann, 10247 Berlin, Germany
+               All rights reserved
+           EMail : <support@mwat.de>
 */
 
 package blog
@@ -184,7 +184,7 @@ func (pl *TPostList) Newest(aNumber int) error {
 	for _, dirname := range dirnames {
 		filesnames, err := filepath.Glob(dirname + "/*.md")
 		if nil != err {
-			return err
+			continue // it might be a file (not a directory) …
 		}
 		if 0 >= len(filesnames) {
 			continue // skip empty directory
