@@ -5,7 +5,8 @@ import (
 )
 
 func TestNewPageHandler(t *testing.T) {
-	prepareTestFiles("./postings/")
+	PostingBaseDirectory = "/tmp/postings/"
+	prepareTestFiles( /* "./postings/" */ )
 	tests := []struct {
 		name    string
 		want    int

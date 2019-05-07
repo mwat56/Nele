@@ -28,8 +28,8 @@ import (
 type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
-		addr     string              // listen address ("1.2.3.4:5678")
-		basedir  string              // base of directories holding the posts
+		addr string // listen address ("1.2.3.4:5678")
+		// basedir  string              // base of directories holding the posts
 		cssD     string              // configured CSS directory
 		cssH     http.Handler        // static CSS file handler
 		imgD     string              // configured image directopry
@@ -144,7 +144,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "e", "ep": // edit a single posting
 		if 0 < len(tail) {
-			p := newPosting(ph.basedir, tail)
+			p := newPosting( /* ph.basedir, */ tail)
 			txt := p.Markdown()
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
@@ -184,7 +184,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "m": // handle a given month
 		if 0 < len(tail) {
 			y, m, _ := getYMD(tail)
-			pl := NewPostList(ph.basedir).Month(y, m)
+			pl := NewPostList( /* ph.basedir */ ).Month(y, m)
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
@@ -202,7 +202,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				num = 20
 			}
 		}
-		pl := NewPostList(ph.basedir)
+		pl := NewPostList( /* ph.basedir */ )
 		pl.Newest(num) // ignore fs errors here
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,follow").
@@ -211,7 +211,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "p": // handle a single posting
 		if 0 < len(tail) {
-			p := newPosting(ph.basedir, tail)
+			p := newPosting( /* ph.basedir, */ tail)
 			if err := p.Load(); nil == err {
 				pageData = check4lang(pageData, aRequest).
 					Set("Postings", p)
@@ -229,7 +229,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "r", "rp": // remove posting
 		if 0 < len(tail) {
-			p := newPosting(ph.basedir, tail)
+			p := newPosting( /* ph.basedir, */ tail)
 			txt := p.Markdown()
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
@@ -244,7 +244,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
-			pl := SearchPostings(ph.basedir, regexp.QuoteMeta(tail))
+			pl := SearchPostings(PostingBaseDirectory, regexp.QuoteMeta(tail))
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
@@ -263,7 +263,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "w": // handle a given week
 		if 0 < len(tail) {
 			y, m, d := getYMD(tail)
-			pl := NewPostList(ph.basedir).Week(y, m, d)
+			pl := NewPostList( /* ph.basedir */ ).Week(y, m, d)
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
@@ -303,7 +303,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	case "a", "ap": // add a new post
 		m := replCRLF([]byte(aRequest.FormValue("manuscript")))
 		if 0 < len(m) {
-			p := NewPosting(ph.basedir)
+			p := NewPosting( /* ph.basedir */ )
 			p.Set(m)
 			if _, err := p.Store(); nil != err {
 				err = nil //TODO better error handling
@@ -315,7 +315,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case "d", "dp": // change date
 		if 0 < len(tail) {
-			op := newPosting(ph.basedir, tail)
+			op := newPosting( /* ph.basedir, */ tail)
 			t := op.Time()
 			y, mo, d := t.Date()
 			if ymd := aRequest.FormValue("ymd"); 0 < len(ymd) {
@@ -330,13 +330,13 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			opn := op.PathFileName()
 			t = time.Date(y, mo, d, h, mi, s, n, time.Local)
-			np := newPosting(ph.basedir, newID(t))
+			np := newPosting( /* ph.basedir, */ newID(t))
 			npn := np.PathFileName()
 			if err := os.Rename(opn, npn); nil != err {
 				log.Printf("handlePost(d): %v\n", err)
 				//TODO better error handling
 			}
-			tail = strings.TrimPrefix(npn, ph.basedir+"/")
+			tail = strings.TrimPrefix(npn, PostingBaseDirectory /* ph.basedir */ +"/")
 			// remove leading directory and trailing extension:
 			tail = tail[4:len(tail)-3] +
 				fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
@@ -350,7 +350,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 < len(tail) {
 			var old []byte
 			m := replCRLF([]byte(aRequest.FormValue("manuscript")))
-			p := newPosting(ph.basedir, tail)
+			p := newPosting( /* ph.basedir, */ tail)
 			if err := p.Load(); nil == err {
 				old = p.Markdown()
 			}
@@ -368,7 +368,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case "r", "rp": // remove posting
 		if 0 < len(tail) {
-			p := newPosting(ph.basedir, tail)
+			p := newPosting( /* ph.basedir, */ tail)
 			tail = p.Date()
 			if err := p.Delete(); nil != err {
 				log.Printf("handlePost(r): %v\n", err)
@@ -475,12 +475,12 @@ func NewPageHandler() (*TPageHandler, error) {
 			result.ul = nil
 		}
 	}
-
-	if s, err = AppArguments.Get("postdir"); nil != err {
-		return nil, err
-	}
-	result.basedir = s
-
+	/*
+		if s, err = AppArguments.Get("postdir"); nil != err {
+			return nil, err
+		}
+		result.basedir = s
+	*/
 	if s, err = AppArguments.Get("realm"); nil == err {
 		result.realm = s
 	}

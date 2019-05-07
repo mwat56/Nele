@@ -275,7 +275,8 @@ func initArguments() {
 	if 0 < len(postStr) {
 		postStr, _ = filepath.Abs(postStr)
 	}
-	AppArguments.add("postdir", postStr)
+	// AppArguments.add("postdir", postStr)
+	PostingBaseDirectory = postStr
 
 	if 0 < len(stcStr) {
 		stcStr, _ = filepath.Abs(stcStr)

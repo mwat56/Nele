@@ -60,8 +60,9 @@ func TestRemoveWhiteSpace(t *testing.T) {
 } // TestRemoveWhiteSpace()
 
 func TestSearchPostings(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
-	prepareTestFiles(bd)
+	PostingBaseDirectory = "/tmp/postings/"
+	bd, _ := filepath.Abs(PostingBaseDirectory)
+	prepareTestFiles( /* bd */ )
 	type args struct {
 		aBaseDir string
 		aText    string

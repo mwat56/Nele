@@ -232,7 +232,7 @@ func replCRLF(aText []byte) []byte {
 // or (c) no files matched `aText`.
 func SearchPostings(aBaseDir, aText string) *TPostList {
 	bd, _ := filepath.Abs(aBaseDir)
-	pl := NewPostList(bd)
+	pl := NewPostList( /* bd */ )
 
 	// search := fmt.Sprintf("(?si)%s", regexp.QuoteMeta(string(aText)))
 	// pattern, err := regexp.Compile(fmt.Sprintf("(?si)%s", search))
@@ -254,7 +254,7 @@ func SearchPostings(aBaseDir, aText string) *TPostList {
 			continue
 		}
 		id := path.Base(fName)
-		p := newPosting(bd, id[:len(id)-3]) // exclude file extension
+		p := newPosting( /* bd,  */ id[:len(id)-3]) // exclude file extension
 		pl.Add(p.Set(fTxt))
 	}
 

@@ -1,7 +1,6 @@
 package blog
 
 import (
-	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -71,17 +70,17 @@ end tell
 } // Test_md2ht()
 
 func Test_newPost(t *testing.T) {
+	PostingBaseDirectory = "/tmp/postings/"
 	var bs []byte
 	id1 := "12345678"
-	bd, _ := filepath.Abs("./postings")
 	rp1 := &TPosting{
-		bd,
+		// bd,
 		id1,
 		bs,
 	}
 	type args struct {
-		aBaseDir string
-		aID      string
+		// aBaseDir string
+		aID string
 	}
 	tests := []struct {
 		name string
@@ -89,11 +88,11 @@ func Test_newPost(t *testing.T) {
 		want *TPosting
 	}{
 		// TODO: Add test cases.
-		{" 1", args{bd, id1}, rp1},
+		{" 1", args{ /* bd, */ id1}, rp1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := newPosting(tt.args.aBaseDir, tt.args.aID); !reflect.DeepEqual(got, tt.want) {
+			if got := newPosting( /* tt.args.aBaseDir, */ tt.args.aID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewPost() = %v, want %v", got, tt.want)
 			}
 		})
@@ -101,11 +100,11 @@ func Test_newPost(t *testing.T) {
 } // Test_newPost()
 
 func TestTPosting_After(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	id2 := newID(time.Date(2019, 1, 1, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	type fields struct {
 		p *TPosting
 	}
@@ -133,11 +132,11 @@ func TestTPosting_After(t *testing.T) {
 } // TestTPosting_After()
 
 func TestTPosting_Before(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd,  */ id1)
 	id2 := newID(time.Date(2019, 1, 1, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	type fields struct {
 		p *TPosting
 	}
@@ -165,11 +164,11 @@ func TestTPosting_Before(t *testing.T) {
 } // TestTPosting_Before()
 
 func TestTPosting_Equal(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	id2 := newID(time.Date(2019, 1, 1, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	type fields struct {
 		p *TPosting
 	}
@@ -197,11 +196,11 @@ func TestTPosting_Equal(t *testing.T) {
 } // TestTPosting_Equal()
 
 func TestTPosting_Delete(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2).
+	p2 := newPosting( /* bd, */ id2).
 		Set([]byte("just a dummy"))
 	p2.Store() // create a file
 	type fields struct {
@@ -227,12 +226,12 @@ func TestTPosting_Delete(t *testing.T) {
 } // TestTPosting_Delete()
 
 func TestTPosting_pathFileName(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	rp1 := "/tmp/postings/158/158d2fcc0ff16000.md"
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	rp2 := "/tmp/postings/159/159b4b37fb6ac000.md"
 	type fields struct {
 		p *TPosting
@@ -257,13 +256,13 @@ func TestTPosting_pathFileName(t *testing.T) {
 } // TestTPosting_pathFileName()
 
 func TestTPosting_Markdown(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	md1 := []byte("Markdown: this is a nonsensical posting")
-	p1 := newPosting(bd, id1).Set(md1)
+	p1 := newPosting( /* bd, */ id1).Set(md1)
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Markdown: this is more nonsense")
-	p2 := newPosting(bd, id2).Set(md2)
+	p2 := newPosting( /* bd, */ id2).Set(md2)
 	type fields struct {
 		p *TPosting
 	}
@@ -289,12 +288,12 @@ func TestTPosting_Markdown(t *testing.T) {
 } // TestTPosting_Markdown()
 
 func TestTPosting_makeDir(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	rp1 := "/tmp/postings/158/158d2fcc0ff16000"
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	rp2 := "/tmp/postings/159/159b4b37fb6ac000"
 	type fields struct {
 		p *TPosting
@@ -376,13 +375,13 @@ func Test_newID(t *testing.T) {
 } // Test_newID()
 
 func TestTPosting_Clear(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id)
+	p1 := newPosting( /* bd, */ id)
 	rp := p1.clone()
 	md2 := []byte("Oh dear! This is a posting.")
-	p2 := newPosting(bd, id).Set(md2)
-	p3 := newPosting(bd, id)
+	p2 := newPosting( /* bd, */ id).Set(md2)
+	p3 := newPosting( /* bd, */ id)
 	p3.Set(md2).Markdown()
 
 	type fields struct {
@@ -409,11 +408,11 @@ func TestTPosting_Clear(t *testing.T) {
 } // TestTPosting_Clear()
 
 func TestTPosting_clone(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id).
+	p1 := newPosting( /* bd, */ id).
 		Set([]byte("Oh dear! This is a posting."))
-	wp1 := newPosting(bd, id).
+	wp1 := newPosting( /* bd, */ id).
 		Set([]byte("Oh dear! This is a posting."))
 	type fields struct {
 		p *TPosting
@@ -437,15 +436,15 @@ func TestTPosting_clone(t *testing.T) {
 } // TestTPosting_clone()
 
 func TestTPosting_Set(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	md1 := []byte("Set: this is obviously nonsense")
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	rp1 := p1.clone()
 	rp1.markdown = md1
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Set: this is more nonsense")
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	rp2 := p2.clone()
 	rp2.markdown = md2
 	type fields struct {
@@ -476,13 +475,13 @@ func TestTPosting_Set(t *testing.T) {
 } // TestTPosting_Set
 
 func TestTPosting_Store(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	var len1 int64
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Store: this is more nonsense")
-	p2 := newPosting(bd, id2).
+	p2 := newPosting( /* bd, */ id2).
 		Set(md2)
 	len2 := int64(len(md2))
 	type fields struct {
@@ -515,12 +514,12 @@ func TestTPosting_Store(t *testing.T) {
 } // TestTPosting_Store()
 
 func TestTPosting_Load(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Load: this is more nonsense")
-	p2 := newPosting(bd, id2).Set(md2)
+	p2 := newPosting( /* bd, */ id2).Set(md2)
 	p2.Store()
 	p2.Clear()
 	type fields struct {
@@ -547,16 +546,16 @@ func TestTPosting_Load(t *testing.T) {
 } // TestTPosting_Load()
 
 func TestTPosting_Time(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
+	PostingBaseDirectory = "/tmp/postings/"
 	tm1 := time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local)
 	id1 := newID(tm1)
-	p1 := newPosting(bd, id1)
+	p1 := newPosting( /* bd, */ id1)
 	tm2 := time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local)
 	id2 := newID(tm2)
-	p2 := newPosting(bd, id2)
+	p2 := newPosting( /* bd, */ id2)
 	tm3 := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
 	id3 := newID(tm3)
-	p3 := newPosting(bd, id3)
+	p3 := newPosting( /* bd, */ id3)
 	p3.id = ""
 	type fields struct {
 		p *TPosting
