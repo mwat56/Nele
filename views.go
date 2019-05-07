@@ -32,19 +32,19 @@ func NewDataList() *TDataList {
 	return &result
 } // NewDatalist()
 
-// Add appends `aValue` identified by `aKey` to the list.
+// Set inserts `aValue` identified by `aKey` to the list.
 //
-// If there's already a list entry with `aKey` it's current value
+// If there's already a list entry with `aKey` its current value
 // gets replaced by `aValue`.
 //
 // `aKey` is the values's identifier (as used as placeholder in the template).
 //
 // `aValue` contains the data entry's value.
-func (dl *TDataList) Add(aKey string, aValue interface{}) *TDataList {
+func (dl *TDataList) Set(aKey string, aValue interface{}) *TDataList {
 	(*dl)[aKey] = aValue
 
 	return dl
-} // Add()
+} // Set()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

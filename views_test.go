@@ -57,7 +57,7 @@ func TestNewDataList(t *testing.T) {
 	}
 } // TestNewDataList()
 
-func TestTDataList_Add(t *testing.T) {
+func TestTDataList_Set(t *testing.T) {
 	dl := NewDataList()
 	rl := NewDataList()
 	(*rl)["Title"] = "Testing"
@@ -76,12 +76,12 @@ func TestTDataList_Add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.d.Add(tt.args.aKey, tt.args.aValue); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.d.Set(tt.args.aKey, tt.args.aValue); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TDataList.Add() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-} // TestTDataList_Add()
+} // TestTDataList_Set()
 
 func TestTView_render(t *testing.T) {
 	bd, _ := filepath.Abs("/tmp/postings/")
@@ -101,17 +101,17 @@ func TestTView_render(t *testing.T) {
 	v1, _ := NewView("./views/", "index")
 	pl1 := NewPostList(bd).Add(p1).Add(p2).Sort()
 	dl1 := NewDataList().
-		Add("Title", "this is the title").
-		Add("Headline", "This is an interesting issue").
-		Add("Postings", pl1)
+		Set("Title", "this is the title").
+		Set("Headline", "This is an interesting issue").
+		Set("Postings", pl1)
 
 	v2, _ := NewView("./views/", "article")
 	dl2 := NewDataList().
-		Add("Title", "this is the article title").
-		Add("Headline", "Tis is an important topic").
-		Add("Lang", "en").
-		Add("Postings", p3).
-		Add("ToBeIgnored", "! Ignore Me !")
+		Set("Title", "this is the article title").
+		Set("Headline", "Tis is an important topic").
+		Set("Lang", "en").
+		Set("Postings", p3).
+		Set("ToBeIgnored", "! Ignore Me !")
 
 	type fields struct {
 		name string
@@ -215,15 +215,15 @@ func TestTViewList_render(t *testing.T) {
 		Add(p1).
 		Add(p2)
 	dl1 := NewDataList().
-		Add("Lang", "en").
-		Add("Title", "this is the index title").
-		Add("Postings", *pl1)
+		Set("Lang", "en").
+		Set("Title", "this is the index title").
+		Set("Postings", *pl1)
 	pl2 := NewPostList(bd).
 		Add(p3)
 	dl2 := NewDataList().
-		Add("Lang", "en").
-		Add("Title", "this is the article title").
-		Add("Postings", *pl2)
+		Set("Lang", "en").
+		Set("Title", "this is the article title").
+		Set("Postings", *pl2)
 	type args struct {
 		aName string
 		aData *TDataList

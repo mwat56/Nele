@@ -65,9 +65,9 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 	day := time.Now().Day()
 	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, styles[1 == day&1])
 	pageData := NewDataList().
-		Add("CSS", template.HTML(css)).
-		Add("Lang", ph.lang).
-		Add("Robots", "index,follow")
+		Set("CSS", template.HTML(css)).
+		Set("Lang", ph.lang).
+		Set("Robots", "index,follow")
 
 	return pageData
 } // basicPageData()
@@ -75,7 +75,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 // check4lang() looks for a CGI value of `lang` and adds it to `aPD` if found.
 func check4lang(aPD *TDataList, aRequest *http.Request) *TDataList {
 	if l := aRequest.FormValue("lang"); 0 < len(l) {
-		return aPD.Add("Lang", l)
+		return aPD.Set("Lang", l)
 	}
 	return aPD
 } // check4lang()
@@ -86,7 +86,7 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	var empty []byte
 
 	pageData := ph.basicPageData().
-		Add("Robots", "noindex,follow")
+		Set("Robots", "noindex,follow")
 
 	switch aStatus {
 	case 404:
@@ -97,7 +97,7 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	//TODO implement other status codes
 
 	default:
-		pageData = pageData.Add("Error", template.HTML(aData))
+		pageData = pageData.Set("Error", template.HTML(aData))
 		if page, err := ph.viewList.RenderedPage("error", pageData); nil == err {
 			return page
 		}
@@ -114,8 +114,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	switch path {
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
-			Add("BackURL", aRequest.URL.Path). // for POSTing back
-			Add("Robots", "noindex,nofollow")
+			Set("BackURL", aRequest.URL.Path). // for POSTing back
+			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
 
 	case ph.cssD:
@@ -131,11 +131,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			t := timeID(tail)
 			y, mo, d = t.Date()
 			pageData = check4lang(pageData, aRequest).
-				Add("BackURL", aRequest.URL.Path). // for POSTing back
-				Add("NOW", now).
-				Add("HMS", fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
-				Add("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)).
-				Add("Robots", "noindex,nofollow")
+				Set("BackURL", aRequest.URL.Path). // for POSTing back
+				Set("NOW", now).
+				Set("HMS", fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
+				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)).
+				Set("Robots", "noindex,nofollow")
 			ph.viewList.Render("dc", aWriter, pageData)
 			return
 		}
@@ -147,9 +147,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			txt := p.Markdown()
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
-					Add("Manuscript", template.HTML(txt)).
-					Add("BackURL", aRequest.URL.Path). // for POSTing back
-					Add("Robots", "noindex,nofollow")
+					Set("Manuscript", template.HTML(txt)).
+					Set("BackURL", aRequest.URL.Path). // for POSTing back
+					Set("Robots", "noindex,nofollow")
 				ph.viewList.Render("ed", aWriter, pageData)
 				return
 			}
@@ -185,9 +185,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			y, m, _ := getYMD(tail)
 			pl := NewPostList(ph.basedir).Month(y, m)
 			pageData = check4lang(pageData, aRequest).
-				Add("Robots", "noindex,follow").
-				Add("Matches", pl.Len()).
-				Add("Postings", pl.Sort())
+				Set("Robots", "noindex,follow").
+				Set("Matches", pl.Len()).
+				Set("Postings", pl.Sort())
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
@@ -204,8 +204,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		pl := NewPostList(ph.basedir)
 		pl.Newest(num) // ignore fs errors here
 		pageData = check4lang(pageData, aRequest).
-			Add("Robots", "noindex,follow").
-			Add("Postings", pl.Sort())
+			Set("Robots", "noindex,follow").
+			Set("Postings", pl.Sort())
 		ph.viewList.Render("index", aWriter, pageData)
 
 	case "p": // handle a single posting
@@ -213,7 +213,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			p := newPosting(ph.basedir, tail)
 			if err := p.Load(); nil == err {
 				pageData = check4lang(pageData, aRequest).
-					Add("Postings", p)
+					Set("Postings", p)
 				ph.viewList.Render("article", aWriter, pageData)
 				return
 			}
@@ -232,9 +232,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			txt := p.Markdown()
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
-					Add("Manuscript", template.HTML(txt)).
-					Add("BackURL", aRequest.URL.Path). // for POSTing back
-					Add("Robots", "noindex,nofollow")
+					Set("Manuscript", template.HTML(txt)).
+					Set("BackURL", aRequest.URL.Path). // for POSTing back
+					Set("Robots", "noindex,nofollow")
 				ph.viewList.Render("rp", aWriter, pageData)
 				return
 			}
@@ -245,9 +245,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if 0 < len(tail) {
 			pl := SearchPostings(ph.basedir, regexp.QuoteMeta(tail))
 			pageData = check4lang(pageData, aRequest).
-				Add("Robots", "noindex,follow").
-				Add("Matches", pl.Len()).
-				Add("Postings", pl.Sort())
+				Set("Robots", "noindex,follow").
+				Set("Matches", pl.Len()).
+				Set("Postings", pl.Sort())
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
@@ -264,9 +264,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			y, m, d := getYMD(tail)
 			pl := NewPostList(ph.basedir).Week(y, m, d)
 			pageData = check4lang(pageData, aRequest).
-				Add("Robots", "noindex,follow").
-				Add("Matches", pl.Len()).
-				Add("Postings", pl.Sort())
+				Set("Robots", "noindex,follow").
+				Set("Matches", pl.Len()).
+				Set("Postings", pl.Sort())
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
