@@ -1,7 +1,7 @@
 /*
-    Copyright © 2019  M.Watermann, 10247 Berlin, Germany
-                All rights reserved
-            EMail : <support@mwat.de>
+   Copyright © 2019  M.Watermann, 10247 Berlin, Germany
+               All rights reserved
+           EMail : <support@mwat.de>
 */
 
 package blog
@@ -84,9 +84,10 @@ func htmlSafe(aText string) template.HTML {
 	return template.HTML(aText)
 } // htmlSafe()
 
+/*
 // `int2post()` returns a `TPost` instance if `aPost` is
 // an instance of `TPost` or `TPosting`.
-func int2post(aPost interface{}) *TPost {
+func int2post0(aPost interface{}) *TPost {
 	var result *TPost // nil
 
 	if p, ok := aPost.(TPost); ok {
@@ -106,6 +107,24 @@ func int2post(aPost interface{}) *TPost {
 
 	return nil
 } // int2post()
+*/
+
+func int2post(aPost interface{}) *TPosting {
+	var result *TPosting // nil
+
+	if p, ok := aPost.(TPosting); ok {
+		result = &p
+	} else if p, ok := aPost.(*TPosting); ok {
+		result = p
+	}
+	if (nil != result) && (0 < len(result.ID())) {
+		// The very first entry in a TPostList is a TPosting with
+		// an empty ID property. We exclude such list entries here.
+		return result
+	}
+
+	return nil
+} // int2post()
 
 // `isPost()` checks whether `aPost` is an instance of `TPost` or `TPosting`.
 func isPost(aPost interface{}) bool {
@@ -118,20 +137,21 @@ func isPost(aPost interface{}) bool {
 func isPostEmpty(aPost interface{}) bool {
 	p := int2post(aPost)
 	if nil != p {
-		return (0 == len(p.Post))
+		// return (0 == len(p.Post))
+		return (0 == p.Len())
 	}
 
 	return true
 } // isPostEmpty()
 
 // `isPostlist()` checks whether `aPostlist` is an instance of `TPostList`.
-func isPostlist(aPostlist interface{}) bool {
-	if _, ok := aPostlist.(TPostList); ok {
-		return ok
+func isPostlist(aPostlist interface{}) (rOK bool) {
+	if _, rOK = aPostlist.(TPostList); rOK {
+		return
 	}
-	_, ok := aPostlist.(*TPostList)
+	_, rOK = aPostlist.(*TPostList)
 
-	return ok
+	return
 } // isPostlist()
 
 /*
@@ -151,7 +171,7 @@ func postDate(aPost interface{}) string {
 func postID(aPost interface{}) string {
 	p := int2post(aPost)
 	if nil != p {
-		return p.ID
+		return p.ID()
 	}
 
 	return ""
@@ -163,7 +183,7 @@ func postMonthURL(aPost interface{}) string {
 	if nil == p {
 		return ""
 	}
-	y, m, d := timeID(p.ID).Date()
+	y, m, d := timeID(p.ID()).Date()
 
 	return fmt.Sprintf("/m/%d%02d%02d", y, m, d)
 } // postMonthURL()
@@ -172,7 +192,7 @@ func postMonthURL(aPost interface{}) string {
 func postText(aPost interface{}) template.HTML {
 	p := int2post(aPost)
 	if nil != p {
-		return p.Post
+		return p.Post()
 	}
 
 	return ""
@@ -184,7 +204,7 @@ func postWeekURL(aPost interface{}) string {
 	if nil == p {
 		return ""
 	}
-	y, m, d := timeID(p.ID).Date()
+	y, m, d := timeID(p.ID()).Date()
 
 	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
 } // postWeekURL()
