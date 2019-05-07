@@ -39,12 +39,6 @@ func TestRemoveWhiteSpace(t *testing.T) {
 	  beep
 	end tell
 	</pre><hr />`)
-	// pageIn2, _ := ioutil.ReadFile("./TODO.html")
-	// pageOut2 := []byte(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="Window-target" content="_top"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>ToDo</title><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"><style type="text/css">html,body{font-size:101%;font-family:serif,monospace;}
-	// code,kbd,tt,pre{background-color:#f0f0f0;font-family:monospace;font-size:0.987em;letter-spacing:normal;line-height:1.123;white-space:normal;}
-	// pre,xmp{border-left:thin solid #999;display:block;font-size:88%;font-weight:inherit;line-height:1.36;margin:1ex 1ex 1ex 0.3ex;padding:0.5ex 1ex;overflow:visible;text-align:left;text-indent:0;white-space:pre-wrap;width:98%;}
-	// small{color:inherit;font-size:79%;font-weight:inherit;}</style></head><body><h1>ToDo</h1><h2>Some unsorted things that came to mind:</h2><ul><li>Internationalisation of text(-fragments)</li><li>cmdline arguments for:<ul><li><del>port (to listen to),</del></li><li><del>ip (to listen at),</del></li><li>hostname (to accept requests for) ??,</li><li><del>path/name for INI file,</del></li><li><del>path/dir for template files,</del></li></ul></li><li><del>static routes for CSS. IMG, JS</del></li><li><del>logic for reading *.tpl files</del></li><li>config data (INI file) for:<ul><li>CERT files (for TLS)</li><li><del>ip (to listen at),</del></li><li><del>port (to listen to),</del></li><li>hostname (to accept requests for),</li><li><del>name of template directory (for *.tpl files)</del></li><li>(opt.) DB username/pass??</li><li><del>CSS dir</del></li><li><del>IMG dir</del></li></ul></li></ul><hr /></body></html>`)
-	// page3, _ := ioutil.ReadFile("./Markdown_Syntax.html")
 	type args struct {
 		aPage []byte
 	}
@@ -55,8 +49,6 @@ func TestRemoveWhiteSpace(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{" 1", args{txtIn1}, txtOut1},
-		// {" 2", args{pageIn2}, pageOut2},
-		// {" 3", args{page3}, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -224,4 +216,4 @@ func Test_getYMD(t *testing.T) {
 			}
 		})
 	}
-}
+} // Test_getYMD()

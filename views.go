@@ -1,7 +1,7 @@
 /*
-   Copyright © 2019  M.Watermann, 10247 Berlin, Germany
-               All rights reserved
-           EMail : <support@mwat.de>
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+              All rights reserved
+          EMail : <support@mwat.de>
 */
 
 package blog
@@ -84,31 +84,6 @@ func htmlSafe(aText string) template.HTML {
 	return template.HTML(aText)
 } // htmlSafe()
 
-/*
-// `int2post()` returns a `TPost` instance if `aPost` is
-// an instance of `TPost` or `TPosting`.
-func int2post0(aPost interface{}) *TPost {
-	var result *TPost // nil
-
-	if p, ok := aPost.(TPost); ok {
-		result = &p
-	} else if p, ok := aPost.(*TPost); ok {
-		result = p
-	} else if p, ok := aPost.(TPosting); ok {
-		result = p.Posting()
-	} else if p, ok := aPost.(*TPosting); ok {
-		result = p.Posting()
-	}
-	if (nil != result) && (0 < len(result.ID)) {
-		// The very first entry in a TPostList is a TPosting with
-		// an empty ID property. We exclude such list entries here.
-		return result
-	}
-
-	return nil
-} // int2post()
-*/
-
 func int2post(aPost interface{}) *TPosting {
 	var result *TPosting // nil
 
@@ -137,7 +112,6 @@ func isPost(aPost interface{}) bool {
 func isPostEmpty(aPost interface{}) bool {
 	p := int2post(aPost)
 	if nil != p {
-		// return (0 == len(p.Post))
 		return (0 == p.Len())
 	}
 
@@ -153,19 +127,6 @@ func isPostlist(aPostlist interface{}) (rOK bool) {
 
 	return
 } // isPostlist()
-
-/*
-// `postDate()` returns the formatted date of `aPost`.
-func postDate(aPost interface{}) string {
-	p := int2post(aPost)
-	if nil == p {
-		return ""
-	}
-	y, m, d := timeID(p.ID).Date()
-
-	return fmt.Sprintf("%d-%02d-%02d", y, m, d)
-} // postDate()
-*/
 
 // `postID()` returns the ID (i.e. filename) of `aPost`.
 func postID(aPost interface{}) string {
@@ -225,13 +186,12 @@ func weekURL() string {
 
 var (
 	fMap = template.FuncMap{
-		"change":      newChange,   // a new change structure
-		"dateNow":     dateNow,     // the current date
-		"htmlSafe":    htmlSafe,    // returns `aText` as template.HTML
-		"isPost":      isPost,      // whether `aPost` is `TPost`/`TPosting`
-		"isPostEmpty": isPostEmpty, // whether the text of `aPost` is empty
-		"isPostlist":  isPostlist,  // whether `aPostlist` is `TPostList`
-		// "postDate":     postDate,     // the formatted date of `aPost`
+		"change":       newChange,    // a new change structure
+		"dateNow":      dateNow,      // the current date
+		"htmlSafe":     htmlSafe,     // returns `aText` as template.HTML
+		"isPost":       isPost,       // whether `aPost` is `TPost`/`TPosting`
+		"isPostEmpty":  isPostEmpty,  // whether the text of `aPost` is empty
+		"isPostlist":   isPostlist,   // whether `aPostlist` is `TPostList`
 		"postID":       postID,       // the ID (i.e. filename) of `aPost`
 		"postText":     postText,     // the safe HTML of `aPost`
 		"postWeekURL":  postWeekURL,  // the week URL of `aPost`
@@ -285,17 +245,6 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 // `render()` is the core of `Render()` with a slightly different API
 // (`io.Writer` instead of `http.ResponseWriter`) for easier testing.
 func (v *TView) render(aWriter io.Writer, aData *TDataList) (rErr error) {
-	/*
-		buf := &bytes.Buffer{}
-
-		if err := v.tpl.ExecuteTemplate(buf, v.name, aData); nil != err {
-			return err
-		}
-		if _, err := aWriter.Write(buf.Bytes()); nil != err {
-			// if _, err := aWriter.Write(RemoveWhiteSpace(buf.Bytes())); nil != err {
-			return err
-		}
-	*/
 	var page []byte
 
 	if page, rErr = v.RenderedPage(aData); nil != rErr {

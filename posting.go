@@ -1,7 +1,7 @@
 /*
-   Copyright © 2019  M.Watermann, 10247 Berlin, Germany
-               All rights reserved
-           EMail : <support@mwat.de>
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+              All rights reserved
+          EMail : <support@mwat.de>
 */
 
 package blog
@@ -61,15 +61,6 @@ type (
 		id       string // hex. representation of date/time
 		markdown []byte // (article-/file-)contents in Markdown markup
 	}
-
-/*
-	// TPost is a simple structure for data access in templates
-	TPost struct {
-		Date string        // article date
-		ID   string        // article ID: hex. representation of date/time
-		Post template.HTML // article contents in HTML markup
-	}
-*/
 )
 
 // NewPosting returns a new posting structure with an empty article text.
@@ -271,23 +262,6 @@ func (p *TPosting) Post() template.HTML {
 
 	return template.HTML(MDtoHTML(p.markdown))
 } // Post()
-
-/*
-// Posting returns this article suitable for use in templates.
-//
-// This method allows the template to validate
-// and use the placeholders `Date`, `ID` and `Post`.
-func (p *TPosting) Posting() *TPost {
-	// make sure we have the most recent version:
-	p.Markdown()
-
-	return &TPost{
-		Date: p.Date(),
-		ID:   p.id,
-		Post: p.Post(),
-	}
-} // Posting()
-*/
 
 // Set assigns the article's Markdown text.
 //

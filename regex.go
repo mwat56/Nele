@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"time"
 
-	blackfriday "github.com/russross/blackfriday/v2"
-	// "gopkg.in/russross/blackfriday.v2"
+	// blackfriday "github.com/russross/blackfriday/v2"
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 var (
@@ -109,24 +109,6 @@ func MDtoHTML(aMarkdown []byte) []byte {
 	return bfPreCodeRE.ReplaceAll(result, []byte("$1\n$2\n$3"))
 } // MDtoHTML()
 
-/*
-// MDtoHTv1 converts the `aMarkdown` data returning HTML data.
-// Note: This is just an implementation for benchmark purposes.
-func MDtoHTv1(aMarkdown []byte) []byte {
-	return bfPreCodeRE.ReplaceAll(
-		blackfriday.Run(aMarkdown),
-		[]byte("$1\n$2\n$3"))
-} // MDtoHTv1()
-
-// MDtoHTv0 converts the `aMarkdown` data returning HTML data.
-// Note: This is just an implementation for benchmark purposes.
-func MDtoHTv0(aMarkdown []byte) []byte {
-	// This actually the fastest implementation but it
-	// leaves all the wrong PRE/CODE markup in the result.
-	return blackfriday.Run(aMarkdown)
-} // MDtoHTv0()
-*/
-
 // `trimPREmatches()` removes leading/trailing whitespace from list entries.
 func trimPREmatches(aList [][]byte) [][]byte {
 	for idx, hit := range aList {
@@ -155,7 +137,7 @@ var (
 	whitespaceREs = tReList{
 		// comments
 		{`(?s)<!--.*?-->`, ``, nil},
-		// HTML and HEAD elements
+		// HTML and HEAD elements:
 		{`(?i)\s*(</?(body|\!DOCTYPE|head|html|link|meta|script|style|title)[^>]*>)\s*`, `$1`, nil},
 		// block elements:
 		{`(?i)\s*(</?(article|blockquote|div|footer|h[1-6]|header|nav|p|section)[^>]*>)\s*`, `$1`, nil},
@@ -296,24 +278,6 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 
 	return SearchPostings(aBaseDir, rubric)
 } // SearchRubric()
-*/
-
-// var (
-// RegEx to find the leading part of an URL;
-// see `URLpath0()`
-// 	routeRE0 = regexp.MustCompile("^/?[a-z0-9]*/?")
-// )
-/*
-// urlPath0 returns the leading part of an `aURL`.
-func urlPath0(aURL string) string {
-	match := routeRE0.FindString(aURL)
-	l := len(match)
-	if ('/' == match[0]) && (1 < l) {
-		match = match[1:]
-	}
-
-	return match
-} // urlPath0()
 */
 
 var (

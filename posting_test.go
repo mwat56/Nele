@@ -435,46 +435,7 @@ func TestTPosting_clone(t *testing.T) {
 		})
 	}
 } // TestTPosting_clone()
-/*
-func TestTPosting_Posting(t *testing.T) {
-	bd, _ := filepath.Abs("/tmp/postings/")
-	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(bd, id1)
-	var ht1 template.HTML
-	wp1 := &TPost{
-		ID:   p1.id,
-		Post: ht1,
-	}
-	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	md2 := []byte("Posting: this is more nonsense")
-	p2 := newPosting(bd, id2).Set(md2)
-	ht2 := template.HTML(fmt.Sprintf("<p>%s</p>\n", md2))
-	wp2 := &TPost{
-		ID:   p2.id,
-		Post: ht2,
-	}
-	type fields struct {
-		p *TPosting
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   *TPost
-	}{
-		// TODO: Add test cases.
-		{" 1", fields{p1}, wp1},
-		{" 2", fields{p2}, wp2},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := tt.fields.p
-			if got := p.Posting(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPosting.Posting() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-} // TestTPosting_Posting()
-*/
+
 func TestTPosting_Set(t *testing.T) {
 	bd, _ := filepath.Abs("/tmp/postings/")
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))

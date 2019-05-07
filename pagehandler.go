@@ -44,6 +44,7 @@ type (
 		viewList *TViewList
 	}
 
+	// Boolean lookup table
 	tBoolMap map[bool]string
 )
 

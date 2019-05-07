@@ -314,21 +314,3 @@ func TestTPostList_Week(t *testing.T) {
 		})
 	}
 } // TestTPostList_Week()
-
-/*
-func Benchmark_ymd2date1(b *testing.B) {
-	// b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		ymd2date1()
-	}
-} // Benchmark_ymd2date1()
-
-func Benchmark_ymd2date2(b *testing.B) {
-	// b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		ymd2date2()
-	}
-} // Benchmark_ymd2date2()
-*/
