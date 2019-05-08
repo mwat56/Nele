@@ -85,17 +85,10 @@ func htmlSafe(aText string) template.HTML {
 } // htmlSafe()
 
 func int2post(aPost interface{}) *TPosting {
-	var result *TPosting // nil
-
-	if p, ok := aPost.(TPosting); ok {
-		result = &p
-	} else if p, ok := aPost.(*TPosting); ok {
-		result = p
-	}
-	if (nil != result) && (0 < len(result.ID())) {
-		// The very first entry in a TPostList is a TPosting with
-		// an empty ID property. We exclude such list entries here.
-		return result
+	if p, ok := aPost.(*TPosting); ok {
+		return p
+	} else if p, ok := aPost.(TPosting); ok {
+		return &p
 	}
 
 	return nil
