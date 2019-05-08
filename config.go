@@ -26,10 +26,10 @@ var (
 	AppArguments tAguments
 )
 
-// add() sets another key-value pair.
-func (al tAguments) add(aKey string, aValue string) {
+// `set()` adds/sets another key-value pair.
+func (al tAguments) set(aKey string, aValue string) {
 	al[aKey] = aValue
-} // add()
+} // set()
 
 // Get returns the value associated with `aKey` and `nil` if found,
 // or an empty string and an error.
@@ -48,12 +48,12 @@ func ShowHelp() {
 	fmt.Fprint(os.Stderr, "\nMost options can be set in an INI file to keep he commandline short ;-)\n\nWith all file- and directory-names make sure that they're readable, and at\nleast the 'post' folder must be writeable for the user running this\nprogram to store the postings.\n\n")
 } // ShowHelp()
 
-// iniWalker() is an internal helper used to add all INI file
+// `iniWalker()` is an internal helper used to set all INI file
 // key-value pairs to the global `AppArguments` list.
 func iniWalker(aSect, aKey, aVal string) {
 	// Since we're only using the `Default` section we can
 	// ignore the `aSect` argument here.
-	AppArguments.add(aKey, aVal)
+	AppArguments.set(aKey, aVal)
 } // iniWalker()
 
 // `initArguments()` reads the commandline arguments into a list
@@ -97,6 +97,7 @@ func initArguments() {
 		data.AddSectionKey("", "realm", "")
 		s, _ = filepath.Abs("./static/")
 		data.AddSectionKey("", "static", s)
+		data.AddSectionKey("", "theme", "light")
 		s, _ = filepath.Abs("./views/")
 		data.AddSectionKey("", "tpldir", s)
 	}
@@ -173,6 +174,11 @@ func initArguments() {
 	flag.StringVar(&stcStr, "static", stcStr,
 		"<dirName> the directory with static files\n")
 
+	s, _ = defaults.AsString("theme")
+	themStr := s
+	flag.StringVar(&themStr, "theme", themStr,
+		"<name> the display theme to use (`light` or `dark`)\n")
+
 	s, _ = defaults.AsString("tpldir")
 	tplStr, _ := filepath.Abs(s)
 	flag.StringVar(&tplStr, "tpl", tplStr,
@@ -213,109 +219,113 @@ func initArguments() {
 			data.Walk(iniWalker)
 		}
 	}
-	AppArguments.add("inifile", cmdIniFile)
+	AppArguments.set("inifile", cmdIniFile)
 
 	if 0 < len(cssStr) {
 		cssStr, _ = filepath.Abs(cssStr)
 	}
-	AppArguments.add("css", cssStr)
+	AppArguments.set("css", cssStr)
 
 	if 0 < len(imgStr) {
 		imgStr, _ = filepath.Abs(imgStr)
 	}
-	AppArguments.add("img", imgStr)
+	AppArguments.set("img", imgStr)
 
 	/*
 		if 0 == len(intlStr) {
 			intlStr, _ = filepath.Abs(intlStr)
 		}
-			AppArguments.add("intl", intlStr)
+			AppArguments.set("intl", intlStr)
 	*/
 
 	if 0 < len(jsStr) {
 		jsStr, _ = filepath.Abs(jsStr)
 	}
-	AppArguments.add("js", jsStr)
+	AppArguments.set("js", jsStr)
 
 	if 0 == len(langStr) {
 		langStr = "en"
 	}
-	AppArguments.add("lang", langStr)
+	AppArguments.set("lang", langStr)
 
 	if "0" == listenStr {
 		listenStr = ""
 	}
-	AppArguments.add("listen", listenStr)
+	AppArguments.set("listen", listenStr)
 
 	if 0 < len(logStr) {
 		logStr, _ = filepath.Abs(logStr)
-		AppArguments.add("logfile", logStr)
+		AppArguments.set("logfile", logStr)
 	}
 
 	/*
 		if ndBool {
 			s = fmt.Sprintf("%v", ndBool)
-			AppArguments.add("nd", s)
+			AppArguments.set("nd", s)
 		}
 	*/
 
 	portStr = fmt.Sprintf("%d", portInt)
-	AppArguments.add("port", portStr)
+	AppArguments.set("port", portStr)
 
 	if paBool {
 		s = fmt.Sprintf("%v", paBool)
-		AppArguments.add("pa", s)
+		AppArguments.set("pa", s)
 	}
 
 	if 0 < len(pfStr) {
 		pfStr, _ = filepath.Abs(pfStr)
-		AppArguments.add("pf", pfStr)
+		AppArguments.set("pf", pfStr)
 	}
 
 	if 0 < len(postStr) {
 		postStr, _ = filepath.Abs(postStr)
 	}
-	// AppArguments.add("postdir", postStr)
+	// AppArguments.set("postdir", postStr)
 	SetPostingBaseDirectory(postStr)
 
 	if 0 < len(stcStr) {
 		stcStr, _ = filepath.Abs(stcStr)
 	}
-	AppArguments.add("static", stcStr)
+	AppArguments.set("static", stcStr)
+
+	if 0 < len(themStr) {
+		AppArguments.set("theme", themStr)
+	}
 
 	if 0 < len(tplStr) {
 		tplStr, _ = filepath.Abs(tplStr)
 	}
-	AppArguments.add("tpldir", tplStr)
+	AppArguments.set("tpldir", tplStr)
 
 	if 0 < len(uaStr) {
-		AppArguments.add("ua", uaStr)
+		AppArguments.set("ua", uaStr)
 	}
 
 	if 0 < len(ucStr) {
-		AppArguments.add("uc", ucStr)
+		AppArguments.set("uc", ucStr)
 	}
 
 	if 0 < len(udStr) {
-		AppArguments.add("ud", udStr)
+		AppArguments.set("ud", udStr)
 	}
 
 	if 0 < len(ufStr) {
 		ufStr, _ = filepath.Abs(ufStr)
-		AppArguments.add("uf", ufStr)
+		AppArguments.set("uf", ufStr)
 		// w/o password file there's no BasicAuth
 		if 0 < len(realStr) {
-			AppArguments.add("real", realStr)
+			AppArguments.set("real", realStr)
 		}
 	}
 
 	if ulBool {
 		s = fmt.Sprintf("%v", ulBool)
-		AppArguments.add("ul", s)
+		AppArguments.set("ul", s)
 	}
 
 	if 0 < len(uuStr) {
-		AppArguments.add("uu", uuStr)
+		AppArguments.set("uu", uuStr)
 	}
 
 } // initArguments()
