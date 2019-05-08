@@ -1,7 +1,7 @@
 /*
    Copyright © 2019 M.Watermann, 10247 Berlin, Germany
-               All rights reserved
-           EMail : <support@mwat.de>
+                  All rights reserved
+              EMail : <support@mwat.de>
 */
 
 package blog
@@ -28,7 +28,7 @@ import (
 type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
-		addr string // listen address ("1.2.3.4:5678")
+		addr     string              // listen address ("1.2.3.4:5678")
 		cssD     string              // configured CSS directory
 		cssH     http.Handler        // static CSS file handler
 		imgD     string              // configured image directopry
@@ -39,19 +39,9 @@ type (
 		realm    string              // host/domain to secure by BasicAuth
 		staticD  string              // configured static directory
 		staticH  http.Handler        // other static files
+		theme    string              // `dark` or `light` display theme
 		ul       *passlist.TPassList // user/password list
-		viewList *TViewList
-	}
-
-	// Boolean lookup table
-	tBoolMap map[bool]string
-)
-
-var (
-	// simple lookup table for daily changing style sheets
-	styles = tBoolMap{
-		true:  "light",
-		false: "dark",
+		viewList *TViewList          // list of template/views
 	}
 )
 
@@ -62,8 +52,7 @@ func (ph *TPageHandler) Address() string {
 
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TDataList {
-	day := time.Now().Day()
-	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, styles[1 == day&1])
+	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, ph.theme)
 	pageData := NewDataList().
 		Set("CSS", template.HTML(css)).
 		Set("Lang", ph.lang).
@@ -489,6 +478,11 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 	result.staticD = filepath.Base(s)
 	result.staticH = http.FileServer(http.Dir(s))
+
+	if s, err = AppArguments.Get("theme"); nil != err {
+		return nil, err
+	}
+	result.theme = s
 
 	if s, err = AppArguments.Get("tpldir"); nil != err {
 		return nil, err
