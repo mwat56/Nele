@@ -2,7 +2,7 @@ html,body,a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,can
 	color: #fffff0;
 }
 body {
-	background: #060300;
+	background: #161010;
 }
 a:link, a[href] {
 	color: #06f;
@@ -20,8 +20,13 @@ del {
 	color: #999;
 }
 dl.posting dd {
-	background: #131316;
+	background: #161613;
 	border: thin solid #131310;
+}
+dl.posting dd blockquote {
+	background: #161619;
+	border: thin solid #1f1f10;
+	margin-left: 2.6ex;
 }
 footer {
 	border-top: thin solid #ccc;
@@ -42,7 +47,7 @@ hr {
 	color: #ffc;
 }
 pre, xmp {
-	border-left: thin solid #666;
+	border-left: thick solid #666;
 }
 p.matches {
 	background: #333;

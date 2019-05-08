@@ -32,17 +32,11 @@ a.idlink {
 }
 blockquote {
 	display: block;
-	font-size: 0.97em;
+	font-size: 98%;
 	line-height: 1.23;
-	margin-top: 1ex;
-	margin-right: 3ex;
-	margin-bottom: 1ex;
 	/* matches (with "padding-left") text-indent of "P": */
-	margin-left: 1.6ex;
-	padding-top: 0.3ex;
-	padding-right: 1ex;
-	padding-bottom: 0.3ex;
-	padding-left: 1ex;
+	margin: 1ex 2ex 1ex 2.6ex;
+	padding: 0.3ex 1ex 0.3ex 1ex;
 	text-align: justify;
 	text-indent: 0;
 }
@@ -56,21 +50,15 @@ strong, .strong,
 br, div {
 	border: 0;
 	display: block;
-	margin-top: 0;
-	margin-right: 0;
-	margin-bottom: 0;
-	margin-left: 0;
-	padding-top: 0;
-	padding-right: 0;
-	padding-bottom: 0;
-	padding-left: 0;
+	margin: 0;
+	padding: 0;
 	text-indent: 0;
 }
 code, .code, kbd, pre, tt, xmp {
 	color: inherit;
 	font-family: monospace;
 	font-size: 0.987em;
-	font-weight: 600;
+	font-weight: imherit;
 	letter-spacing: normal;
 	line-height: 1.123;
 	padding: 0.1ex 0.3ex;
@@ -112,6 +100,9 @@ dl.posting dd {
 	overflow: auto;
 	padding: 0 0.3ex 1ex 0.3ex;
 	text-align: left;
+}
+dl.posting dd blockquote {
+	border-radius: 1ex;
 }
 em, .em,
 i, .italic {
@@ -216,6 +207,7 @@ blockquote p {
 }
 
 pre, xmp {
+	border-radius: 1ex;
 	display: block;
 	font-family: monospace;
 	font-size: 88%;
