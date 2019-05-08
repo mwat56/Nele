@@ -29,12 +29,7 @@ import (
 // `addMarkdown()` saves `aMarkdown` as a new posting,
 // returning the number of bytes written and a possible I/O error.
 func addMarkdown(aMarkdown []byte) (int64, error) {
-	// bd, err := AppArguments.Get("postdir")
-	// if nil != err {
-	// 	return 0, err
-	// }
-
-	return NewPosting(/* bd */).Set(aMarkdown).Store()
+	return NewPosting().Set(aMarkdown).Store()
 } // addMarkdown()
 
 // AddConsolePost reads data from `StdIn` and saves it as a new posting,
@@ -112,8 +107,7 @@ func AddUser(aUser, aFilename string) {
 func CheckUser(aUser, aFilename string) {
 	ul := userlist(aFilename)
 	pw := readPassword(false)
-	ok := ul.MatchesPass(aUser, pw)
-	if ok {
+	if ok := ul.Matches(aUser, pw); ok {
 		pw = "successful"
 	} else {
 		pw = "failed"
