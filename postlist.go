@@ -171,9 +171,7 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 // The resulting list is sorted in descending order (newest first)
 // with at most `aNumber` posts.
 func (pl *TPostList) Newest(aNumber int) error {
-	// bd := (*pl)[0].basedir
-
-	dirnames, err := filepath.Glob(PostingBaseDirectory + "/*")
+	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
 	if nil != err {
 		return err
 	}
@@ -218,8 +216,8 @@ func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
 	if tn.Before(aHi) {
 		aHi = tn // exclude postings from the future ;-)
 	}
-	dirLo := path.Dir(pathname( /* bd, */ newID(aLo)))
-	dirHi := path.Dir(pathname( /* bd, */ newID(aHi)))
+	dirLo := path.Dir(pathname(newID(aLo)))
+	dirHi := path.Dir(pathname(newID(aHi)))
 	if dirLo == dirHi {
 		// both, the first and last postings, are in the same directory
 		pl.doWalk(dirLo, aLo, aHi)
@@ -294,8 +292,7 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 // `aID` is the identifier of the new posting to add;
 // the associated file's contents are loaded from storage.
 func bgAddPosting(aPostList *TPostList, aID string) {
-	// bd := (*aPostList)[0].basedir
-	p := newPosting( /* bd, */ aID)
+	p := newPosting(aID)
 	if err := p.Load(); nil == err {
 		aPostList.Add(p)
 	}
@@ -305,18 +302,8 @@ func bgAddPosting(aPostList *TPostList, aID string) {
 // NewPostList returns a new (empty) TPostList instance.
 //
 // `aBaseDir` is a directory storing the postings.
-func NewPostList( /* aBaseDir string */ ) *TPostList {
-	/*
-		basePost := TPosting{
-			basedir: aBaseDir,
-			// This post is first either because it was added first
-			// or because this ID puts it first by descending sort:
-			id: "~~~~~~~~~~~~~~~~",
-			// we neither need nor want the other properties
-		}
-	*/
+func NewPostList() *TPostList {
 	result := make(TPostList, 0, 32)
-	// result = append(result, basePost)
 
 	return &result
 } // NewPostList()

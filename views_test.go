@@ -83,22 +83,22 @@ func TestTDataList_Set(t *testing.T) {
 } // TestTDataList_Set()
 
 func TestTView_render(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
+	SetPostingBaseDirectory("/tmp/postings/")
 
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting( /* bd, */ id1).
+	p1 := newPosting(id1).
 		Set([]byte("View_render: Oh dear! This is a first posting."))
 
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting( /* bd, */ id2).
+	p2 := newPosting(id2).
 		Set([]byte("View_render: Hi there! This is another posting."))
 
 	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := newPosting( /* bd,  */ id3).
+	p3 := newPosting(id3).
 		Set([]byte("View_render: Oh dear! This is a single posting."))
 
 	v1, _ := NewView("./views/", "index")
-	pl1 := NewPostList( /* bd */ ).Add(p1).Add(p2).Sort()
+	pl1 := NewPostList().Add(p1).Add(p2).Sort()
 	dl1 := NewDataList().
 		Set("Title", "this is the title").
 		Set("Headline", "This is an interesting issue").
@@ -190,7 +190,7 @@ func TestTViewList_Add(t *testing.T) {
 } // TestTViewList_Add()
 
 func TestTViewList_render(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
+	SetPostingBaseDirectory("/tmp/postings/")
 	vname1, vname2 := "index", "article"
 	vw1, _ := NewView("./views/", vname1)
 	vw2, _ := NewView("./views/", vname2)
@@ -199,25 +199,25 @@ func TestTViewList_render(t *testing.T) {
 		Add(vw2)
 
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting( /* bd,  */ id1).
+	p1 := newPosting(id1).
 		Set([]byte("ViewList_render: Oh dear! This is a first posting."))
 
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting( /* bd,  */ id2).
+	p2 := newPosting(id2).
 		Set([]byte("ViewList_render: Hi there! This is another posting."))
 
 	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := newPosting( /* bd, */ id3).
+	p3 := newPosting(id3).
 		Set([]byte("ViewList_render: Oh dear! This is a single posting."))
 
-	pl1 := NewPostList( /* bd */ ).
+	pl1 := NewPostList().
 		Add(p1).
 		Add(p2)
 	dl1 := NewDataList().
 		Set("Lang", "en").
 		Set("Title", "this is the index title").
 		Set("Postings", *pl1)
-	pl2 := NewPostList( /* bd */ ).
+	pl2 := NewPostList().
 		Add(p3)
 	dl2 := NewDataList().
 		Set("Lang", "en").

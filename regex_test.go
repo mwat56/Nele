@@ -2,7 +2,6 @@ package blog
 
 import (
 	"io/ioutil"
-	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -60,9 +59,9 @@ func TestRemoveWhiteSpace(t *testing.T) {
 } // TestRemoveWhiteSpace()
 
 func TestSearchPostings(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	bd, _ := filepath.Abs(PostingBaseDirectory)
-	prepareTestFiles( /* bd */ )
+	SetPostingBaseDirectory("/tmp/postings/")
+	bd := PostingBaseDirectory()
+	prepareTestFiles()
 	type args struct {
 		aBaseDir string
 		aText    string
@@ -131,7 +130,6 @@ func TestURLparts(t *testing.T) {
 
 func BenchmarkMDtoHTML(b *testing.B) {
 	page, _ := ioutil.ReadFile("./Markdown_Syntax.md")
-	// page, _ := ioutil.ReadFile("./TODO.md")
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {

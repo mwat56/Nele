@@ -9,27 +9,18 @@ import (
 )
 
 func TestNewPostList(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	wl1 := &TPostList{
-		// TPosting{
-		// 	/* basedir: bd, */
-		// 	id: "~~~~~~~~~~~~~~~~",
-		// },
-	}
-	// type args struct {
-	// 	aBaseDir string
-	// }
+	SetPostingBaseDirectory("/tmp/postings/")
+	wl1 := &TPostList{}
 	tests := []struct {
 		name string
-		// args args
 		want *TPostList
 	}{
 		// TODO: Add test cases.
-		{" 1" /* args{bd}, */, wl1},
+		{" 1", wl1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewPostList( /* tt.args.aBaseDir */ ); !reflect.DeepEqual(got, tt.want) {
+			if got := NewPostList(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewPostList() = %v,\nwant %v", got, tt.want)
 			}
 		})
@@ -37,14 +28,10 @@ func TestNewPostList(t *testing.T) {
 } // TestNewPostList()
 
 func TestTPostList_Add(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	p1 := NewPosting( /* bd */ )
-	pl1 := NewPostList( /* bd */ )
+	SetPostingBaseDirectory("/tmp/postings/")
+	p1 := NewPosting()
+	pl1 := NewPostList()
 	wl1 := &TPostList{
-		// TPosting{
-		// 	basedir: bd,
-		// 	id:      "~~~~~~~~~~~~~~~~",
-		// },
 		*p1,
 	}
 	type args struct {
@@ -69,9 +56,9 @@ func TestTPostList_Add(t *testing.T) {
 } // TestTPostList_Add()
 
 func TestTPostList_Article(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	pl1 := NewPostList( /* bd */ )
-	pl2 := NewPostList( /* bd */ )
+	SetPostingBaseDirectory("/tmp/postings/")
+	pl1 := NewPostList()
+	pl2 := NewPostList()
 	type args struct {
 		aID string
 	}
@@ -95,16 +82,12 @@ func TestTPostList_Article(t *testing.T) {
 } // TestTPostList_Article()
 
 func TestTPostList_in(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	p1 := NewPosting( /* bd */ ).Set([]byte("# Hello World!"))
-	p2 := NewPosting( /* bd */ ).Set([]byte("I trust you're feeling good."))
-	p3 := NewPosting( /* bd */ ).Set([]byte("Goodbye!"))
-	pl1 := NewPostList( /* bd */ ).Add(p1).Add(p2).Add(p3)
+	SetPostingBaseDirectory("/tmp/postings/")
+	p1 := NewPosting().Set([]byte("# Hello World!"))
+	p2 := NewPosting().Set([]byte("I trust you're feeling good."))
+	p3 := NewPosting().Set([]byte("Goodbye!"))
+	pl1 := NewPostList().Add(p1).Add(p2).Add(p3)
 	wl1 := &TPostList{
-		// TPosting{
-		// 	basedir: bd,
-		// 	id:      "~~~~~~~~~~~~~~~~",
-		// },
 		*p1,
 		*p2,
 		*p3,
@@ -127,13 +110,13 @@ func TestTPostList_in(t *testing.T) {
 } // TestTPostList_in()
 
 func TestTPostList_Len(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	p1 := NewPosting( /* bd */ ).Set([]byte("11"))
-	p2 := NewPosting( /* bd */ ).Set([]byte("22"))
-	p3 := NewPosting( /* bd */ ).Set([]byte("33"))
-	p4 := NewPosting( /* bd */ ).Set([]byte("44"))
-	pl1 := NewPostList( /* bd */ ).Add(p3).Add(p1).Add(p2)
-	pl2 := NewPostList( /* bd */ ).Add(p1).Add(p2).Add(p3).Add(p4)
+	SetPostingBaseDirectory("/tmp/postings/")
+	p1 := NewPosting().Set([]byte("11"))
+	p2 := NewPosting().Set([]byte("22"))
+	p3 := NewPosting().Set([]byte("33"))
+	p4 := NewPosting().Set([]byte("44"))
+	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
+	pl2 := NewPostList().Add(p1).Add(p2).Add(p3).Add(p4)
 	tests := []struct {
 		name string
 		pl   *TPostList
@@ -153,12 +136,12 @@ func TestTPostList_Len(t *testing.T) {
 } // TestTPostList_Len()
 
 func TestTPostList_Sort(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	p1 := newPosting( /* bd,  */ "11").Set([]byte("11"))
-	p2 := newPosting( /* bd,  */ "22").Set([]byte("22"))
-	p3 := newPosting( /* bd,  */ "33").Set([]byte("33"))
-	pl1 := NewPostList( /* bd */ ).Add(p2).Add(p3).Add(p1)
-	wl1 := NewPostList( /* bd */ ).Add(p3).Add(p2).Add(p1)
+	SetPostingBaseDirectory("/tmp/postings/")
+	p1 := newPosting("11").Set([]byte("11"))
+	p2 := newPosting("22").Set([]byte("22"))
+	p3 := newPosting("33").Set([]byte("33"))
+	pl1 := NewPostList().Add(p2).Add(p3).Add(p1)
+	wl1 := NewPostList().Add(p3).Add(p2).Add(p1)
 	tests := []struct {
 		name string
 		pl   *TPostList
@@ -177,13 +160,13 @@ func TestTPostList_Sort(t *testing.T) {
 } // TestTPostList_Sort()
 
 func TestTPostList_IsSorted(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	p1 := newPosting( /* bd,  */ "11").Set([]byte("11"))
-	p2 := newPosting( /* bd,  */ "22").Set([]byte("22"))
-	p3 := newPosting( /* bd,  */ "33").Set([]byte("33"))
-	pl1 := NewPostList( /* bd */ ).Add(p3).Add(p1).Add(p2)
-	pl2 := NewPostList( /* bd */ ).Add(p3).Add(p2).Add(p1)
-	pl3 := NewPostList( /* bd */ ).Add(p2).Add(p3).Add(p1).Sort()
+	SetPostingBaseDirectory("/tmp/postings/")
+	p1 := newPosting("11").Set([]byte("11"))
+	p2 := newPosting("22").Set([]byte("22"))
+	p3 := newPosting("33").Set([]byte("33"))
+	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
+	pl2 := NewPostList().Add(p3).Add(p2).Add(p1)
+	pl3 := NewPostList().Add(p2).Add(p3).Add(p1).Sort()
 	tests := []struct {
 		name string
 		pl   *TPostList
@@ -208,13 +191,13 @@ func storeNewPost(aBaseDir string, aDay, aHour int) {
 	// y, m := n.Year(), n.Month()
 	y, m := 2018, time.December
 	t := time.Date(y, m, aDay, aHour, aHour, aHour, 0, time.Local)
-	p := newPosting( /* aBaseDir,  */ newID(t)).
+	p := newPosting(newID(t)).
 		Set([]byte(fmt.Sprintf("\n> %s\n\n%02d\n\n\t%02d\n", aBaseDir, aDay, aHour)))
 	p.Store()
 } // storeNewPost()
 
-func prepareTestFiles( /* aBaseDir string */ ) {
-	bd, _ := filepath.Abs(PostingBaseDirectory /* aBaseDir */)
+func prepareTestFiles() {
+	bd, _ := filepath.Abs(PostingBaseDirectory())
 	for i := 0; i < 111; i++ {
 		storeNewPost(bd, i, 1)
 		storeNewPost(bd, i, 8)
@@ -223,14 +206,14 @@ func prepareTestFiles( /* aBaseDir string */ ) {
 } // prepareTestFiles()
 
 func TestTPostList_Month(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	prepareTestFiles( /* bd */ )
-	pl1 := NewPostList( /* bd */ )
-	pl2 := NewPostList( /* bd */ )
-	pl3 := NewPostList( /* bd */ )
-	pl4 := NewPostList( /* bd */ )
-	// pl5 := NewPostList(bd)
-	// pl6 := NewPostList(bd)
+	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+	pl1 := NewPostList()
+	pl2 := NewPostList()
+	pl3 := NewPostList()
+	pl4 := NewPostList()
+	// pl5 := NewPostList()
+	// pl6 := NewPostList()
 	type args struct {
 		aYear  int
 		aMonth time.Month
@@ -257,9 +240,9 @@ func TestTPostList_Month(t *testing.T) {
 } // TestTPostList_Month()
 
 func TestTPostList_Newest(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	prepareTestFiles( /* bd */ )
-	pl1 := NewPostList( /* bd */ )
+	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+	pl1 := NewPostList()
 	type args struct {
 		aNumber int
 	}
@@ -282,13 +265,13 @@ func TestTPostList_Newest(t *testing.T) {
 } // TestTPostList_Newest()
 
 func TestTPostList_Week(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	prepareTestFiles( /* bd */ )
-	pl1 := NewPostList( /* bd */ )
-	pl2 := NewPostList( /* bd */ )
-	pl3 := NewPostList( /* bd */ )
-	pl4 := NewPostList( /* bd */ )
-	// pl5 := NewPostList(/* bd */)
+	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+	pl1 := NewPostList()
+	pl2 := NewPostList()
+	pl3 := NewPostList()
+	pl4 := NewPostList()
+	// pl5 := NewPostList()
 	type args struct {
 		aYear  int
 		aMonth time.Month

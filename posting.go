@@ -55,16 +55,34 @@ func timeID(aID string) (rTime time.Time) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
-	// PostingBaseDirectory This variable's value _must_ be set
-	// initially before creating any `TPosting` or `TPostList` instances.
+	// `postingBaseDirectory` is the base directory for storing the articles.
+	//
+	// This variable's value _must_ be set initially before creating any
+	// `TPosting` or `TPostList` instances.
 	// After that it should be considered `read/only`.
-	PostingBaseDirectory = "./postings"
+	postingBaseDirectory = "./postings"
 )
+
+// PostingBaseDirectory returns the base directory used for
+// storing articles/postings.
+func PostingBaseDirectory() string {
+	return postingBaseDirectory
+} // PostingBaseDirectory()
+
+// SetPostingBaseDirectory set the base directory used for
+// storing articles/postings.
+//
+// `aBaseDir` is the base directory to use for storing articles/postings.
+func SetPostingBaseDirectory(aBaseDir string) (rErr error) {
+	postingBaseDirectory, rErr = filepath.Abs(aBaseDir)
+	return
+} // SetPostingBaseDirectory()
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
 	// TPosting is a single /article/posting to be injected into a template.
 	TPosting struct {
-		// basedir  string // the base directory for storing the articles
 		id       string // hex. representation of date/time
 		markdown []byte // (article-/file-)contents in Markdown markup
 	}
@@ -73,23 +91,19 @@ type (
 // NewPosting returns a new posting structure with an empty article text.
 //
 // // `aBaseDir` is the base direcetory under which all postings are stored.
-func NewPosting( /* aBaseDir string */ ) *TPosting {
-	return newPosting( /* aBaseDir, */ "")
+func NewPosting() *TPosting {
+	return newPosting("")
 } // NewPosting()
 
 // newPosting() is the core function of `NewPost()` (for testing purposes).
 //
 // `aID` if an empty string the `NewID()` function is called
 // to provide a new article ID.
-func newPosting( /* aBaseDir, */ aID string) *TPosting {
-	// if 0 == len(aBaseDir) {
-	// 	aBaseDir = "./"
-	// }
+func newPosting(aID string) *TPosting {
 	if 0 == len(aID) {
 		aID = NewID()
 	}
-	// bd, _ := filepath.Abs(aBaseDir)
-	result := TPosting{ /* basedir: bd, */ id: aID}
+	result := TPosting{id: aID}
 
 	return &result
 } // newPosting()
@@ -125,7 +139,6 @@ func (p *TPosting) Clear() *TPosting {
 // clone() returns a copy of this posting/article.
 func (p *TPosting) clone() *TPosting {
 	return &TPosting{
-		// basedir:  p.basedir,
 		id:       p.id,
 		markdown: p.markdown,
 	}
@@ -223,7 +236,7 @@ func (p *TPosting) makeDir() (string, error) {
 
 	// Using the aID's first three characters leads to
 	// directories worth about 52 days of data.
-	dirname := path.Join(PostingBaseDirectory /* p.basedir */, string(p.id[:3]))
+	dirname := path.Join(postingBaseDirectory, string(p.id[:3]))
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fmode); nil != err {
 		return "", err
 	}
@@ -251,10 +264,10 @@ func (p *TPosting) Markdown() []byte {
 	return p.markdown
 } // Markdown()
 
-func pathname( /* aBaseDir, */ aID string) string {
+func pathname(aID string) string {
 	// Using the aID's first three characters leads to
 	// directories worth about 52 days of data.
-	return path.Join(PostingBaseDirectory /* aBaseDir */, string(aID[:3]), aID+".md")
+	return path.Join(postingBaseDirectory, string(aID[:3]), aID+".md")
 } // pathname()
 
 // PathFileName returns the article's path-/filename.

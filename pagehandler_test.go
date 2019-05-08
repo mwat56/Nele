@@ -5,15 +5,15 @@ import (
 )
 
 func TestNewPageHandler(t *testing.T) {
-	PostingBaseDirectory = "/tmp/postings/"
-	prepareTestFiles( /* "./postings/" */ )
+	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
 	tests := []struct {
 		name    string
 		want    int
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", 5, false},
+		{" 1", 13, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
