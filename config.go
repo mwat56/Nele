@@ -9,6 +9,7 @@ package blog
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -78,10 +79,8 @@ func initArguments() {
 		data.Walk(iniWalker)
 	} else {
 		data = ini.NewSections()
-		s, _ := filepath.Abs("./css/")
-		data.AddSectionKey("", "css", s)
-		s, _ = filepath.Abs("./img/")
-		data.AddSectionKey("", "img", s)
+		s, _ := filepath.Abs("./")
+		data.AddSectionKey("", "datadir", s)
 		data.AddSectionKey("", "inifile", defIniFile)
 		// s, _ = filepath.Abs("./intl.ini")
 		// data.AddSectionKey("", "intl", s)
@@ -92,26 +91,15 @@ func initArguments() {
 		data.AddSectionKey("", "logfile", "")
 		data.AddSectionKey("", "passfile", "")
 		data.AddSectionKey("", "port", "8181")
-		s, _ = filepath.Abs("./postings/")
-		data.AddSectionKey("", "postdir", s)
 		data.AddSectionKey("", "realm", "")
-		s, _ = filepath.Abs("./static/")
-		data.AddSectionKey("", "static", s)
 		data.AddSectionKey("", "theme", "light")
-		s, _ = filepath.Abs("./views/")
-		data.AddSectionKey("", "tpldir", s)
 	}
 	defaults := data.GetSection("")
 
-	s, _ := defaults.AsString("css")
-	cssStr, _ := filepath.Abs(s)
-	flag.StringVar(&cssStr, "css", cssStr,
-		"<dirName> the directory with CSS file(s)\n")
-
-	s, _ = defaults.AsString("img")
-	imgStr, _ := filepath.Abs(s)
-	flag.StringVar(&imgStr, "img", imgStr,
-		"<dirName> the directory with images\n")
+	s, _ := defaults.AsString("datadir")
+	dataStr, _ := filepath.Abs(s)
+	flag.StringVar(&dataStr, "datadir", dataStr,
+		"<dirName> the directory with CSS, IMG, JS, STATIC, VIEWS sub-directories\n")
 
 	/*
 		s, _ = defaults.AsString("intl")
@@ -120,14 +108,9 @@ func initArguments() {
 			"<fileName> the path/filename of the localisation file\n")
 	*/
 
-	iniStr, _ := defaults.AsString("inifile")
+	iniStr := ""
 	flag.StringVar(&iniStr, "ini", iniStr,
 		"<fileName> the path/filename of the INI file\n")
-
-	s, _ = defaults.AsString("js")
-	jsStr, _ := filepath.Abs(s)
-	flag.StringVar(&jsStr, "js", jsStr,
-		"<dirName> the directory with JavaScript\n")
 
 	langStr, _ := defaults.AsString("lang")
 	flag.StringVar(&langStr, "lang", langStr,
@@ -152,11 +135,6 @@ func initArguments() {
 		"<portNumber> the IP port to listen to")
 	portStr := fmt.Sprintf("%d", portInt)
 
-	s, _ = defaults.AsString("postdir")
-	postStr, _ := filepath.Abs(s)
-	flag.StringVar(&postStr, "post", postStr,
-		"<dirName> the directory used for storing the postings\n")
-
 	paBool := false
 	flag.BoolVar(&paBool, "pa", paBool,
 		"(optional) posting add: whether to write a posting from the commandline")
@@ -169,20 +147,10 @@ func initArguments() {
 	flag.StringVar(&realStr, "realm", realStr,
 		"(optional) <hostName> name of host/domain to secure by BasicAuth\n")
 
-	s, _ = defaults.AsString("static")
-	stcStr, _ := filepath.Abs(s)
-	flag.StringVar(&stcStr, "static", stcStr,
-		"<dirName> the directory with static files\n")
-
 	s, _ = defaults.AsString("theme")
 	themStr := s
 	flag.StringVar(&themStr, "theme", themStr,
 		"<name> the display theme to use (`light` or `dark`)\n")
-
-	s, _ = defaults.AsString("tpldir")
-	tplStr, _ := filepath.Abs(s)
-	flag.StringVar(&tplStr, "tpl", tplStr,
-		"<dirName> directory with page templates\n")
 
 	uaStr := ""
 	flag.StringVar(&uaStr, "ua", uaStr,
@@ -221,15 +189,15 @@ func initArguments() {
 	}
 	AppArguments.set("inifile", cmdIniFile)
 
-	if 0 < len(cssStr) {
-		cssStr, _ = filepath.Abs(cssStr)
+	if 0 < len(dataStr) {
+		dataStr, _ = filepath.Abs(dataStr)
 	}
-	AppArguments.set("css", cssStr)
-
-	if 0 < len(imgStr) {
-		imgStr, _ = filepath.Abs(imgStr)
+	if f, err := os.Stat(dataStr); nil != err {
+		log.Fatalf("`%s` problem: %v", dataStr, err)
+	} else if !f.IsDir() {
+		log.Fatalf("Error: Not a directory `%s`", dataStr)
 	}
-	AppArguments.set("img", imgStr)
+	AppArguments.set("datadir", dataStr)
 
 	/*
 		if 0 == len(intlStr) {
@@ -237,11 +205,6 @@ func initArguments() {
 		}
 			AppArguments.set("intl", intlStr)
 	*/
-
-	if 0 < len(jsStr) {
-		jsStr, _ = filepath.Abs(jsStr)
-	}
-	AppArguments.set("js", jsStr)
 
 	if 0 == len(langStr) {
 		langStr = "en"
@@ -278,25 +241,9 @@ func initArguments() {
 		AppArguments.set("pf", pfStr)
 	}
 
-	if 0 < len(postStr) {
-		postStr, _ = filepath.Abs(postStr)
-	}
-	// AppArguments.set("postdir", postStr)
-	SetPostingBaseDirectory(postStr)
-
-	if 0 < len(stcStr) {
-		stcStr, _ = filepath.Abs(stcStr)
-	}
-	AppArguments.set("static", stcStr)
-
 	if 0 < len(themStr) {
 		AppArguments.set("theme", themStr)
 	}
-
-	if 0 < len(tplStr) {
-		tplStr, _ = filepath.Abs(tplStr)
-	}
-	AppArguments.set("tpldir", tplStr)
 
 	if 0 < len(uaStr) {
 		AppArguments.set("ua", uaStr)
@@ -327,7 +274,6 @@ func initArguments() {
 	if 0 < len(uuStr) {
 		AppArguments.set("uu", uuStr)
 	}
-
 } // initArguments()
 
 func init() {
