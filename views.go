@@ -46,7 +46,7 @@ func (dl *TDataList) Set(aKey string, aValue interface{}) *TDataList {
 	return dl
 } // Set()
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
 	// Internal type to track changes in certain template vars.
@@ -194,7 +194,7 @@ var (
 	}
 )
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // TView combines a template and its logical name.
 type TView struct {
@@ -243,6 +243,7 @@ func (v *TView) render(aWriter io.Writer, aData *TDataList) (rErr error) {
 	if page, rErr = v.RenderedPage(aData); nil != rErr {
 		return
 	}
+
 	// if _, rErr := aWriter.Write(page); nil != rErr {
 	if _, rErr := aWriter.Write(RemoveWhiteSpace(page)); nil != rErr {
 		return rErr
@@ -278,11 +279,13 @@ func (v *TView) RenderedPage(aData *TDataList) (rBytes []byte, rErr error) {
 	return buf.Bytes(), nil
 } // RenderedPage()
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
+	tViewList map[string]*TView
+
 	// TViewList is a list of `TView` instances (to be used as a template pool).
-	TViewList map[string]*TView
+	TViewList tViewList
 )
 
 // NewViewList returns a new (empty) `TViewList` instance.
