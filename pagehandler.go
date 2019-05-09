@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	passlist "github.com/mwat56/go-passlist"
@@ -29,16 +28,9 @@ type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
 		addr     string              // listen address ("1.2.3.4:5678")
-		cssD     string              // configured CSS directory
-		cssH     http.Handler        // static CSS file handler
-		imgD     string              // configured image directopry
-		imgH     http.Handler        // static image file handler
-		jsD      string              // configured JavaScript directory
-		jsH      http.Handler        // static JS files
+		fileH    http.Handler        // static file handler
 		lang     string              // default language
 		realm    string              // host/domain to secure by BasicAuth
-		staticD  string              // configured static directory
-		staticH  http.Handler        // other static files
 		theme    string              // `dark` or `light` display theme
 		ul       *passlist.TPassList // user/password list
 		viewList *TViewList          // list of template/views
@@ -107,11 +99,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
 
-	case ph.cssD:
-		if 0 < len(tail) {
-			aRequest.URL.Path = tail
-		}
-		ph.cssH.ServeHTTP(aWriter, aRequest)
+	case "css":
+		ph.fileH.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 < len(tail) {
@@ -148,11 +137,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "faq", "faq.html":
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
-	case ph.imgD, "favicon.ico":
-		if 0 < len(tail) {
-			aRequest.URL.Path = tail
-		}
-		ph.imgH.ServeHTTP(aWriter, aRequest)
+	case "img", "favicon.ico":
+		ph.fileH.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "imprint.html":
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
@@ -160,11 +146,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "index", "index.html":
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
-	case ph.jsD:
-		if 0 < len(tail) {
-			aRequest.URL.Path = tail
-		}
-		ph.jsH.ServeHTTP(aWriter, aRequest)
+	case "js":
+		ph.fileH.ServeHTTP(aWriter, aRequest)
 
 	case "licence", "license":
 		ph.viewList.Render("licence", aWriter, pageData)
@@ -242,11 +225,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
-	case ph.staticD:
-		if 0 < len(tail) {
-			aRequest.URL.Path = tail
-		}
-		ph.staticH.ServeHTTP(aWriter, aRequest)
+	case "static":
+		ph.fileH.ServeHTTP(aWriter, aRequest)
 
 	case "w": // handle a given week
 		if 0 < len(tail) {
@@ -294,9 +274,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			p := NewPosting()
 			p.Set(m)
 			if _, err := p.Store(); nil != err {
-				err = nil //TODO better error handling
+				log.Printf("handlePOST(a): %v\n", err)
+				//TODO better error handling
 			}
-			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
+			tail = p.ID() + "?z=" + p.Date()
+			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -321,13 +303,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			np := newPosting(newID(t))
 			npn := np.PathFileName()
 			if err := os.Rename(opn, npn); nil != err {
-				log.Printf("handlePost(d): %v\n", err)
+				log.Printf("handlePOST(d): %v\n", err)
 				//TODO better error handling
 			}
-			tail = strings.TrimPrefix(npn, postingBaseDirectory+"/")
-			// remove leading directory and trailing extension:
-			tail = tail[4:len(tail)-3] +
-				fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
+			tail = np.ID() + fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
 			// dummy CGI argument to confuse the browser chache
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
@@ -349,7 +328,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					p.Set(old).Store()
 				}
 			}
-			http.Redirect(aWriter, aRequest, "/p/"+tail+"?z="+p.Date(), http.StatusSeeOther)
+			tail += "?z=" + p.ID()
+			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -357,12 +337,12 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	case "r", "rp": // remove posting
 		if 0 < len(tail) {
 			p := newPosting(tail)
-			tail = p.Date()
 			if err := p.Delete(); nil != err {
-				log.Printf("handlePost(r): %v\n", err)
+				log.Printf("handlePOST(r): %v\n", err)
 				//TODO better error handling
 			}
-			http.Redirect(aWriter, aRequest, "/m/"+tail+"?z="+tail, http.StatusSeeOther)
+			tail = p.Date() + "?z=" + p.ID()
+			http.Redirect(aWriter, aRequest, "/m/"+tail, http.StatusSeeOther)
 			return
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -425,23 +405,13 @@ func NewPageHandler() (*TPageHandler, error) {
 	)
 	result := new(TPageHandler)
 
-	if s, err = AppArguments.Get("css"); nil != err {
+	if s, err = AppArguments.Get("datadir"); nil != err {
 		return nil, err
 	}
-	result.cssD = filepath.Base(s)
-	result.cssH = http.FileServer(http.Dir(s))
-
-	if s, err = AppArguments.Get("img"); nil != err {
+	result.fileH = http.FileServer(http.Dir(s + "/"))
+	if result.viewList, err = newViewList(s + "/views"); nil != err {
 		return nil, err
 	}
-	result.imgD = filepath.Base(s)
-	result.imgH = http.FileServer(http.Dir(s))
-
-	if s, err = AppArguments.Get("js"); nil != err {
-		return nil, err
-	}
-	result.jsD = filepath.Base(s)
-	result.jsH = http.FileServer(http.Dir(s))
 
 	if s, err = AppArguments.Get("lang"); nil == err {
 		result.lang = s
@@ -463,33 +433,15 @@ func NewPageHandler() (*TPageHandler, error) {
 			result.ul = nil
 		}
 	}
-	/*
-		if s, err = AppArguments.Get("postdir"); nil != err {
-			return nil, err
-		}
-		result.basedir = s
-	*/
+
 	if s, err = AppArguments.Get("realm"); nil == err {
 		result.realm = s
 	}
-
-	if s, err = AppArguments.Get("static"); nil != err {
-		return nil, err
-	}
-	result.staticD = filepath.Base(s)
-	result.staticH = http.FileServer(http.Dir(s))
 
 	if s, err = AppArguments.Get("theme"); nil != err {
 		return nil, err
 	}
 	result.theme = s
-
-	if s, err = AppArguments.Get("tpldir"); nil != err {
-		return nil, err
-	}
-	if result.viewList, err = newViewList(s); nil != err {
-		return nil, err
-	}
 
 	return result, nil
 } // NewPageHandler()
@@ -504,6 +456,7 @@ func newViewList(aDirectory string) (*TViewList, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, fName := range files {
 		fName := filepath.Base(fName[:len(fName)-7]) // remove extension
 		if v, err = NewView(aDirectory, fName); nil != err {
