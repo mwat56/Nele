@@ -144,7 +144,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		ph.handleRoot("", pageData, aWriter, aRequest)
 
 	case "js":
 		ph.fileH.ServeHTTP(aWriter, aRequest)
@@ -166,19 +166,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "n": // handle newest postings
-		num := 20
-		if 0 < len(tail) {
-			var err error
-			if num, err = strconv.Atoi(tail); nil != err {
-				num = 20
-			}
-		}
-		pl := NewPostList()
-		pl.Newest(num) // ignore fs errors here
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,follow").
-			Set("Postings", pl.Sort())
-		ph.viewList.Render("index", aWriter, pageData)
+		ph.handleRoot(tail, pageData, aWriter, aRequest)
 
 	case "p": // handle a single posting
 		if 0 < len(tail) {
@@ -255,7 +243,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
 			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			// http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			ph.handleRoot("", pageData, aWriter, aRequest)
 		}
 	default:
 		// if nothing matched (above) reply to the request
@@ -353,6 +342,23 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		http.NotFound(aWriter, aRequest)
 	}
 } // handlePOST()
+
+// `handleRoot()` serves the logical web-root directory
+func (ph *TPageHandler) handleRoot(aNumber string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	num := 20
+	if 0 < len(aNumber) {
+		var err error
+		if num, err = strconv.Atoi(aNumber); nil != err {
+			num = 20
+		}
+	}
+	pl := NewPostList()
+	pl.Newest(num) // ignore fs errors here
+	aData = check4lang(aData, aRequest).
+		Set("Robots", "noindex,follow").
+		Set("Postings", pl.Sort())
+	ph.viewList.Render("index", aWriter, aData)
+} // handleRoot()
 
 // Len returns the lenght of the internal view list.
 func (ph *TPageHandler) Len() int {
