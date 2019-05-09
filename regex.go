@@ -22,7 +22,7 @@ import (
 	"time"
 
 	// blackfriday "github.com/russross/blackfriday/v2"
-	"gopkg.in/russross/blackfriday.v2"
+	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
 var (
@@ -93,11 +93,44 @@ var (
 	// RegEx to correct wrong markup created by 'blackfriday';
 	// see MDtoHTML()
 	bfPreCodeRE = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
+
+	bfPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
 )
+
+// `handlePreCode()` tries to fix the Pre/Code markup
+func handlePreCode(aMarkdown []byte) (rHTML []byte) {
+	rHTML = bfPreCodeRE.ReplaceAll(aMarkdown, []byte("$1\n$2\n$3"))
+	if i := bytes.Index(rHTML, []byte("<pre><code ")); 0 > i {
+		// no need for the second RegEx execution
+		return
+	}
+	rHTML = bfPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
+
+	return
+} // handlePreCode()
 
 // MDtoHTML converts the `aMarkdown` data returning HTML data.
 func MDtoHTML(aMarkdown []byte) []byte {
-	result := blackfriday.Run(aMarkdown)
+	extensions := blackfriday.WithExtensions(
+		blackfriday.Autolink |
+			blackfriday.BackslashLineBreak |
+			blackfriday.DefinitionLists |
+			blackfriday.FencedCode |
+			blackfriday.Footnotes |
+			blackfriday.HeadingIDs |
+			blackfriday.NoIntraEmphasis |
+			blackfriday.SpaceHeadings |
+			blackfriday.Strikethrough |
+			blackfriday.Tables)
+	r := blackfriday.NewHTMLRenderer(blackfriday.HTMLRendererParameters{
+		Flags: blackfriday.FootnoteReturnLinks |
+			blackfriday.Smartypants |
+			blackfriday.SmartypantsFractions |
+			blackfriday.SmartypantsDashes |
+			blackfriday.SmartypantsLatexDashes,
+	})
+	result := blackfriday.Run(aMarkdown,
+		blackfriday.WithRenderer(r), extensions)
 	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
 		// no need for RegEx execution
 		return result
@@ -106,7 +139,7 @@ func MDtoHTML(aMarkdown []byte) []byte {
 	// if there's no PRE in the generated HTML and about the
 	// same speed if there actually is a PRE part.
 
-	return bfPreCodeRE.ReplaceAll(result, []byte("$1\n$2\n$3"))
+	return handlePreCode(result)
 } // MDtoHTML()
 
 // `trimPREmatches()` removes leading/trailing whitespace from list entries.
