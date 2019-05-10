@@ -37,7 +37,7 @@ blockquote {
 	/* matches (with "padding-left") text-indent of "P": */
 	margin: 1ex 2ex 1ex 2.6ex;
 	padding: 0.3ex 1ex 0.3ex 1ex;
-	text-align: justify;
+	text-align: left;
 	text-indent: 0;
 }
 b, .bold,
@@ -58,7 +58,7 @@ code, .code, kbd, pre, tt, xmp {
 	color: inherit;
 	font-family: monospace;
 	font-size: 0.987em;
-	font-weight: imherit;
+	font-weight: inherit;
 	letter-spacing: normal;
 	line-height: 1.123;
 	padding: 0.1ex 0.3ex;
