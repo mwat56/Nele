@@ -18,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"time"
 
 	passlist "github.com/mwat56/go-passlist"
@@ -44,11 +43,14 @@ func (ph *TPageHandler) Address() string {
 
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TDataList {
+	y, m, d := time.Now().Date()
 	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, ph.theme)
 	pageData := NewDataList().
 		Set("CSS", template.HTML(css)).
 		Set("Lang", ph.lang).
-		Set("Robots", "index,follow")
+		Set("monthURL", fmt.Sprintf("/m/%d%02d%02d", y, m, d)).
+		Set("Robots", "index,follow").
+		Set("weekURL", fmt.Sprintf("/w/%d%02d%02d", y, m, d))
 
 	return pageData
 } // basicPageData()
@@ -92,12 +94,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	pageData := ph.basicPageData()
 	path, tail := URLparts(aRequest.URL.Path)
+	// log.Printf("head: `%s`: tail: `%s`", path, tail) //FIXME REMOVE
 	switch path {
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
 			Set("BackURL", aRequest.URL.Path). // for POSTing back
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
+
+	case "c": // continue newest (i.e. next 20 articles)
+		//TODO implementation
+		ph.handleRoot(tail, pageData, aWriter, aRequest)
 
 	case "css":
 		ph.fileH.ServeHTTP(aWriter, aRequest)
@@ -106,14 +113,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if 0 < len(tail) {
 			y, mo, d := time.Now().Date()
 			now := fmt.Sprintf("%d-%02d-%02d", y, mo, d)
-			t := timeID(tail)
+			p := newPosting(tail)
+			txt := p.Markdown()
+			t := p.Time()
 			y, mo, d = t.Date()
 			pageData = check4lang(pageData, aRequest).
-				Set("BackURL", aRequest.URL.Path). // for POSTing back
+				Set("BackURL", aRequest.URL.Path).
+				Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
+					t.Hour(), t.Minute(), t.Second())).
+				Set("Manuscript", template.HTML(txt)).
 				Set("NOW", now).
-				Set("HMS", fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
-				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)).
-				Set("Robots", "noindex,nofollow")
+				Set("Robots", "noindex,nofollow").
+				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d))
 			ph.viewList.Render("dc", aWriter, pageData)
 			return
 		}
@@ -124,10 +135,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			p := newPosting(tail)
 			txt := p.Markdown()
 			if 0 < len(txt) {
+				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
+					Set("BackURL", aRequest.URL.Path).
 					Set("Manuscript", template.HTML(txt)).
-					Set("BackURL", aRequest.URL.Path). // for POSTing back
-					Set("Robots", "noindex,nofollow")
+					Set("monthURL", "/m/"+date).
+					Set("Robots", "noindex,nofollow").
+					Set("weekURL", "/w/"+date)
 				ph.viewList.Render("ed", aWriter, pageData)
 				return
 			}
@@ -144,7 +158,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
-		ph.handleRoot("", pageData, aWriter, aRequest)
+		ph.handleRoot("20", pageData, aWriter, aRequest)
 
 	case "js":
 		ph.fileH.ServeHTTP(aWriter, aRequest)
@@ -154,12 +168,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "m": // handle a given month
 		if 0 < len(tail) {
-			y, m, _ := getYMD(tail)
+			y, m, d := getYMD(tail)
+			if 0 == d {
+				d = 1
+			}
+			date := fmt.Sprintf("%d%02d%02d", y, m, d)
 			pl := NewPostList().Month(y, m)
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
-				Set("Postings", pl.Sort())
+				Set("Postings", pl.Sort()).
+				Set("monthURL", "/m/"+date).
+				Set("weekURL", "/w/"+date)
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
@@ -172,8 +192,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			if err := p.Load(); nil == err {
+				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
-					Set("Postings", p)
+					Set("Postings", p).
+					Set("monthURL", "/m/"+date).
+					Set("weekURL", "/w/"+date)
 				ph.viewList.Render("article", aWriter, pageData)
 				return
 			}
@@ -190,10 +213,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			txt := p.Markdown()
+			date := p.Date()
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
 					Set("Manuscript", template.HTML(txt)).
-					Set("BackURL", aRequest.URL.Path). // for POSTing back
+					Set("BackURL", aRequest.URL.Path).
+					Set("monthURL", "/m/"+date).
+					Set("weekURL", "/w/"+date).
 					Set("Robots", "noindex,nofollow")
 				ph.viewList.Render("rp", aWriter, pageData)
 				return
@@ -219,11 +245,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "w": // handle a given week
 		if 0 < len(tail) {
 			y, m, d := getYMD(tail)
+			if 0 == d {
+				d = 1
+			}
+			date := fmt.Sprintf("%d%02d%02d", y, m, d)
 			pl := NewPostList().Week(y, m, d)
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
-				Set("Postings", pl.Sort())
+				Set("Postings", pl.Sort()).
+				Set("monthURL", "/m/"+date).
+				Set("weekURL", "/w/"+date)
 			ph.viewList.Render("searchresult", aWriter, pageData)
 			return
 		}
@@ -244,7 +276,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
 		} else {
 			// http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-			ph.handleRoot("", pageData, aWriter, aRequest)
+			ph.handleRoot("20", pageData, aWriter, aRequest)
 		}
 	default:
 		// if nothing matched (above) reply to the request
@@ -291,6 +323,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			t = time.Date(y, mo, d, h, mi, s, n, time.Local)
 			np := newPosting(newID(t))
 			npn := np.PathFileName()
+			// ensure existence of directory:
+			if _, err := np.makeDir(); nil != err {
+				log.Printf("handlePOST(d): %v\n", err)
+				//TODO better error handling
+			}
 			if err := os.Rename(opn, npn); nil != err {
 				log.Printf("handlePOST(d): %v\n", err)
 				//TODO better error handling
@@ -344,19 +381,20 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 } // handlePOST()
 
 // `handleRoot()` serves the logical web-root directory
-func (ph *TPageHandler) handleRoot(aNumber string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
-	num := 20
-	if 0 < len(aNumber) {
-		var err error
-		if num, err = strconv.Atoi(aNumber); nil != err {
-			num = 20
-		}
+func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	num, start := numStart(aNumStr)
+	if 0 == num {
+		num = 20
 	}
 	pl := NewPostList()
-	pl.Newest(num) // ignore fs errors here
+	//TODO implement flexible start no.
+	pl.Newest(num, start) // ignore fs errors here
 	aData = check4lang(aData, aRequest).
-		Set("Robots", "noindex,follow").
-		Set("Postings", pl.Sort())
+		Set("Postings", pl.Sort()).
+		Set("Robots", "noindex,follow")
+	if 0 < pl.Len() {
+		aData.Set("nextLink", fmt.Sprintf("%d,%d", num, num+start+1))
+	}
 	ph.viewList.Render("index", aWriter, aData)
 } // handleRoot()
 
