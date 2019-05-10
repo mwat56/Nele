@@ -1,7 +1,7 @@
 /*
-   Copyright © 2019  M.Watermann, 10247 Berlin, Germany
-               All rights reserved
-           EMail : <support@mwat.de>
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+              EMail : <support@mwat.de>
 */
 
 package blog
@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"time"
 
-	// blackfriday "github.com/russross/blackfriday/v2"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
+	// bf "github.com/russross/blackfriday/v2"
+	bf "gopkg.in/russross/blackfriday.v2"
 )
 
 var (
@@ -90,7 +90,7 @@ func initWSre() int {
 } // initWSre()
 
 var (
-	// RegEx to correct wrong markup created by 'blackfriday';
+	// RegEx to correct wrong markup created by 'bf';
 	// see MDtoHTML()
 	bfPreCodeRE = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
 
@@ -111,26 +111,26 @@ func handlePreCode(aMarkdown []byte) (rHTML []byte) {
 
 // MDtoHTML converts the `aMarkdown` data returning HTML data.
 func MDtoHTML(aMarkdown []byte) []byte {
-	extensions := blackfriday.WithExtensions(
-		blackfriday.Autolink |
-			blackfriday.BackslashLineBreak |
-			blackfriday.DefinitionLists |
-			blackfriday.FencedCode |
-			blackfriday.Footnotes |
-			blackfriday.HeadingIDs |
-			blackfriday.NoIntraEmphasis |
-			blackfriday.SpaceHeadings |
-			blackfriday.Strikethrough |
-			blackfriday.Tables)
-	r := blackfriday.NewHTMLRenderer(blackfriday.HTMLRendererParameters{
-		Flags: blackfriday.FootnoteReturnLinks |
-			blackfriday.Smartypants |
-			blackfriday.SmartypantsFractions |
-			blackfriday.SmartypantsDashes |
-			blackfriday.SmartypantsLatexDashes,
+	extensions := bf.WithExtensions(
+		bf.Autolink |
+			bf.BackslashLineBreak |
+			bf.DefinitionLists |
+			bf.FencedCode |
+			bf.Footnotes |
+			bf.HeadingIDs |
+			bf.NoIntraEmphasis |
+			bf.SpaceHeadings |
+			bf.Strikethrough |
+			bf.Tables)
+	r := bf.NewHTMLRenderer(bf.HTMLRendererParameters{
+		Flags: bf.FootnoteReturnLinks |
+			bf.Smartypants |
+			bf.SmartypantsFractions |
+			bf.SmartypantsDashes |
+			bf.SmartypantsLatexDashes,
 	})
-	result := blackfriday.Run(aMarkdown,
-		blackfriday.WithRenderer(r), extensions)
+	result := bf.Run(aMarkdown,
+		bf.WithRenderer(r), extensions)
 	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
 		// no need for RegEx execution
 		return result

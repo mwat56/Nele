@@ -325,11 +325,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			npn := np.PathFileName()
 			// ensure existence of directory:
 			if _, err := np.makeDir(); nil != err {
-				log.Printf("handlePOST(d): %v\n", err)
+				log.Printf("handlePOST(d1): %v\n", err)
 				//TODO better error handling
 			}
 			if err := os.Rename(opn, npn); nil != err {
-				log.Printf("handlePOST(d): %v\n", err)
+				log.Printf("handlePOST(d2): %v\n", err)
 				//TODO better error handling
 			}
 			tail = np.ID() + fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
