@@ -252,21 +252,23 @@ ul li {
 	margin: 1ex 0;
 	min-height: 3em;
 }
+#leftbar {
+	max-width: 30%;
+	text-align: left;
+}
 #main {
 	margin: 0 auto;
 	padding: 0;
 	max-width: 90ex;
 }
+#rightbar {
+	max-width: 30%;
+	text-align: right;
+}
 
 .centered {
 	margin: 0 auto;
 	text-align: center;
-}
-div.edlink {
-	clear: right;
-	float: right;
-	font-size: 89%;
-	margin: 0.4ex 0 0 1ex;
 }
 a.idlink {
 	clear: left;
