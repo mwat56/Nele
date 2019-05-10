@@ -245,6 +245,7 @@ func TestTPostList_Newest(t *testing.T) {
 	pl1 := NewPostList()
 	type args struct {
 		aNumber int
+		aStart  int
 	}
 	tests := []struct {
 		name    string
@@ -253,11 +254,12 @@ func TestTPostList_Newest(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{10}, false},
+		{" 1", pl1, args{10, 0}, false},
+		{" 2", pl1, args{10, 10}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.pl.Newest(tt.args.aNumber); (err != nil) != tt.wantErr {
+			if err := tt.pl.Newest(tt.args.aNumber, tt.args.aStart); (err != nil) != tt.wantErr {
 				t.Errorf("TPostList.Newest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

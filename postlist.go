@@ -170,7 +170,11 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 //
 // The resulting list is sorted in descending order (newest first)
 // with at most `aNumber` posts.
-func (pl *TPostList) Newest(aNumber int) error {
+//
+// `aNumber` is the number of articles to show.
+//
+// `aStart` is the start number to use.
+func (pl *TPostList) Newest(aNumber, aStart int) error {
 	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
 	if nil != err {
 		return err
@@ -179,6 +183,7 @@ func (pl *TPostList) Newest(aNumber int) error {
 	sort.Slice(dirnames, func(i, j int) bool {
 		return (dirnames[i] > dirnames[j]) // descending
 	})
+	counter := 0
 	for _, dirname := range dirnames {
 		filesnames, err := filepath.Glob(dirname + "/*.md")
 		if nil != err {
@@ -192,6 +197,10 @@ func (pl *TPostList) Newest(aNumber int) error {
 			return (filesnames[i] > filesnames[j]) // descending
 		})
 		for _, postname := range filesnames {
+			counter++
+			if counter <= aStart {
+				continue
+			}
 			postname = strings.TrimPrefix(postname, dirname+"/")
 			bgAddPosting(pl, postname[:len(postname)-3]) // strip name extension
 			if pl.Len() > aNumber {
