@@ -1,7 +1,7 @@
 {{- define "footer" -}}
 	<footer><p><small>
 	{{- $lang := "de" -}}
-	{{- if .Lang}}{{$lang = .Lang}}{{ end -}}
+	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
 	{{- $monthURL := monthURL -}}
 	{{- $weekURL := weekURL -}}
 	{{- if eq $lang "de"}}<img src="/img/favicon.ico" alt="*">

@@ -1,6 +1,6 @@
 {{- define "htmlpage" -}}
 <!DOCTYPE html>
-<html {{- if .Lang}} lang="{{.Lang}}"{{end -}}>
+<html {{- if .Lang}} lang="{{.Lang}}"{{end}}>
 <head>
 	<meta charset="UTF-8">
 	<meta name="Generator" content="/bin/cat" />
@@ -14,9 +14,6 @@
 <body><div id="main">
 {{template "header" .}}
 {{- if .Headline}}<h1>{{.Headline}}</h1>{{end -}}
-	<div id="leftbar">
-		{{template "leftbar" .}}
-	</div>
 	<div id="bodypage">
 		{{template "bodypage" .}}
 	</div>
