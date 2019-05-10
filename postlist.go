@@ -285,7 +285,7 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// bgAddPosting() is a function adding a new posting to `aPostList`.
+// `bgAddPosting()` is a function adding a new posting to `aPostList`.
 //
 // `aPostList` is the `TPostList` instance to add to.
 //

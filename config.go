@@ -127,7 +127,7 @@ func initArguments() {
 	/*
 		ndBool := false
 		flag.BoolVar(&ndBool, "nd", ndBool,
-			"(optional) no daemon: whether daemonise the program")
+			"(optional) no daemon: whether to not daemonise the program")
 	*/
 
 	portInt, _ := defaults.AsInt("port")
@@ -147,10 +147,9 @@ func initArguments() {
 	flag.StringVar(&realStr, "realm", realStr,
 		"(optional) <hostName> name of host/domain to secure by BasicAuth\n")
 
-	s, _ = defaults.AsString("theme")
-	themStr := s
+	themStr, _ := defaults.AsString("theme")
 	flag.StringVar(&themStr, "theme", themStr,
-		"<name> the display theme to use (`light` or `dark`)\n")
+		"<name> the display theme to use ('light' or 'dark')\n")
 
 	uaStr := ""
 	flag.StringVar(&uaStr, "ua", uaStr,
