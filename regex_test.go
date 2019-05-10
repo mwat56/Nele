@@ -24,6 +24,36 @@ func Test_initWSre(t *testing.T) {
 	}
 } // Test_initWSre()
 
+func Test_numStart(t *testing.T) {
+	type args struct {
+		aString string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantRNum   int
+		wantRStart int
+	}{
+		// TODO: Add test cases.
+		{" 0", args{","}, 0, 0},
+		{" 1", args{"10"}, 10, 0},
+		{" 2", args{"10-10"}, 10, 10},
+		{" 3", args{"10,"}, 10, 0},
+		{" 4", args{",10"}, 0, 10},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotRNum, gotRStart := numStart(tt.args.aString)
+			if gotRNum != tt.wantRNum {
+				t.Errorf("numStart() gotRNum = %v, want %v", gotRNum, tt.wantRNum)
+			}
+			if gotRStart != tt.wantRStart {
+				t.Errorf("numStart() gotRStart = %v, want %v", gotRStart, tt.wantRStart)
+			}
+		})
+	}
+} // Test_numStart()
+
 func TestMDtoHTML(t *testing.T) {
 	m1 := []byte(`# head
 

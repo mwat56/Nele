@@ -142,6 +142,26 @@ func MDtoHTML(aMarkdown []byte) []byte {
 	return handlePreCode(result)
 } // MDtoHTML()
 
+var (
+	// RegEx to extract number and start of articles shown
+	numStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
+)
+
+// `numStart` extracts two numbers from `aString`.
+func numStart(aString string) (rNum, rStart int) {
+	matches := numStartRE.FindStringSubmatch(aString)
+	if 3 < len(matches) {
+		if 0 < len(matches[1]) {
+			rNum, _ = strconv.Atoi(matches[1])
+		}
+		if 0 < len(matches[3]) {
+			rStart, _ = strconv.Atoi(matches[3])
+		}
+	}
+
+	return
+} // numStart()
+
 // `trimPREmatches()` removes leading/trailing whitespace from list entries.
 func trimPREmatches(aList [][]byte) [][]byte {
 	for idx, hit := range aList {
@@ -265,10 +285,8 @@ func replCRLF(aText []byte) []byte {
 // or (c) no files matched `aText`.
 func SearchPostings(aBaseDir, aText string) *TPostList {
 	bd, _ := filepath.Abs(aBaseDir)
-	pl := NewPostList( /* bd */ )
+	pl := NewPostList()
 
-	// search := fmt.Sprintf("(?si)%s", regexp.QuoteMeta(string(aText)))
-	// pattern, err := regexp.Compile(fmt.Sprintf("(?si)%s", search))
 	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
 	if err != nil {
 		return pl // empty list
@@ -315,7 +333,7 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 
 var (
 	// RegEx to find path and possible added path components
-	routeRE = regexp.MustCompile("^/?([\\w\\._-]+)?/?([\\w\\.\\?\\=_-]*)?")
+	routeRE = regexp.MustCompile("^/?([\\w\\._-]+)?/?([\\w\\.\\?\\=,_-]*)?")
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
