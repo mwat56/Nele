@@ -178,7 +178,7 @@ p {
 	margin-bottom: 0.2ex;
 	padding-top: 0.2ex;
 	padding-bottom: 0.2ex;
-	text-align: justify;
+	text-align: left;
 	text-indent: 2.6ex;
 }
 blockquote + p,
@@ -260,6 +260,15 @@ ul li {
 	margin: 0 auto;
 	padding: 0;
 	max-width: 90ex;
+}
+p#next {
+	text-align: right;
+}
+p#next a {
+	font-size: 89%;
+}
+pre#preview {
+	max-height: 15ex;
 }
 #rightbar {
 	max-width: 30%;

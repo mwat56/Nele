@@ -53,4 +53,7 @@ p.matches {
 	background: #fff;
 	border: thin solid #ccc;
 }
+p#next a {
+	border-bottom: thin dotted #03c;
+}
 /* _EoF_ */
