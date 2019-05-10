@@ -5,22 +5,31 @@
 {{- define "bodypage" -}}
 	{{- $lang := "de" -}}
 	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+	{{- if eq $lang "de" -}}
+	<h3>Datum ändern:</h3>
+	{{- else -}}
 	<h3>Change Date:</h3>
+	{{- end -}}
 	<form method="post" action="{{.BackURL}}">
-		{{- if eq $lang "de" -}}
-			<p class="right"><label for="ymd">Datum: </label> &nbsp;
-			<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
-			<p class="right"><label for="hms">Zeit: </label> &nbsp;
-			<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
-			<p class="right"><input type="reset" name="reset" title="" value=" Zurücksetzen "> &nbsp;
-			<input type="submit" name="submit" title="" value=" Speichern "></p>
-		{{- else -}}
-			<p class="right"><label for="ymd">Date: </label> &nbsp;
-			<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
-			<p class="right"><label for="hms">Time: </label> &nbsp;
-			<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
-			<p class="right"><input type="reset" name="reset" title="" value=" Reset "> &nbsp;
-			<input type="submit" name="submit" title="" value=" Save "></p>
-			{{- end -}}
+	{{- if eq $lang "de" -}}
+		<p class="right"><label for="ymd">Datum: </label> &nbsp;
+		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
+		<p class="right"><label for="hms">Zeit: </label> &nbsp;
+		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
+		<p class="right"><input type="reset" name="reset" title="" value=" Zurücksetzen "> &nbsp;
+		<input type="submit" name="submit" title="" value=" Speichern "></p>
+	{{- else -}}
+		<p class="right"><label for="ymd">Date: </label> &nbsp;
+		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
+		<p class="right"><label for="hms">Time: </label> &nbsp;
+		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
+		<p class="right"><input type="reset" name="reset" title="" value=" Reset "> &nbsp;
+		<input type="submit" name="submit" title="" value=" Save "></p>
+		{{- end -}}
 	</form>
+	{{- if .Manuscript -}}
+	<pre id="preview">
+{{.Manuscript}}
+	</pre>
+	{{- end -}}
 {{- end -}}
