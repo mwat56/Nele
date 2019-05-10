@@ -163,19 +163,19 @@ func postWeekURL(aPost interface{}) string {
 	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
 } // postWeekURL()
 
-// `monthURL()` returns an URL for the current month.
-func monthURL() string {
-	y, m, d := time.Now().Date()
+// // `monthURL()` returns an URL for the current month.
+// func monthURL() string {
+// 	y, m, d := time.Now().Date()
 
-	return fmt.Sprintf("/m/%d%02d%02d", y, m, d)
-} // monthURL()
+// 	return fmt.Sprintf("/m/%d%02d%02d", y, m, d)
+// } // monthURL()
 
-// `weekURL()` returns an URL for the current week.
-func weekURL() string {
-	y, m, d := time.Now().Date()
+// // `weekURL()` returns an URL for the current week.
+// func weekURL() string {
+// 	y, m, d := time.Now().Date()
 
-	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
-} // weekURL()
+// 	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
+// } // weekURL()
 
 var (
 	fMap = template.FuncMap{
@@ -189,8 +189,8 @@ var (
 		"postText":     postText,     // the safe HTML of `aPost`
 		"postWeekURL":  postWeekURL,  // the week URL of `aPost`
 		"postMonthURL": postMonthURL, // the month URL of `aPost
-		"monthURL":     monthURL,     // URL for the current month
-		"weekURL":      weekURL,      // URL for the current week
+		// "monthURL":     monthURL,     // URL for the current month
+		// "weekURL":      weekURL,      // URL for the current week
 	}
 )
 
