@@ -340,7 +340,7 @@ var (
 // Depending on the actual value of `aURL` both return values may be
 // empty or both may be filled; none of both will hold a leading slash.
 func URLparts(aURL string) (rDir, rPath string) {
-	if result, err := url.QueryUnescape(aURL); nil != err {
+	if result, err := url.QueryUnescape(aURL); nil == err {
 		aURL = result
 	}
 	matches := routeRE.FindStringSubmatch(aURL)
