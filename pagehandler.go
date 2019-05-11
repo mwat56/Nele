@@ -27,7 +27,7 @@ type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
 		addr     string              // listen address ("1.2.3.4:5678")
-		fileH    http.Handler        // static file handler
+		fh       http.Handler        // static file handler
 		lang     string              // default language
 		realm    string              // host/domain to secure by BasicAuth
 		theme    string              // `dark` or `light` display theme
@@ -35,6 +35,98 @@ type (
 		viewList *TViewList          // list of template/views
 	}
 )
+
+// `check4lang()` looks for a CGI value of `lang` and adds it to `aPD` if found.
+func check4lang(aPD *TDataList, aRequest *http.Request) *TDataList {
+	if l := aRequest.FormValue("lang"); 0 < len(l) {
+		return aPD.Set("Lang", l)
+	}
+	return aPD
+} // check4lang()
+
+// `handleShare()` serves the edit page for a shared URL.
+func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
+	p := NewPosting()
+	p.Set([]byte("\n\n> [" + aShare + "](" + aShare + ")\n"))
+	if _, err := p.Store(); nil != err {
+		log.Printf("handleShare(): %v", err)
+		//TODO better error handling
+	}
+	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
+} // handleShare()
+
+// NewPageHandler returns a new `TPageHandler` instance.
+func NewPageHandler() (*TPageHandler, error) {
+	var (
+		err error
+		s   string
+	)
+	result := new(TPageHandler)
+
+	if s, err = AppArguments.Get("datadir"); nil != err {
+		return nil, err
+	}
+	result.fh = http.FileServer(http.Dir(s + "/"))
+	if result.viewList, err = newViewList(s + "/views"); nil != err {
+		return nil, err
+	}
+
+	if s, err = AppArguments.Get("lang"); nil == err {
+		result.lang = s
+	}
+
+	if s, err = AppArguments.Get("listen"); nil != err {
+		return nil, err
+	}
+	result.addr = s
+
+	if s, err = AppArguments.Get("port"); nil != err {
+		return nil, err
+	}
+	result.addr += ":" + s
+
+	if s, err = AppArguments.Get("uf"); nil == err {
+		if result.ul, err = passlist.LoadPasswords(s); nil != err {
+			log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
+			result.ul = nil
+		}
+	}
+
+	if s, err = AppArguments.Get("realm"); nil == err {
+		result.realm = s
+	}
+
+	if s, err = AppArguments.Get("theme"); nil != err {
+		return nil, err
+	}
+	result.theme = s
+
+	return result, nil
+} // NewPageHandler()
+
+// `newViewList()` returns a list of views found in `aDirectory`
+// and a possible I/O error.
+func newViewList(aDirectory string) (*TViewList, error) {
+	var v *TView
+	result := NewViewList()
+
+	files, err := filepath.Glob(aDirectory + "/*.gohtml")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, fName := range files {
+		fName := filepath.Base(fName[:len(fName)-7]) // remove extension
+		if v, err = NewView(aDirectory, fName); nil != err {
+			return nil, err
+		}
+		result = result.Add(v)
+	}
+
+	return result, nil
+} // newViewList()
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // Address returns the configured `IP:Port` address to use for listening.
 func (ph *TPageHandler) Address() string {
@@ -50,18 +142,11 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("Lang", ph.lang).
 		Set("monthURL", fmt.Sprintf("/m/%d%02d%02d", y, m, d)).
 		Set("Robots", "index,follow").
+		Set("Title", ph.realm).
 		Set("weekURL", fmt.Sprintf("/w/%d%02d%02d", y, m, d))
 
 	return pageData
 } // basicPageData()
-
-// `check4lang()` looks for a CGI value of `lang` and adds it to `aPD` if found.
-func check4lang(aPD *TDataList, aRequest *http.Request) *TDataList {
-	if l := aRequest.FormValue("lang"); 0 < len(l) {
-		return aPD.Set("Lang", l)
-	}
-	return aPD
-} // check4lang()
 
 // GetErrorPage returns an error page for `aStatus`,
 // implementing the `TErrorPager` interface.
@@ -102,12 +187,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
 
-	case "c": // continue newest (i.e. next 20 articles)
-		//TODO implementation
-		ph.handleRoot(tail, pageData, aWriter, aRequest)
-
 	case "css":
-		ph.fileH.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 < len(tail) {
@@ -152,7 +233,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
 	case "img", "favicon.ico":
-		ph.fileH.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "imprint.html":
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
@@ -161,7 +242,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleRoot("20", pageData, aWriter, aRequest)
 
 	case "js":
-		ph.fileH.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "licence", "license":
 		ph.viewList.Render("licence", aWriter, pageData)
@@ -229,7 +310,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
-			pl := SearchPostings(postingBaseDirectory, regexp.QuoteMeta(tail))
+			pl := SearchPostings(regexp.QuoteMeta(tail))
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,follow").
 				Set("Matches", pl.Len()).
@@ -239,8 +320,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
+	case "share":
+		if 0 < len(tail) {
+			handleShare(tail, aWriter, aRequest)
+			return
+		}
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+
 	case "static":
-		ph.fileH.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "w": // handle a given week
 		if 0 < len(tail) {
@@ -272,6 +360,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/s/"+q, http.StatusSeeOther)
 		} else if s := aRequest.FormValue("s"); 0 < len(s) {
 			http.Redirect(aWriter, aRequest, "/s/"+s, http.StatusSeeOther)
+		} else if s := aRequest.FormValue("share"); 0 < len(s) {
+			handleShare(s, aWriter, aRequest)
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
 			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
 		} else {
@@ -387,13 +477,12 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 		num = 20
 	}
 	pl := NewPostList()
-	//TODO implement flexible start no.
 	pl.Newest(num, start) // ignore fs errors here
 	aData = check4lang(aData, aRequest).
 		Set("Postings", pl.Sort()).
 		Set("Robots", "noindex,follow")
-	if 0 < pl.Len() {
-		aData.Set("nextLink", fmt.Sprintf("%d,%d", num, num+start+1))
+	if pl.Len() >= num {
+		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", num, num+start+1))
 	}
 	ph.viewList.Render("index", aWriter, aData)
 } // handleRoot()
@@ -413,7 +502,11 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	case "a", "ap", // add new post
 		"d", "dp", // change post's date
 		"e", "ep", // edit post
-		"r", "rp": // remove post
+		"r", "rp", // remove post
+		"share": // share another URL
+		return true
+	}
+	if s := aRequest.FormValue("share"); 0 < len(s) {
 		return true
 	}
 
@@ -438,78 +531,5 @@ func (ph TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Req
 		http.Error(aWriter, "HTTP Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 } // ServeHTTP()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// NewPageHandler returns a new `TPageHandler` instance.
-func NewPageHandler() (*TPageHandler, error) {
-	var (
-		err error
-		s   string
-	)
-	result := new(TPageHandler)
-
-	if s, err = AppArguments.Get("datadir"); nil != err {
-		return nil, err
-	}
-	result.fileH = http.FileServer(http.Dir(s + "/"))
-	if result.viewList, err = newViewList(s + "/views"); nil != err {
-		return nil, err
-	}
-
-	if s, err = AppArguments.Get("lang"); nil == err {
-		result.lang = s
-	}
-
-	if s, err = AppArguments.Get("listen"); nil != err {
-		return nil, err
-	}
-	result.addr = s
-
-	if s, err = AppArguments.Get("port"); nil != err {
-		return nil, err
-	}
-	result.addr += ":" + s
-
-	if s, err = AppArguments.Get("uf"); nil == err {
-		if result.ul, err = passlist.LoadPasswords(s); nil != err {
-			log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-			result.ul = nil
-		}
-	}
-
-	if s, err = AppArguments.Get("realm"); nil == err {
-		result.realm = s
-	}
-
-	if s, err = AppArguments.Get("theme"); nil != err {
-		return nil, err
-	}
-	result.theme = s
-
-	return result, nil
-} // NewPageHandler()
-
-// `newViewList()` returns a list of views found in `aDirectory`
-// and a possible I/O error.
-func newViewList(aDirectory string) (*TViewList, error) {
-	var v *TView
-	result := NewViewList()
-
-	files, err := filepath.Glob(aDirectory + "/*.gohtml")
-	if err != nil {
-		return nil, err
-	}
-
-	for _, fName := range files {
-		fName := filepath.Base(fName[:len(fName)-7]) // remove extension
-		if v, err = NewView(aDirectory, fName); nil != err {
-			return nil, err
-		}
-		result = result.Add(v)
-	}
-
-	return result, nil
-} // newViewList()
 
 /* _EoF_ */
