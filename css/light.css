@@ -13,23 +13,27 @@ a:hover {
 a:visited {
 	color: #300;
 }
-code, .code, kbd, pre, tt, xmp {
-	background-color: #ebebeb;
+code, .code, kbd, pre, textarea, tt, xmp {
+	background: #ebebeb;
+	color: #333;
 }
 del {
 	color: #666;
 }
+dl dd {
+	background: #f9f9f0;
+}
 dl.posting dd {
-	background: #f9f9f6;
-	border: thin solid #f0f0e0;
+	border: thin inset #960;
+	border-left: 0;
+	border-right: 0;
 }
 dl.posting dd blockquote {
 	background: #f6f6ec;
 	border: thin solid #f0f0e0;
-	margin-left: 2.6ex;
 }
 footer {
-	border-top: thin solid #ccc;
+	border-top: thin solid #333;
 }
 h1, h2, h3, h4, h5, h6 {
 	color: #033;
@@ -38,7 +42,7 @@ h3, h2, h1 {
 	text-shadow: -0.1ex -0.1ex 0.1ex #666;
 }
 header {
-	background: #f9f9f9;
+	background: #f9f9f6;
 	border-bottom: thin solid #ccc;
 	color: #000;
 }
@@ -50,7 +54,7 @@ pre, xmp {
 	border-left: thick solid #999;
 }
 p.matches {
-	background: #fff;
+	background: #ebebeb;
 	border: thin solid #ccc;
 }
 p#next a {

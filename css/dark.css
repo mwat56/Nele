@@ -13,20 +13,24 @@ a:hover {
 a:visited {
 	color: #f30;
 }
-code, .code, kbd, pre, tt, xmp {
-	background-color: #333;
+code, .code, kbd, pre, textarea, tt, xmp {
+	background: #333;
+	color: #ccc;
 }
 del {
 	color: #999;
 }
+dl dd {
+	background: #111100;
+}
 dl.posting dd {
-	background: #161613;
-	border: thin solid #131310;
+	border: thin outset #630;
+	border-left: 0;
+	border-right: 0;
 }
 dl.posting dd blockquote {
 	background: #161619;
 	border: thin solid #1f1f10;
-	margin-left: 2.6ex;
 }
 footer {
 	border-top: thin solid #ccc;
@@ -38,7 +42,7 @@ h3, h2, h1 {
 	text-shadow: -0.1ex -0.1ex 0.1ex #fff;
 }
 header {
-	background: #131316;
+	background: #111100;
 	border-bottom: thin solid #ccc;
 	color: #fff;
 }

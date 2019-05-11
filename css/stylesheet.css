@@ -34,9 +34,8 @@ blockquote {
 	display: block;
 	font-size: 98%;
 	line-height: 1.23;
-	/* matches (with "padding-left") text-indent of "P": */
-	margin: 1ex 2ex 1ex 2.6ex;
-	padding: 0.3ex 1ex 0.3ex 1ex;
+	margin: 0.5ex 1ex 0.5ex 2ex;
+	padding: 0.3ex;
 	text-align: left;
 	text-indent: 0;
 }
@@ -67,17 +66,17 @@ code, .code, kbd, pre, tt, xmp {
 dl,
 ol,
 ul {
-	/*font-family: serif;	/* */
 	font-size: 1em;
 	margin: 1ex 0 1ex 1ex;
 	page-break-before: avoid;
 }
 dl, dd {
 	margin-left: 2.6ex;
+	line-height: 1.4;
 }
 dt {
 	font-weight: 600;
-	margin-top: 0.6ex;
+	margin: 1ex 0 0.6ex 0;
 	padding-top: 0.3ex;
 }
 
@@ -89,7 +88,8 @@ dl.posting {
 dl.posting dt {
 	font-weight: 600;
 	margin:1em auto 1ex auto;
-	text-align: center;
+	padding: 0 1ex 0 0;
+	text-align: right;
 	max-width: 98%;
 }
 dl.posting dd {
@@ -98,11 +98,12 @@ dl.posting dd {
 	max-height: 78ex;
 	max-width: 98%;
 	overflow: auto;
-	padding: 0 0.3ex 1ex 0.3ex;
+	padding: 0.3ex 0.3ex 0.5ex 0.5ex;
 	text-align: left;
 }
 dl.posting dd blockquote {
 	border-radius: 1ex;
+	margin-left: 2ex;
 }
 em, .em,
 i, .italic {
@@ -110,6 +111,7 @@ i, .italic {
 	font-style: italic;
 }
 footer {
+	border-radius: 1ex;
 	margin: 1em 1ex 0 1ex;
 }
 footer, footer p {
@@ -154,12 +156,12 @@ h1 {
 	page-break-before: always;
 }
 header {
+	border-radius: 1ex;
 	margin: 0 1ex 1em 0;
 	text-align: right;
 }
 hr {
 	border-style: inset;
-	/* remove all borders except the top one: */
 	border-width: 1pt 0 0 0;
 	clear: both;
 	display: block;
@@ -173,14 +175,14 @@ hr {
 p {
 	font-family: serif;
 	font-size: 1em;
+	hyphens: auto;
 	line-height: 1.5;
-	margin-top: 0.2ex;
-	margin-bottom: 0.2ex;
-	padding-top: 0.2ex;
-	padding-bottom: 0.2ex;
+	margin: 0.2ex;
+	padding: 0.2ex;
 	text-align: left;
-	text-indent: 2.6ex;
+	text-indent: 2ex;
 }
+/*
 blockquote + p,
 dd p,
 dt p,
@@ -196,6 +198,7 @@ li p,
 table + p {
 	text-indent: 0;
 }
+*/
 blockquote p {
 	line-height: 1.16;
 	margin-top: 0.4ex;
@@ -205,7 +208,9 @@ blockquote p {
 	text-align: inherit;
 	text-indent: inherit;
 }
-
+p:first-of-type {
+	text-indent: 0;
+}
 pre, xmp {
 	border-radius: 1ex;
 	display: block;
@@ -230,10 +235,14 @@ small, .small {
 	font-size:79%;
 	font-weight:inherit;
 }
+textarea {
+	border-radius: 1ex;
+	padding: 0.5ex;
+}
 textarea#manuscript {
 	height: 117ex;
 	max-height: 80%;
-	width: 99.5%;
+	width: 99%;
 }
 ul, menu, dir {
 	list-style-type: disc;
@@ -288,17 +297,16 @@ a.idlink {
 .left {
 	text-align: left;
 }
-.matches,
+p.matches {
+	border-radius: 1ex;
+	clear: left;
+	float: left;
+	font-style: italic;
+	margin: -1.3ex 0 0 0;
+	padding: 0.5ex 2ex 0.5ex 0;
+}
 .right {
 	text-align: right;
 	margin-right: 1ex;
-}
-p.matches {
-	border-radius: 1ex;
-	clear: right;
-	float: right;
-	font-style: italic;
-	margin: -1ex 1ex 0 0;
-	padding: 0.5ex 2ex 0.5ex 0;
 }
 /* _EoF_ */
