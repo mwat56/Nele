@@ -1,6 +1,7 @@
 *~
 addTest.md
 blog
+certs/
 *.db
 .git/
 *.ini
