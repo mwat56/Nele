@@ -79,6 +79,8 @@ func initArguments() {
 		data.Walk(iniWalker)
 	} else {
 		data = ini.NewSections()
+		data.AddSectionKey("", "certKey", "")
+		data.AddSectionKey("", "certPem", "")
 		s, _ := filepath.Abs("./")
 		data.AddSectionKey("", "datadir", s)
 		data.AddSectionKey("", "inifile", defIniFile)
@@ -96,7 +98,17 @@ func initArguments() {
 	}
 	defaults := data.GetSection("")
 
-	s, _ := defaults.AsString("datadir")
+	s, _ := defaults.AsString("certKey")
+	ckStr, _ := filepath.Abs(s)
+	flag.StringVar(&ckStr, "certKey", ckStr,
+		"<fileName> the name of the TLS certificate key\n")
+
+	s, _ = defaults.AsString("certPem")
+	cpStr, _ := filepath.Abs(s)
+	flag.StringVar(&cpStr, "certPem", cpStr,
+		"<fileName> the name of the TLS certificate PEM\n")
+
+	s, _ = defaults.AsString("datadir")
 	dataStr, _ := filepath.Abs(s)
 	flag.StringVar(&dataStr, "datadir", dataStr,
 		"<dirName> the directory with CSS, IMG, JS, STATIC, VIEWS sub-directories\n")
@@ -187,6 +199,16 @@ func initArguments() {
 		}
 	}
 	AppArguments.set("inifile", cmdIniFile)
+
+	if 0 < len(ckStr) {
+		ckStr, _ = filepath.Abs(ckStr)
+		AppArguments.set("certKey", ckStr)
+	}
+
+	if 0 < len(cpStr) {
+		cpStr, _ = filepath.Abs(cpStr)
+		AppArguments.set("certPem", cpStr)
+	}
 
 	if 0 < len(dataStr) {
 		dataStr, _ = filepath.Abs(dataStr)

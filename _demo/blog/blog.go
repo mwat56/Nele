@@ -82,10 +82,10 @@ func setupSinals(aMe string, aServer *http.Server) {
 // Actually run the program …
 func main() {
 	var (
-		err     error
-		handler http.Handler
-		ph      *blog.TPageHandler
-		s       string
+		err       error
+		handler   http.Handler
+		ph        *blog.TPageHandler
+		ck, cp, s string
 	)
 	Me, _ := filepath.Abs(os.Args[0])
 
@@ -128,9 +128,20 @@ func main() {
 	// We need a `server` reference to use it in setupSinals() below
 	server := &http.Server{Addr: ph.Address(), Handler: handler}
 
+	ck, err = blog.AppArguments.Get("certKey")
+	cp, err = blog.AppArguments.Get("certPem")
+
 	setupSinals(Me, server)
 
-	log.Printf("%s listening at: %s", Me, ph.Address())
+	if 0 < len(ck) && (0 < len(cp)) {
+		log.Printf("%s listening HTTPS at: %s", Me, ph.Address())
+		if err = server.ListenAndServeTLS(cp, ck); nil != err {
+			log.Fatalf("%s: %v", Me, err)
+		}
+		return
+	}
+
+	log.Printf("%s listening HTTP at: %s", Me, ph.Address())
 	if err = server.ListenAndServe(); nil != err {
 		log.Fatalf("%s: %v", Me, err)
 	}
