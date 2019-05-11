@@ -134,7 +134,7 @@ func (pl *TPostList) IsSorted() bool {
 
 // Len returns the number of postings stored in this list.
 func (pl *TPostList) Len() int {
-	return len(*pl) /* - 1 // exclude index[0] */
+	return len(*pl)
 } // Len()
 
 // Month adds all postings of a month to the list.
@@ -203,7 +203,7 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 			}
 			postname = strings.TrimPrefix(postname, dirname+"/")
 			bgAddPosting(pl, postname[:len(postname)-3]) // strip name extension
-			if pl.Len() > aNumber {
+			if pl.Len() >= aNumber {
 				return nil
 			}
 		}
