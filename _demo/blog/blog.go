@@ -64,16 +64,16 @@ func doFile(aMe string) {
 
 // `setupSinals()` configures the capture of the interrupts `SIGINT`,
 // `SIGKILL`, and `SIGTERM` to terminate the program gracefully.
-func setupSinals(aMe string, aServer *http.Server) {
+func setupSinals(aServer *http.Server) {
 	// handle `CTRL-C` and `kill(9)` and `kill(15)`.
 	c := make(chan os.Signal, 3)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 
 	go func() {
 		for signal := range c {
-			log.Printf("%s captured '%v', stopping program and exiting ...", aMe, signal)
+			log.Printf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
 			if err := aServer.Shutdown(context.Background()); nil != err {
-				log.Fatalf("%s: %v", aMe, err)
+				log.Fatalf("%s: %v", os.Args[0], err)
 			}
 		}
 	}()
@@ -127,11 +127,10 @@ func main() {
 	}
 	// We need a `server` reference to use it in setupSinals() below
 	server := &http.Server{Addr: ph.Address(), Handler: handler}
+	setupSinals(server)
 
-	ck, err = blog.AppArguments.Get("certKey")
-	cp, err = blog.AppArguments.Get("certPem")
-
-	setupSinals(Me, server)
+	ck, _ = blog.AppArguments.Get("certKey")
+	cp, _ = blog.AppArguments.Get("certPem")
 
 	if 0 < len(ck) && (0 < len(cp)) {
 		log.Printf("%s listening HTTPS at: %s", Me, ph.Address())
