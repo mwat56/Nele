@@ -161,7 +161,7 @@ func TestSearchPostings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SearchPostings(tt.args.aBaseDir, tt.args.aText); got.Len() != tt.want {
+			if got := SearchPostings(tt.args.aText); got.Len() != tt.want {
 				t.Errorf("Search() = %v, want %v", got.Len(), tt.want)
 			}
 		})
@@ -193,6 +193,7 @@ func TestURLparts(t *testing.T) {
 		{" 6", args{"/q/searchterm"}, "q", "searchterm"},
 		{" 6a", args{"/q/?s=earchterm"}, "q", "?s=earchterm"},
 		{" 7", args{"/q/search?s=term"}, "q", "search?s=term"},
+		{" 8", args{"/static/https://github.com/"}, "static", "https://github.com/"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

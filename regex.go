@@ -276,15 +276,12 @@ func replCRLF(aText []byte) []byte {
 // SearchPostings traverses the sub-directories of `aBaseDir` looking
 // for `aText` in all posting files.
 //
-// `aBaseDir` is the directory of which all subdirectories are scanned.
-//
-// `aText` is the text to look for in the postings.
-//
 // The returned `TPostList` can be empty because (a) `aText` could not be
 // compiled into a regular expression, (b) no files to search were found,
 // or (c) no files matched `aText`.
-func SearchPostings(aBaseDir, aText string) *TPostList {
-	bd, _ := filepath.Abs(aBaseDir)
+//
+// `aText` is the text to look for in the postings.
+func SearchPostings(aText string) *TPostList {
 	pl := NewPostList()
 
 	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
@@ -292,7 +289,7 @@ func SearchPostings(aBaseDir, aText string) *TPostList {
 		return pl // empty list
 	}
 
-	files, err := filepath.Glob(bd + "/*/*.md")
+	files, err := filepath.Glob(postingBaseDirectory + "/*/*.md")
 	if nil != err {
 		return pl // empty list
 	}
@@ -300,12 +297,12 @@ func SearchPostings(aBaseDir, aText string) *TPostList {
 	for _, fName := range files {
 		fTxt, err := ioutil.ReadFile(fName)
 		if (nil != err) || (!pattern.Match(fTxt)) {
-			// We 'eat' possible errors here, indirectly assuming
-			// them to be a no-match.
+			// We 'eat' possible errors here, indirectly
+			// assuming them to be a no-match.
 			continue
 		}
 		id := path.Base(fName)
-		p := newPosting( /* bd,  */ id[:len(id)-3]) // exclude file extension
+		p := newPosting(id[:len(id)-3]) // exclude file extension
 		pl.Add(p.Set(fTxt))
 	}
 
@@ -333,7 +330,8 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 
 var (
 	// RegEx to find path and possible added path components
-	routeRE = regexp.MustCompile("^/?([\\w\\._-]+)?/?([\\w\\.\\?\\=,_-]*)?")
+	// routeRE = regexp.MustCompile("^/?([\\w\\._-]+)?/?([\\w\\.\\?\\=,_-]*)?")
+	routeRE = regexp.MustCompile(`^/?([\w._-]+)?/?([\w.?=:;/,_-]*)?`)
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
@@ -342,7 +340,7 @@ var (
 // Depending on the actual value of `aURL` both return values may be
 // empty or both may be filled; none of both will hold a leading slash.
 func URLparts(aURL string) (rDir, rPath string) {
-	if result, err := url.QueryUnescape(aURL); nil == err {
+	if result, err := url.QueryUnescape(aURL); nil != err {
 		aURL = result
 	}
 	matches := routeRE.FindStringSubmatch(aURL)
