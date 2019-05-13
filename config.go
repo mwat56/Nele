@@ -83,6 +83,8 @@ func initArguments() {
 		data.AddSectionKey("", "certPem", "")
 		s, _ := filepath.Abs("./")
 		data.AddSectionKey("", "datadir", s)
+		s, _ = filepath.Abs("./hashfile.db")
+		data.AddSectionKey("", "hashfile", s)
 		data.AddSectionKey("", "inifile", defIniFile)
 		// s, _ = filepath.Abs("./intl.ini")
 		// data.AddSectionKey("", "intl", s)
@@ -112,6 +114,11 @@ func initArguments() {
 	dataStr, _ := filepath.Abs(s)
 	flag.StringVar(&dataStr, "datadir", dataStr,
 		"<dirName> the directory with CSS, IMG, JS, STATIC, VIEWS sub-directories\n")
+
+	s, _ = defaults.AsString("hashfile")
+	hashStr, _ := filepath.Abs(s)
+	flag.StringVar(&hashStr, "hashfile", hashStr,
+		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
 
 	/*
 		s, _ = defaults.AsString("intl")
@@ -219,6 +226,11 @@ func initArguments() {
 		log.Fatalf("Error: Not a directory `%s`", dataStr)
 	}
 	AppArguments.set("datadir", dataStr)
+
+	if 0 < len(hashStr) {
+		hashStr, _ = filepath.Abs(hashStr)
+		AppArguments.set("hashfile", hashStr)
+	}
 
 	/*
 		if 0 == len(intlStr) {
