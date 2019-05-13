@@ -13,13 +13,16 @@ package blog
 import (
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
+	hashtags "github.com/mwat56/go-hashtags"
 	passlist "github.com/mwat56/go-passlist"
 )
 
@@ -28,6 +31,8 @@ type (
 	TPageHandler struct {
 		addr     string              // listen address ("1.2.3.4:5678")
 		fh       http.Handler        // static file handler
+		hashfile string              // name of #hashtags file
+		hl       *hashtags.THashList // #hashtags/@mentions list
 		lang     string              // default language
 		realm    string              // host/domain to secure by BasicAuth
 		theme    string              // `dark` or `light` display theme
@@ -44,6 +49,57 @@ func check4lang(aPD *TDataList, aRequest *http.Request) *TDataList {
 	return aPD
 } // check4lang()
 
+// `goAddHashes` checks a newly added posting for #hashtags and @mentions.
+func goAddHashes(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
+	//FIXME figure out as way to notice actual changes
+	changed := true
+	aList.HashParse(aID, aText)
+	aList.MentionParse(aID, aText)
+	if changed {
+		aList.Store(aFilename)
+	}
+} // goAddHashes()
+
+// `goInitHashlist` initialises the hash list.
+func goInitHashlist(aList *hashtags.THashList, aFilename string) {
+	if _, err := aList.Load(aFilename); nil == err {
+		return // assume everything is uptodate
+	}
+	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	if nil != err {
+		return // we can't recover from this :-(
+	}
+	for _, dirname := range dirnames {
+		filesnames, err := filepath.Glob(dirname + "/*.md")
+		if nil != err {
+			continue // it might be a file (not a directory) …
+		}
+		if 0 >= len(filesnames) {
+			continue // skip empty directory
+		}
+		for _, postname := range filesnames {
+			id := strings.TrimPrefix(postname, dirname+"/")
+			id = id[:len(id)-3] // strip name extension
+			if txt, err := ioutil.ReadFile(postname); nil != err {
+				aList.HashParse(id, txt)
+				aList.MentionParse(id, txt)
+			}
+		}
+	}
+	if 0 < aList.Len() {
+		aList.Store(aFilename)
+	}
+} // goInitHashlist()
+
+func goDelID(aList *hashtags.THashList, aFilename string, aID string) {
+	//FIXME figure out as way to notice actual changes
+	changed := true
+	aList.RemoveID(aID)
+	if changed {
+		aList.Store(aFilename)
+	}
+} // goDelID()
+
 // `handleShare()` serves the edit page for a shared URL.
 func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
 	p := NewPosting()
@@ -58,17 +114,24 @@ func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Requ
 // NewPageHandler returns a new `TPageHandler` instance.
 func NewPageHandler() (*TPageHandler, error) {
 	var (
-		err error
-		s   string
+		err   error
+		bd, s string
 	)
 	result := new(TPageHandler)
 
 	if s, err = AppArguments.Get("datadir"); nil != err {
 		return nil, err
 	}
-	result.fh = http.FileServer(http.Dir(s + "/"))
-	if result.viewList, err = newViewList(s + "/views"); nil != err {
+	bd = s
+	result.fh = http.FileServer(http.Dir(bd + "/"))
+	if result.viewList, err = newViewList(bd + "/views"); nil != err {
 		return nil, err
+	}
+
+	if s, err = AppArguments.Get("hashfile"); nil == err {
+		result.hashfile = s
+		result.hl = hashtags.NewList()
+		goInitHashlist(result.hl, result.hashfile)
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
