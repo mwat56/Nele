@@ -42,23 +42,24 @@ type (
 )
 
 // `check4lang()` looks for a CGI value of `lang` and adds it to `aPD` if found.
-func check4lang(aPD *TDataList, aRequest *http.Request) *TDataList {
+func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
 	if l := aRequest.FormValue("lang"); 0 < len(l) {
-		return aPD.Set("Lang", l)
+		return aData.Set("Lang", l)
 	}
-	return aPD
+
+	return aData
 } // check4lang()
 
-// `goAddHashes` checks a newly added posting for #hashtags and @mentions.
-func goAddHashes(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
-	//FIXME figure out as way to notice actual changes
-	changed := true
-	aList.HashParse(aID, aText)
-	aList.MentionParse(aID, aText)
-	if changed {
+// `goAddID` checks a newly added posting for #hashtags and @mentions.
+func goAddID(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
+	oldlen := aList.LenTotal()
+
+	aList.IDparse(aID, aText)
+
+	if aList.LenTotal() != oldlen {
 		aList.Store(aFilename)
 	}
-} // goAddHashes()
+} // goAddID()
 
 // `goInitHashlist` initialises the hash list.
 func goInitHashlist(aList *hashtags.THashList, aFilename string) {
@@ -80,9 +81,8 @@ func goInitHashlist(aList *hashtags.THashList, aFilename string) {
 		for _, postname := range filesnames {
 			id := strings.TrimPrefix(postname, dirname+"/")
 			id = id[:len(id)-3] // strip name extension
-			if txt, err := ioutil.ReadFile(postname); nil != err {
-				aList.HashParse(id, txt)
-				aList.MentionParse(id, txt)
+			if txt, err := ioutil.ReadFile(postname); nil == err {
+				aList.IDparse(id, txt)
 			}
 		}
 	}
@@ -91,14 +91,36 @@ func goInitHashlist(aList *hashtags.THashList, aFilename string) {
 	}
 } // goInitHashlist()
 
-func goDelID(aList *hashtags.THashList, aFilename string, aID string) {
-	//FIXME figure out as way to notice actual changes
-	changed := true
-	aList.RemoveID(aID)
-	if changed {
+func goRemoveID(aList *hashtags.THashList, aFilename string, aID string) {
+	oldlen := aList.LenTotal()
+
+	aList.IDremove(aID)
+
+	if aList.LenTotal() != oldlen {
 		aList.Store(aFilename)
 	}
-} // goDelID()
+} // goRemoveID()
+
+func goRenameID(aList *hashtags.THashList, aFilename string, aOldID, aNewID string) {
+	oldlen := aList.LenTotal()
+
+	aList.IDrename(aOldID, aNewID)
+
+	if aList.LenTotal() != oldlen {
+		aList.Store(aFilename)
+	}
+} // goRenameID()
+
+func goUpdateID(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
+	oldlen := aList.LenTotal() //FIXME this doesn't catch cases when …
+	// … the number of removals equals the number of additions.
+
+	aList.IDupdate(aID, aText)
+
+	if aList.LenTotal() != oldlen {
+		aList.Store(aFilename)
+	}
+} // goUpdateID()
 
 // `handleShare()` serves the edit page for a shared URL.
 func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -131,7 +153,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("hashfile"); nil == err {
 		result.hashfile = s
 		result.hl = hashtags.NewList()
-		goInitHashlist(result.hl, result.hashfile)
+		go goInitHashlist(result.hl, result.hashfile)
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -270,9 +292,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("Robots", "noindex,nofollow").
 				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d))
 			ph.viewList.Render("dc", aWriter, pageData)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "e", "ep": // edit a single posting
 		if 0 < len(tail) {
@@ -295,6 +317,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "faq", "faq.html":
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
+	case "ht": // #hashtag search
+		if 0 < len(tail) {
+			ph.handleHashtag(tail, pageData, aWriter, aRequest)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		}
+
 	case "img", "favicon.ico":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
@@ -310,7 +339,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "licence", "license":
 		ph.viewList.Render("licence", aWriter, pageData)
 
-	case "m": // handle a given month
+	case "m", "mm": // handle a given month
 		if 0 < len(tail) {
 			y, m, d := getYMD(tail)
 			if 0 == d {
@@ -325,14 +354,21 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("monthURL", "/m/"+date).
 				Set("weekURL", "/w/"+date)
 			ph.viewList.Render("searchresult", aWriter, pageData)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
-	case "n": // handle newest postings
+	case "mt": // @mention search
+		if 0 < len(tail) {
+			ph.handleMention(tail, pageData, aWriter, aRequest)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		}
+
+	case "n", "nn": // handle newest postings
 		ph.handleRoot(tail, pageData, aWriter, aRequest)
 
-	case "p": // handle a single posting
+	case "p", "pp": // handle a single posting
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			if err := p.Load(); nil == err {
@@ -371,29 +407,24 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
-	case "s": // handle a query/search
+	case "s", "ss": // handle a query/search
 		if 0 < len(tail) {
-			pl := SearchPostings(regexp.QuoteMeta(tail))
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,follow").
-				Set("Matches", pl.Len()).
-				Set("Postings", pl.Sort())
-			ph.viewList.Render("searchresult", aWriter, pageData)
-			return
+			ph.handleSearch(tail, pageData, aWriter, aRequest)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "share":
 		if 0 < len(tail) {
 			handleShare(tail, aWriter, aRequest)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "static":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
-	case "w": // handle a given week
+	case "w", "ww": // handle a given week
 		if 0 < len(tail) {
 			y, m, d := getYMD(tail)
 			if 0 == d {
@@ -408,27 +439,29 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("monthURL", "/m/"+date).
 				Set("weekURL", "/w/"+date)
 			ph.viewList.Render("searchresult", aWriter, pageData)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-
 	case "":
-		if m := aRequest.FormValue("m"); 0 < len(m) {
+		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
+			ph.handleHashtag(ht, pageData, aWriter, aRequest)
+		} else if m := aRequest.FormValue("m"); 0 < len(m) {
 			http.Redirect(aWriter, aRequest, "/m/"+m, http.StatusSeeOther)
+		} else if mt := aRequest.FormValue("mt"); 0 < len(mt) {
+			ph.handleMention(mt, pageData, aWriter, aRequest)
 		} else if n := aRequest.FormValue("n"); 0 < len(n) {
 			http.Redirect(aWriter, aRequest, "/n/"+n, http.StatusSeeOther)
 		} else if p := aRequest.FormValue("p"); 0 < len(p) {
 			http.Redirect(aWriter, aRequest, "/p/"+p, http.StatusSeeOther)
 		} else if q := aRequest.FormValue("q"); 0 < len(q) {
-			http.Redirect(aWriter, aRequest, "/s/"+q, http.StatusSeeOther)
+			ph.handleSearch(q, pageData, aWriter, aRequest)
 		} else if s := aRequest.FormValue("s"); 0 < len(s) {
-			http.Redirect(aWriter, aRequest, "/s/"+s, http.StatusSeeOther)
+			ph.handleSearch(s, pageData, aWriter, aRequest)
 		} else if s := aRequest.FormValue("share"); 0 < len(s) {
 			handleShare(s, aWriter, aRequest)
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
 			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
 		} else {
-			// http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			ph.handleRoot("20", pageData, aWriter, aRequest)
 		}
 	default:
@@ -437,6 +470,36 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.NotFound(aWriter, aRequest)
 	} // switch
 } // handleGET()
+
+func (ph *TPageHandler) handleHashtag(aTag string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	tagList := ph.hl.HashList("#" + aTag)
+	ph.handleTagMentions(tagList, aData, aWriter, aRequest)
+} // handleHashtag()
+
+func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	mentionList := ph.hl.MentionList("@" + aMention)
+
+	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
+} // handleMention()
+
+func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	pl := NewPostList()
+	if 0 < len(aList) {
+		for _, id := range aList {
+			p := newPosting(id)
+			err := p.Load()
+			if nil == err {
+				pl.Add(p)
+			}
+		}
+	}
+	aData = check4lang(aData, aRequest).
+		Set("Robots", "noindex,follow").
+		Set("Matches", pl.Len()).
+		Set("Postings", pl.Sort())
+	ph.viewList.Render("searchresult", aWriter, aData)
+
+} // handleTagMentions()
 
 // `handlePOST()` process the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -453,6 +516,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			tail = p.ID() + "?z=" + p.Date()
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+			go goAddID(ph.hl, ph.hashfile, p.ID(), p.Markdown())
 			return
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -485,6 +549,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				log.Printf("handlePOST(d2): %v\n", err)
 				//TODO better error handling
 			}
+			go goRenameID(ph.hl, ph.hashfile, tail, np.ID())
+
 			tail = np.ID() + fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
 			// dummy CGI argument to confuse the browser chache
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
@@ -507,6 +573,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					p.Set(old).Store()
 				}
 			}
+			go goUpdateID(ph.hl, ph.hashfile, tail, m)
+
 			tail += "?z=" + p.ID()
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
@@ -520,6 +588,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				log.Printf("handlePOST(r): %v\n", err)
 				//TODO better error handling
 			}
+			go goRemoveID(ph.hl, ph.hashfile, tail)
+
 			tail = p.Date() + "?z=" + p.ID()
 			http.Redirect(aWriter, aRequest, "/m/"+tail, http.StatusSeeOther)
 			return
@@ -533,7 +603,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	}
 } // handlePOST()
 
-// `handleRoot()` serves the logical web-root directory
+// `handleRoot()` serves the logical web-root directory.
 func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
 	num, start := numStart(aNumStr)
 	if 0 == num {
@@ -549,6 +619,16 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 	}
 	ph.viewList.Render("index", aWriter, aData)
 } // handleRoot()
+
+// `handleSearch()` serves the search results.
+func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	pl := SearchPostings(regexp.QuoteMeta(aTerm))
+	aData = check4lang(aData, aRequest).
+		Set("Robots", "noindex,follow").
+		Set("Matches", pl.Len()).
+		Set("Postings", pl.Sort())
+	ph.viewList.Render("searchresult", aWriter, aData)
+} // handleSearch()
 
 // Len returns the lenght of the internal view list.
 func (ph *TPageHandler) Len() int {
