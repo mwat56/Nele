@@ -83,45 +83,53 @@ Let's start with the command line:
 
     Usage: ./blog [OPTIONS]
 
+    -certKey string
+    	<fileName> the name of the TLS certificate key
+    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
+    -certPem string
+    	<fileName> the name of the TLS certificate PEM
+    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
     -datadir string
-        <dirName> the directory with CSS, IMG, JS, STATIC, VIEWS sub-directories
-         (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
+    	<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
+    -hashfile string
+    	<fileName> (optional) the name of a file storing #hashtags and @mentions
+    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
     -ini string
-        <fileName> the path/filename of the INI file
+    	<fileName> the path/filename of the INI file
     -lang string
-        (optional) the default language to use
-         (default "de")
+    	(optional) the default language to use
+    	 (default "de")
     -listen string
-        the host's IP to listen at
-         (default "127.0.0.1")
+    	the host's IP to listen at	 (default "127.0.0.1")
     -log string
-        (optional) name of the logfile to write to
-         (default "/dev/stdout")
+    	(optional) name of the logfile to write to
+    	 (default "/dev/stdout")
     -pa
-        (optional) posting add: whether to write a posting from the commandline
+    	(optional) posting add: write a posting from the commandline
     -pf string
-        <fileName> (optional) posting file: name of a file to add as new posting
+    	<fileName> (optional) posting file: name of a file to add as new posting
     -port int
-        <portNumber> the IP port to listen to (default 8181)
+    	<portNumber> the IP port to listen to	 (default 8181)
     -realm string
-        (optional) <hostName> name of host/domain to secure by BasicAuth
-         (default "This Host")
+    	(optional) <hostName> name of host/domain to secure by BasicAuth
+    	 (default "This Host")
     -theme string
-        <name> the display theme to use ('light' or 'dark')
-         (default "light")
+    	<name> the display theme to use ('light' or 'dark')
+    	 (default "light")
     -ua string
-        <userName> (optional) user add: add a username to the password file
+    	<userName> (optional) user add: add a username to the password file
     -uc string
-        <userName> (optional) user check: check a username in the password file
+    	<userName> (optional) user check: check a username in the password file
     -ud string
-        <userName> (optional) user delete: remove a username from the password file
+    	<userName> (optional) user delete: remove a username from the password file
     -uf string
-        <fileName> (optional) user passwords file storing user/passwords for BasicAuth
-         (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
+    	<fileName> (optional) user passwords file storing user/passwords for BasicAuth
+    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
     -ul
-        (optional) user list: whether to show all users in the password file
+    	(optional) user list: show all users in the password file
     -uu string
-        <userName> (optional) user update: update a username in the password file
+    	<userName> (optional) user update: update a username in the password file
 
     Most options can be set in an INI file to keep he commandline short ;-)
 
