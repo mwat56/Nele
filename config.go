@@ -113,7 +113,7 @@ func initArguments() {
 	s, _ = defaults.AsString("datadir")
 	dataStr, _ := filepath.Abs(s)
 	flag.StringVar(&dataStr, "datadir", dataStr,
-		"<dirName> the directory with CSS, IMG, JS, STATIC, VIEWS sub-directories\n")
+		"<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories\n")
 
 	s, _ = defaults.AsString("hashfile")
 	hashStr, _ := filepath.Abs(s)
@@ -137,7 +137,7 @@ func initArguments() {
 
 	listenStr, _ := defaults.AsString("listen")
 	flag.StringVar(&listenStr, "listen", listenStr,
-		"the host's IP to listen at\n")
+		"the host's IP to listen at\t")
 
 	logStr, _ := defaults.AsString("logfile")
 	flag.StringVar(&logStr, "log", logStr,
@@ -151,12 +151,12 @@ func initArguments() {
 
 	portInt, _ := defaults.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
-		"<portNumber> the IP port to listen to")
+		"<portNumber> the IP port to listen to\t")
 	portStr := fmt.Sprintf("%d", portInt)
 
 	paBool := false
 	flag.BoolVar(&paBool, "pa", paBool,
-		"(optional) posting add: whether to write a posting from the commandline")
+		"(optional) posting add: write a posting from the commandline")
 
 	pfStr := ""
 	flag.StringVar(&pfStr, "pf", pfStr,
@@ -189,7 +189,7 @@ func initArguments() {
 
 	ulBool := false
 	flag.BoolVar(&ulBool, "ul", ulBool,
-		"(optional) user list: whether to show all users in the password file")
+		"(optional) user list: show all users in the password file")
 
 	uuStr := ""
 	flag.StringVar(&uuStr, "uu", uuStr,
