@@ -303,7 +303,7 @@ p.matches {
 	float: left;
 	font-style: italic;
 	margin: -1.3ex 0 0 0;
-	padding: 0.5ex 2ex 0.5ex 0;
+	padding: 0.5ex 1ex 0.5ex 1ex;
 }
 .right {
 	text-align: right;
