@@ -192,7 +192,7 @@ func storeNewPost(aBaseDir string, aDay, aHour int) {
 	y, m := 2018, time.December
 	t := time.Date(y, m, aDay, aHour, aHour, aHour, 0, time.Local)
 	p := newPosting(newID(t)).
-		Set([]byte(fmt.Sprintf("\n> %s\n\n%02d\n\n\t%02d\n", aBaseDir, aDay, aHour)))
+		Set([]byte(fmt.Sprintf("\n> %s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", aBaseDir, aDay, aHour, aDay)))
 	p.Store()
 } // storeNewPost()
 
