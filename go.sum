@@ -1,7 +1,9 @@
+github.com/mwat56/go-apachelogger v1.0.0 h1:2dnsXdNF97PlCOZNSDku9LAN0pPgt163IdLRWz/VLpc=
 github.com/mwat56/go-apachelogger v1.0.0/go.mod h1:phzNMUnJ3tG9EAMZAx60VmyVmHDxoOaoDsBtgeFm6ms=
+github.com/mwat56/go-errorhandler v1.0.0 h1:j2ve/76KxnUkH7UNNpQ5vAqcBwemfLYVVQcDCCN4RV4=
 github.com/mwat56/go-errorhandler v1.0.0/go.mod h1:2mq5VrHXxeJfu7yjys9iKOzR50PbTnvlpEyYDR+n8aY=
-github.com/mwat56/go-hashtags v0.0.0-20190514161418-b0450a7cca53 h1:WbtuIQ6ytrcL7nne2jQ9yWxAY+o1lPU345R2cCwpWRw=
-github.com/mwat56/go-hashtags v0.0.0-20190514161418-b0450a7cca53/go.mod h1:Ob/wWtlqgYC2VTXFFQS0brSuciD3m2ClHWpqcvl2IXM=
+github.com/mwat56/go-hashtags v0.0.0-20190514193341-249cf6ce820f h1:vGF8BIHEGOLfh010UlIBHJJU40Uo9tAE7pAgHcR5nq0=
+github.com/mwat56/go-hashtags v0.0.0-20190514193341-249cf6ce820f/go.mod h1:Ob/wWtlqgYC2VTXFFQS0brSuciD3m2ClHWpqcvl2IXM=
 github.com/mwat56/go-ini v1.0.0 h1:mzCegxLmyyZ9iC7tQjBSAVsjhE6HjF6kdxkdoBt9e8s=
 github.com/mwat56/go-ini v1.0.0/go.mod h1:/odwG1ZML10LavEamjuq+NdwEWBgEwsGY7ki4A104fU=
 github.com/mwat56/go-passlist v1.0.0 h1:HVi3nJiRPqadTAb7F1dfhE+IRqIpvwtDMQcP2BACWLE=
@@ -22,6 +24,7 @@ golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5/go.mod h1:t9HGtf8HONx5eT2rtn
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190508100423-12bbe5a7a520 h1:5/ojcKo2vQ2eroPDFcBB9tuc4N42a5njs7UWP2jk3KU=
 golang.org/x/sys v0.0.0-20190508100423-12bbe5a7a520/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862 h1:rM0ROo5vb9AdYJi1110yjWGMej9ITfKddS89P3Fkhug=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
