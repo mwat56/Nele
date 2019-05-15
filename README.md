@@ -84,52 +84,52 @@ Let's start with the command line:
     Usage: ./blog [OPTIONS]
 
     -certKey string
-    	<fileName> the name of the TLS certificate key
-    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
+        <fileName> the name of the TLS certificate key
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
     -certPem string
-    	<fileName> the name of the TLS certificate PEM
-    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
+        <fileName> the name of the TLS certificate PEM
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
     -datadir string
-    	<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
+        <dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
     -hashfile string
-    	<fileName> (optional) the name of a file storing #hashtags and @mentions
-    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
+        <fileName> (optional) the name of a file storing #hashtags and @mentions
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
     -ini string
-    	<fileName> the path/filename of the INI file
+        <fileName> the path/filename of the INI file
     -lang string
-    	(optional) the default language to use
-    	 (default "de")
+        (optional) the default language to use
+        (default "de")
     -listen string
-    	the host's IP to listen at	 (default "127.0.0.1")
+        the host's IP to listen at     (default "127.0.0.1")
     -log string
-    	(optional) name of the logfile to write to
-    	 (default "/dev/stdout")
+        (optional) name of the logfile to write to
+        (default "/dev/stdout")
     -pa
-    	(optional) posting add: write a posting from the commandline
+        (optional) posting add: write a posting from the commandline
     -pf string
-    	<fileName> (optional) posting file: name of a file to add as new posting
+        <fileName> (optional) posting file: name of a file to add as new posting
     -port int
-    	<portNumber> the IP port to listen to	 (default 8181)
+        <portNumber> the IP port to listen to     (default 8181)
     -realm string
-    	(optional) <hostName> name of host/domain to secure by BasicAuth
-    	 (default "This Host")
+        (optional) <hostName> name of host/domain to secure by BasicAuth
+        (default "This Host")
     -theme string
-    	<name> the display theme to use ('light' or 'dark')
-    	 (default "light")
+        <name> the display theme to use ('light' or 'dark')
+        (default "light")
     -ua string
-    	<userName> (optional) user add: add a username to the password file
+        <userName> (optional) user add: add a username to the password file
     -uc string
-    	<userName> (optional) user check: check a username in the password file
+        <userName> (optional) user check: check a username in the password file
     -ud string
-    	<userName> (optional) user delete: remove a username from the password file
+        <userName> (optional) user delete: remove a username from the password file
     -uf string
-    	<fileName> (optional) user passwords file storing user/passwords for BasicAuth
-    	 (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
+        <fileName> (optional) user passwords file storing user/passwords for BasicAuth
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
     -ul
-    	(optional) user list: show all users in the password file
+        (optional) user list: show all users in the password file
     -uu string
-    	<userName> (optional) user update: update a username in the password file
+        <userName> (optional) user update: update a username in the password file
 
     Most options can be set in an INI file to keep he commandline short ;-)
 
@@ -146,30 +146,44 @@ There is an INI file called `blog.ini` coming with the package, where you can st
 
     [Default]
 
-        # The directory root for CSS, IMG, JS, POSTINGS, STATIC,
-        # and VIEWS sub-directories
-        datadir = ./
+    # path-/filename of TLS certificate's private key to enable TLS/HTTPS
+    # (if empty standard HTTP is used)
+    certKey = ./certs/server.key
 
-        # the default language to use
-        lang = de
+    # path-/filename of TLS (server) certificate to enable TLS/HTTPS
+    # (if empty standard HTTP is used)
+    certPem = ./certs/server.pem
 
-        # the host's IP to listen at:
-        listen = 127.0.0.1
+    # The directory root for CSS, IMG, JS, POSTINGS, STATIC,
+    # and VIEWS sub-directories
+    datadir = ./
 
-        # the IP port to listen to
-        port = 8181
+    # The file to store #hashtags and @mentions
+    hashfile = ./hashfile.db
 
-        # name of the optional logfile to write to:
-        logfile = /dev/stdout
+    # the INI file with localised text(fragment)s
+    #intl = ./intl.ini
 
-        # password file for HTTP Basic Authentication
-        passfile = ./pwaccess.db
+    # the default language to use
+    lang = de
 
-        # name of host/domain to secure by BasicAuth
-        realm = "This Host"
+    # the host's IP to listen at:
+    listen = 127.0.0.1
 
-        # web/display theme: `dark` or `light'
-        theme = light
+    # the IP port to listen to
+    port = 8181
+
+    # name of the optional logfile to write to:
+    logfile = /dev/stdout
+
+    # password file for HTTP Basic Authentication
+    passfile = ./pwaccess.db
+
+    # name of host/domain to secure by BasicAuth
+    realm = "This Host"
+
+    # web/display theme: `dark` or `light'
+    theme = light
 
     # _EoF_
     $ _
@@ -180,13 +194,14 @@ But let's look at some of the commandline options more closely.
 
 ### Commandline postings
 
-`./blog -pa` allows go to write an article/posting directly on the commandline.
+`./blog -pa` allows you to write an article/posting directly on the commandline.
 
     $ ./blog -pa
     This is
     a test
     posting directly
     from the commandline.
+    <Ctrl-D>
     2019/05/06 14:57:30 ./blog wrote 54 bytes in a new posting
     $ _
 
@@ -200,13 +215,14 @@ These two options (`-pa` and `-pf`) are only usable from the commandline.
 
 ### User/password file & handling
 
-The same is true for the `-uXX` options, most of which need a username and the name of the password file to use.
+Only usable from the commandline as well are the `-uXX` options, most of which need a username and the name of the password file to use.
+_Note_ that whenever you're prompted to input a password this will _not_ be echoed to the console.
 
     $ ./blog -ua testuser1 -uf pwaccess.db
 
      password:
     repeat pw:
-            added 'testuser1' to list
+        added 'testuser1' to list
     $ _
 
 The password input is not echoed to the console, therefor you don't see it.
@@ -218,8 +234,7 @@ With `-uc` you can check a user's password:
     $ ./blog -uc testuser1
 
      password:
-
-            'testuser1' password check successful
+        'testuser1' password check successful
     $ _
 
 This `-uc` you'll probably never actually use, it was just easy to implement.
@@ -227,8 +242,7 @@ This `-uc` you'll probably never actually use, it was just easy to implement.
 If you want to remove a user the `-ud` will do the trick:
 
     $ ./blog -ud testuser1
-
-            removed 'testuser1' from list
+        removed 'testuser1' from list
     $ _
 
 When you want to know which users are stored in your password file `-ul` is your fried:
@@ -246,13 +260,13 @@ That only leaves `-uu` to update (change) a user's password.
 
      password:
     repeat pw:
-            added 'testuser2' to list
+        added 'testuser2' to list
 
     $ ./blog -uu testuser2
 
      password:
     repeat pw:
-            updated user 'testuser2' in list
+        updated user 'testuser2' in list
 
     $ ./blog -ul
     matthias
@@ -281,44 +295,54 @@ The actual location of which you can configure with the `datadir` INI entry and/
 
 Second are the URLs any _normal_ user might see and use:
 
-* `/` defines the logical root of the presentation; it's effectivily redirected to `/n/` (see below).
-* `/faq`, `/imprint`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
-* `/m/` expects a data part defining the month you want to see, like `/m/2019-04` to see the acticles/postings from April 2019.
+* `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
+* `/faq`, `/imprint`, `licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
+* `/ht/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
+Provided the given `#tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
+* `/m/` shows the articles of the current month.
+You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles/postings from April 2019.
 This URL is not generated but can be used by your users to kind of query your articles/postings.
+* `/mt/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
+Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 20 articles/postings.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
+If you want to see the articles in slices of, say, 10 per page (instead of the default 20/page) you could use the URL `/n/10,10` and to see the secong slice user `/n/10,20`, the third with `/n/10,30` and so on.
+However, as long as there are more articles left, there will be a `»»` link at the bottom of the page to ease the navigation for you.
 * `/p/1234567890abcdef` shows you a single article/posting (the ID is automatically generated).
-This kind of URL your users will see when they choose on the newest page (`/n/`) to see a single article per page.
+This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
 * `/s/searchterm` can be used to search for articles containing a certain word.
 All existing articles/postings will be searched for the given `searchterm`.
-* `/w/` expects a data part defining the week you want to see, like `/m/2019-04-13` to see the acticles/postings from the week in April 2019 containing the 13th.
-This URL is not generated but can be used by your users to kind of query your articles/postings.
+* `/w/` shows the articles of the current week.
+You can, however, specify the week you're interested in by adding a data part defining the week you want to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles/postings from the week in April 2019 containing the 13th.
+This URL is not generated but can be used to kind of query your articles/postings by time.
 
 And third there's a group of URLs your users won't usually see or use, because by design they are reserved for you.
 These URLs are protected by a authentication mechanism called _BasicAuth_; this is where the username/password files comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
-If you forget that (or the file is not accessable for the program) everybody on the net can read, modify, or delete your articles/postings, or add new ones (which you might not like).
+If you forget that (or the file is not accessible for the program) everybody on the net can read, modify, or delete your articles/postings, or add new ones (which you might not like).
 
 * `/a` add a new posting.
 A simple Web form will allow you to input whatever's on your mind.
 * `/d/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
-Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) and then just replace the `p` by `d`.
+Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) and then just replace in the URL the `p` by a `d`.
 * `/e/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
-The procedure is the same: go to `/p/34567890abcdef12` and replace the `p` by `e`.
+The procedure is the same: go to `/p/34567890abcdef12` and replace the `p` by an `e`.
 * `/r/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
+* `/share/https://some.host.domain/somepage` lets you share another page URL.
+Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown to edit.
 
 ### Files
 
 Right from the start I mentioned that I wanted to avoid external depenencies – like databases for example.
 Well, that's not exactly true (or even possible), because there is _one_ database that's always already there, regardless of the operating system: the _filesystem_.
 The trick is to figure out how to best use it for our own purposes.
-The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles/postings, and part of that very timestamp as ID and name for the directory names as well.
+The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles/postings, and use part of that very timestamp as ID and name for the directory names as well.
 
 Both directory- and file-names are automatically handled by the system.
 Each directory can hold up to 52 days worth of articles/postings.
-After extensive experimentation – with hundreds of thousands of automatically generated test files – that number seemed to be a reasonable compromise between directories not growing too big (_search times_) and keeping the number of directories used low.
+After extensive experimentation – with hundreds of thousands of automatically generated (and deleted) test files – that number seemed to be a reasonable compromise between directories not growing too big (_search times_) and keeping the number of directories used low (about seven per year).
 
 All this data (files and directories) will be created under the directory you configure either in the INI file (entry `datadir`) or on the commandline (option `-datadir`).
 Under that directory the program expects several sub-directories:
@@ -334,12 +358,22 @@ Apart from setting those option(s) to your liking you don't have to worry about 
 
 As mentioned before, it's always advisable to use _absolute pathnames_, not relative one.
 The latter are converted into absolute ones by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
-You can use `./blog -h` to see which directories the program will use.
+You can use `./blog -h` to see which directories the program will use (see the example above).
 
 #### CSS
 
 In the configured CSS directory (`datadir`/`css`) there are currently three files that are used automatically (i.a. hardcoded) by the system: `stylesheet.css` with some basic styling rules and `dark.css` and `light.css` with different settings for mainly colours, thus implementing two different _themes_ for the web-presentation.
 The `theme` INI setting and the `-theme` commandline option determine which of the two `dark` and `light` styles to actually use.
+
+#### Images
+
+The image directory can be used to store, well, images to which you then can link in your articles.
+
+#### JavaScript
+
+The `/js/` directory is currently empty.
+The system doesn't require any client-side scripting to work.
+This directory just exist in preparation for a possible future extension.
 
 ### Contents
 
@@ -347,6 +381,8 @@ For all the article/postings you write – either on the commandline or with the
 In fact, the system _expects_ the postings to be using `MarkDown` syntax.
 
 #### Templates
+
+    //TODO
 
 ## Licence
 
