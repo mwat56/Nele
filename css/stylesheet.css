@@ -225,7 +225,6 @@ pre, xmp {
 	text-align: left;
 	text-indent: 0;
 	white-space: pre-wrap;
-	/* max-width: 90ex;	/* */
 }
 pre + p {
 	text-indent: 0;
@@ -257,6 +256,7 @@ ul li {
 	display: list-item;
 	margin-left: 2.6ex; /* matching P text-indent */
 }
+
 #bodypage {
 	margin: 1ex 0;
 	min-height: 3em;
@@ -277,7 +277,8 @@ p#next a {
 	font-size: 89%;
 }
 pre#preview {
-	max-height: 15ex;
+	overflow: auto;
+	max-height: 19ex;
 }
 #rightbar {
 	max-width: 30%;
