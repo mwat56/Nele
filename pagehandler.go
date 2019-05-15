@@ -170,7 +170,9 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 	result.addr += ":" + s
 
-	if s, err = AppArguments.Get("uf"); nil == err {
+	if s, err = AppArguments.Get("uf"); nil != err {
+		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
+	} else {
 		if result.ul, err = passlist.LoadPasswords(s); nil != err {
 			log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
 			result.ul = nil
@@ -182,9 +184,10 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 
 	if s, err = AppArguments.Get("theme"); nil != err {
-		return nil, err
+		result.theme = "dark"
+	} else {
+		result.theme = s
 	}
-	result.theme = s
 
 	return result, nil
 } // NewPageHandler()
@@ -317,6 +320,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "faq", "faq.html":
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
+	case "favicon.ico":
+		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusSeeOther)
+
 	case "ht": // #hashtag search
 		if 0 < len(tail) {
 			ph.handleHashtag(tail, pageData, aWriter, aRequest)
@@ -324,7 +330,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "img", "favicon.ico":
+	case "img":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "imprint.html":
@@ -660,7 +666,11 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 
 // ServeHTTP handles the incoming HTTP requests.
 func (ph TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
-	if (nil != ph.ul) && ph.NeedAuthentication(aRequest) {
+	if ph.NeedAuthentication(aRequest) {
+		if nil == ph.ul {
+			passlist.Deny(ph.realm, aWriter)
+			return
+		}
 		if !ph.ul.IsAuthenticated(aRequest) {
 			passlist.Deny(ph.realm, aWriter)
 			return
@@ -670,8 +680,10 @@ func (ph TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Req
 	switch aRequest.Method {
 	case "GET":
 		ph.handleGET(aWriter, aRequest)
+
 	case "POST":
 		ph.handlePOST(aWriter, aRequest)
+
 	default:
 		http.Error(aWriter, "HTTP Method Not Allowed", http.StatusMethodNotAllowed)
 	}
