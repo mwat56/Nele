@@ -3,6 +3,7 @@ addTest.md
 blog
 certs/
 *.db
+_demo/
 .git/
 *.ini
 *.log
