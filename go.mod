@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/mwat56/go-apachelogger v1.0.0
 	github.com/mwat56/go-errorhandler v1.0.0
-	github.com/mwat56/go-hashtags v0.0.0-20190514193341-249cf6ce820f
+	github.com/mwat56/go-hashtags v0.0.0-20190515085523-6f7bd5c83a69
 	github.com/mwat56/go-ini v1.0.0
 	github.com/mwat56/go-passlist v1.0.0
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
