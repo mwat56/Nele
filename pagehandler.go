@@ -340,23 +340,25 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("licence", aWriter, pageData)
 
 	case "m", "mm": // handle a given month
-		if 0 < len(tail) {
-			y, m, d := getYMD(tail)
+		var y, d int
+		var m time.Month
+		if 0 == len(tail) {
+			y, m, d = time.Now().Date()
+		} else {
+			y, m, d = getYMD(tail)
 			if 0 == d {
 				d = 1
 			}
-			date := fmt.Sprintf("%d%02d%02d", y, m, d)
-			pl := NewPostList().Month(y, m)
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,follow").
-				Set("Matches", pl.Len()).
-				Set("Postings", pl.Sort()).
-				Set("monthURL", "/m/"+date).
-				Set("weekURL", "/w/"+date)
-			ph.viewList.Render("searchresult", aWriter, pageData)
-		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		date := fmt.Sprintf("%d%02d%02d", y, m, d)
+		pl := NewPostList().Month(y, m)
+		pageData = check4lang(pageData, aRequest).
+			Set("Robots", "noindex,follow").
+			Set("Matches", pl.Len()).
+			Set("Postings", pl.Sort()).
+			Set("monthURL", "/m/"+date).
+			Set("weekURL", "/w/"+date)
+		ph.viewList.Render("searchresult", aWriter, pageData)
 
 	case "mt": // @mention search
 		if 0 < len(tail) {
@@ -425,23 +427,26 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "w", "ww": // handle a given week
-		if 0 < len(tail) {
-			y, m, d := getYMD(tail)
+		var y, d int
+		var m time.Month
+		if 0 == len(tail) {
+			y, m, d = time.Now().Date()
+		} else {
+			y, m, d = getYMD(tail)
 			if 0 == d {
 				d = 1
 			}
-			date := fmt.Sprintf("%d%02d%02d", y, m, d)
-			pl := NewPostList().Week(y, m, d)
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,follow").
-				Set("Matches", pl.Len()).
-				Set("Postings", pl.Sort()).
-				Set("monthURL", "/m/"+date).
-				Set("weekURL", "/w/"+date)
-			ph.viewList.Render("searchresult", aWriter, pageData)
-		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		date := fmt.Sprintf("%d%02d%02d", y, m, d)
+		pl := NewPostList().Week(y, m, d)
+		pageData = check4lang(pageData, aRequest).
+			Set("Robots", "noindex,follow").
+			Set("Matches", pl.Len()).
+			Set("Postings", pl.Sort()).
+			Set("monthURL", "/m/"+date).
+			Set("weekURL", "/w/"+date)
+		ph.viewList.Render("searchresult", aWriter, pageData)
+
 	case "":
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
 			ph.handleHashtag(ht, pageData, aWriter, aRequest)
@@ -494,7 +499,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 		}
 	}
 	aData = check4lang(aData, aRequest).
-		Set("Robots", "noindex,follow").
+		Set("Robots", "index,follow").
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
 	ph.viewList.Render("searchresult", aWriter, aData)
@@ -506,20 +511,20 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
 	case "a", "ap": // add a new post
-		m := replCRLF([]byte(aRequest.FormValue("manuscript")))
-		if 0 < len(m) {
+		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
 			p := NewPosting()
 			p.Set(m)
 			if _, err := p.Store(); nil != err {
 				log.Printf("handlePOST(a): %v\n", err)
 				//TODO better error handling
 			}
-			tail = p.ID() + "?z=" + p.Date()
-			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			go goAddID(ph.hl, ph.hashfile, p.ID(), p.Markdown())
-			return
+
+			// tail = p.ID() + "?z=" + p.Date()
+			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "d", "dp": // change date
 		if 0 < len(tail) {
@@ -551,12 +556,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			go goRenameID(ph.hl, ph.hashfile, tail, np.ID())
 
-			tail = np.ID() + fmt.Sprintf("?z=%d%02d%02d%02d%02d%02d%04d", y, mo, d, h, mi, s, n)
-			// dummy CGI argument to confuse the browser chache
-			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
-			return
+			http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "e", "ep": // edit posting
 		if 0 < len(tail) {
@@ -575,11 +578,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			go goUpdateID(ph.hl, ph.hashfile, tail, m)
 
-			tail += "?z=" + p.ID()
+			tail += "?z=" + p.ID() // kick the browser cache
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "r", "rp": // remove posting
 		if 0 < len(tail) {
@@ -590,15 +593,14 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			go goRemoveID(ph.hl, ph.hashfile, tail)
 
-			tail = p.Date() + "?z=" + p.ID()
-			http.Redirect(aWriter, aRequest, "/m/"+tail, http.StatusSeeOther)
-			return
+			http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	default:
 		// if nothing matched (above) reply to the request
-		// with an HTTP 404 not found error.
+		// with an HTTP 404 "not found" error.
 		http.NotFound(aWriter, aRequest)
 	}
 } // handlePOST()
