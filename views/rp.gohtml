@@ -7,8 +7,8 @@
 		{{- $lang := "de" -}}
 		{{- if .Lang}}{{$lang = .Lang}}{{end -}}
 		<form method="post" action="{{.BackURL}}">
-			<pre>
-{{- .Manuscript -}}
+			<pre id="preview">
+{{.Manuscript}}
 			</pre>
 			<p class="right">
 			{{- if eq $lang "de" -}}
