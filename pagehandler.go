@@ -19,25 +19,31 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	hashtags "github.com/mwat56/go-hashtags"
 	passlist "github.com/mwat56/go-passlist"
+	uploadhandler "github.com/mwat56/go-uploadhandler"
 )
 
 type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
-		addr     string              // listen address ("1.2.3.4:5678")
-		fh       http.Handler        // static file handler
-		hashfile string              // name of #hashtags file
-		hl       *hashtags.THashList // #hashtags/@mentions list
-		lang     string              // default language
-		realm    string              // host/domain to secure by BasicAuth
-		theme    string              // `dark` or `light` display theme
-		ul       *passlist.TPassList // user/password list
-		viewList *TViewList          // list of template/views
+		addr     string                        // listen address ("1.2.3.4:5678")
+		dd       string                        // datadir: base dir for data
+		fh       http.Handler                  // static file handler
+		hashfile string                        // name of #hashtags file
+		hl       *hashtags.THashList           // #hashtags/@mentions list
+		iup      *uploadhandler.TUploadHandler // `img` upload handler
+		lang     string                        // default language
+		mfs      int64                         // max. size of uploaded files
+		realm    string                        // host/domain to secure by BasicAuth
+		sup      *uploadhandler.TUploadHandler // `static` upload handler
+		theme    string                        // `dark` or `light` display theme
+		ul       *passlist.TPassList           // user/password list
+		viewList *TViewList                    // list of template/views
 	}
 )
 
@@ -133,20 +139,22 @@ func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Requ
 	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
 } // handleShare()
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // NewPageHandler returns a new `TPageHandler` instance.
 func NewPageHandler() (*TPageHandler, error) {
 	var (
-		err   error
-		bd, s string
+		err error
+		s   string
 	)
 	result := new(TPageHandler)
 
 	if s, err = AppArguments.Get("datadir"); nil != err {
 		return nil, err
 	}
-	bd = s
-	result.fh = http.FileServer(http.Dir(bd + "/"))
-	if result.viewList, err = newViewList(bd + "/views"); nil != err {
+	result.dd = s
+	result.fh = http.FileServer(http.Dir(result.dd + "/"))
+	if result.viewList, err = newViewList(result.dd + "/views"); nil != err {
 		return nil, err
 	}
 
@@ -164,6 +172,15 @@ func NewPageHandler() (*TPageHandler, error) {
 		return nil, err
 	}
 	result.addr = s
+
+	if s, err = AppArguments.Get("mfs"); nil != err {
+		return nil, err
+	}
+	if mfs, _ := strconv.Atoi(s); 0 < mfs {
+		result.mfs = int64(mfs)
+	} else {
+		result.mfs = 10485760 // 10 MB
+	}
 
 	if s, err = AppArguments.Get("port"); nil != err {
 		return nil, err
@@ -395,7 +412,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("privacy", aWriter, check4lang(pageData, aRequest))
 
 	case "q":
-		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
 
 	case "r", "rp": // remove posting
 		if 0 < len(tail) {
@@ -415,7 +432,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
-	case "s", "ss": // handle a query/search
+	case "s": // handle a query/search
 		if 0 < len(tail) {
 			ph.handleSearch(tail, pageData, aWriter, aRequest)
 		} else {
@@ -428,6 +445,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+
+	case "si": // store images
+		pageData = check4lang(pageData, aRequest).
+			Set("BackURL", aRequest.URL.Path). // for POSTing back
+			Set("Robots", "noindex,nofollow")
+		ph.viewList.Render("si", aWriter, pageData)
+
+	case "ss": // store static
+		pageData = check4lang(pageData, aRequest).
+			Set("BackURL", aRequest.URL.Path). // for POSTing back
+			Set("Robots", "noindex,nofollow")
+		ph.viewList.Render("ss", aWriter, pageData)
 
 	case "static":
 		ph.fh.ServeHTTP(aWriter, aRequest)
@@ -511,6 +540,35 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 	ph.viewList.Render("searchresult", aWriter, aData)
 
 } // handleTagMentions()
+
+// `handleUpload()` processes a file upload.
+func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http.Request, isImage bool) {
+	var (
+		status          int
+		fName, img, txt string
+	)
+	if isImage {
+		img = "!"
+		txt, status = ph.iup.ServeUpload(aWriter, aRequest)
+	} else {
+		txt, status = ph.sup.ServeUpload(aWriter, aRequest)
+	}
+
+	if 200 == status {
+		fName = strings.TrimPrefix(txt, ph.dd)
+		p := NewPosting()
+		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
+		if _, err := p.Store(); nil != err {
+			log.Printf("handlePOST(): %v", err)
+			//TODO better error handling
+		}
+		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
+	} else {
+		// aWriter.WriteHeader(status)
+		// aWriter.Write([]byte(txt))
+		http.Error(aWriter, txt, status)
+	}
+} // handleUpload()
 
 // `handlePOST()` process the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -604,6 +662,20 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
+	case "si": // store image
+		if nil == ph.iup { // lazy initialisation
+			ph.iup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/img/"),
+				"imgFile", ph.mfs)
+		}
+		ph.handleUpload(aWriter, aRequest, true)
+
+	case "ss": // store static
+		if nil == ph.sup { // lazy initialisation
+			ph.sup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/static/"),
+				"statFile", ph.mfs)
+		}
+		ph.handleUpload(aWriter, aRequest, false)
+
 	default:
 		// if nothing matched (above) reply to the request
 		// with an HTTP 404 "not found" error.
@@ -638,7 +710,7 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter htt
 	ph.viewList.Render("searchresult", aWriter, aData)
 } // handleSearch()
 
-// Len returns the lenght of the internal view list.
+// Len returns the length of the internal view list.
 func (ph *TPageHandler) Len() int {
 	return len(*((*ph).viewList))
 } // Len()
@@ -654,10 +726,18 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 		"d", "dp", // change post's date
 		"e", "ep", // edit post
 		"r", "rp", // remove post
-		"share": // share another URL
+		"share",    // share another URL
+		"si", "ss": // store images, store static data
 		return true
 	}
+
 	if s := aRequest.FormValue("share"); 0 < len(s) {
+		return true
+	}
+	if s := aRequest.FormValue("si"); 0 < len(s) {
+		return true
+	}
+	if s := aRequest.FormValue("ss"); 0 < len(s) {
 		return true
 	}
 
