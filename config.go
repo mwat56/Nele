@@ -49,7 +49,7 @@ func (al tAguments) Get(aKey string) (string, error) {
 func ShowHelp() {
 	fmt.Fprintf(os.Stderr, "\n  Usage: %s [OPTIONS]\n\n", os.Args[0])
 	flag.PrintDefaults()
-	fmt.Fprint(os.Stderr, "\nMost options can be set in an INI file to keep he commandline short ;-)\n\nWith all file- and directory-names make sure that they're readable, and at\nleast the 'post' folder must be writeable for the user running this\nprogram to store the postings.\n\n")
+	fmt.Fprint(os.Stderr, "\nMost options can be set in an INI file to keep he commandline short ;-)\n")
 } // ShowHelp()
 
 // `iniWalker()` is an internal helper used to set all INI file
@@ -137,11 +137,11 @@ func initArguments() {
 
 	langStr, _ := defaults.AsString("lang")
 	flag.StringVar(&langStr, "lang", langStr,
-		"(optional) the default language to use\n")
+		"(optional) the default language to use ")
 
 	listenStr, _ := defaults.AsString("listen")
 	flag.StringVar(&listenStr, "listen", listenStr,
-		"the host's IP to listen at\t")
+		"the host's IP to listen at ")
 
 	logStr, _ := defaults.AsString("logfile")
 	flag.StringVar(&logStr, "log", logStr,
@@ -159,7 +159,7 @@ func initArguments() {
 
 	portInt, _ := defaults.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
-		"<portNumber> the IP port to listen to\t")
+		"<portNumber> the IP port to listen to ")
 	portStr := fmt.Sprintf("%d", portInt)
 
 	paBool := false
@@ -168,7 +168,7 @@ func initArguments() {
 
 	pfStr := ""
 	flag.StringVar(&pfStr, "pf", pfStr,
-		"<fileName> (optional) posting file: name of a file to add as new posting")
+		"<fileName> (optional) post file: name of a file to add as new posting")
 
 	realStr, _ := defaults.AsString("realm")
 	flag.StringVar(&realStr, "realm", realStr,
