@@ -1,14 +1,16 @@
 *~
 addTest.md
 blog
-certs/
+certs/*
 *.db
 _demo/
 .git/
+img/*
 *.ini
 *.log
 Markdown_Syntax.*
 md2htm
 postings/
+static/*
 TODO*
 .vscode/
