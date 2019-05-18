@@ -1,5 +1,5 @@
 {{- define "rightbar" -}}
-
-	<!-- empty right page section -->
-
+	{{- if .Taglist -}}
+	<p class="tc">{{.Taglist}}</p>
+	{{- end -}}
 {{- end -}}
