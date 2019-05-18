@@ -285,9 +285,12 @@ pre#preview {
 	text-align: right;
 }
 
-.centered {
+.centered, .error {
 	margin: 0 auto;
 	text-align: center;
+}
+.error {
+	padding: 1em 0 1em 0;
 }
 a.idlink {
 	clear: left;
