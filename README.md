@@ -1,6 +1,7 @@
 # Blog
 
 [![GoDoc](https://godoc.org/github.com/mwat56/go-blog?status.svg)](https://godoc.org/github.com/mwat56/go-blog)
+[![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/go-blog/blob/master/_demo/blog/blog.go)
 
 ## Purpose
 
@@ -81,7 +82,7 @@ Let's start with the command line:
 
     $ ./blog -h
 
-    Usage: ./blog [OPTIONS]
+  Usage: ./blog [OPTIONS]
 
     -certKey string
         <fileName> the name of the TLS certificate key
@@ -98,22 +99,23 @@ Let's start with the command line:
     -ini string
         <fileName> the path/filename of the INI file
     -lang string
-        (optional) the default language to use
-        (default "de")
+        (optional) the default language to use  (default "de")
     -listen string
-        the host's IP to listen at     (default "127.0.0.1")
+        the host's IP to listen at  (default "127.0.0.1")
     -log string
         (optional) name of the logfile to write to
         (default "/dev/stdout")
+    -maxfilesize string
+        max. accepted size of uploaded files (default "10MB")
     -pa
         (optional) posting add: write a posting from the commandline
     -pf string
-        <fileName> (optional) posting file: name of a file to add as new posting
+        <fileName> (optional) post file: name of a file to add as new posting
     -port int
-        <portNumber> the IP port to listen to     (default 8181)
+        <portNumber> the IP port to listen to  (default 8181)
     -realm string
         (optional) <hostName> name of host/domain to secure by BasicAuth
-        (default "This Host")
+         (default "This Host")
     -theme string
         <name> the display theme to use ('light' or 'dark')
         (default "light")
@@ -133,10 +135,6 @@ Let's start with the command line:
 
     Most options can be set in an INI file to keep he commandline short ;-)
 
-    With all file- and directory-names make sure that they're readable, and at
-    least the 'post' folder must be writeable for the user running this
-    program to store the postings.
-
     $ _
 
 However, to just run the program you'll usually don't need any of those options to input on the commandline.
@@ -146,46 +144,46 @@ There is an INI file called `blog.ini` coming with the package, where you can st
 
     [Default]
 
-    # path-/filename of TLS certificate's private key to enable TLS/HTTPS
-    # (if empty standard HTTP is used)
-    certKey = ./certs/server.key
+        # path-/filename of TLS certificate's private key to enable TLS/HTTPS
+        # (if empty standard HTTP is used)
+        certKey = ./certs/server.key
 
-    # path-/filename of TLS (server) certificate to enable TLS/HTTPS
-    # (if empty standard HTTP is used)
-    certPem = ./certs/server.pem
+        # path-/filename of TLS (server) certificate to enable TLS/HTTPS
+        # (if empty standard HTTP is used)
+        certPem = ./certs/server.pem
 
-    # The directory root for CSS, IMG, JS, POSTINGS, STATIC,
-    # and VIEWS sub-directories
-    datadir = ./
+        # The directory root for CSS, IMG, JS, POSTINGS, STATIC,
+        # and VIEWS sub-directories
+        # NOTE: this should be an absolute path name.
+        datadir = ./
 
-    # The file to store #hashtags and @mentions
-    hashfile = ./hashfile.db
+        # The file to store #hashtags and @mentions
+        hashfile = ./hashfile.db
 
-    # the INI file with localised text(fragment)s
-    #intl = ./intl.ini
+        # the default language to use
+        lang = de
 
-    # the default language to use
-    lang = de
+        # the host's IP to listen at:
+        listen = 127.0.0.1
 
-    # the host's IP to listen at:
-    listen = 127.0.0.1
+        # the IP port to listen to
+        port = 8181
 
-    # the IP port to listen to
-    port = 8181
+        # name of the optional logfile to write to:
+        logfile = /dev/stdout
 
-    # name of the optional logfile to write to:
-    logfile = /dev/stdout
+        # accepted size of uploaded files
+        maxfilesize = 10MB
 
-    # password file for HTTP Basic Authentication
-    passfile = ./pwaccess.db
+        # password file for HTTP Basic Authentication
+        passfile = ./pwaccess.db
 
-    # name of host/domain to secure by BasicAuth
-    realm = "This Host"
+        # name of host/domain to secure by BasicAuth
+        realm = "This Host"
 
-    # web/display theme: `dark` or `light'
-    theme = light
+        # web/display theme: `dark` or `light'
+        theme = light
 
-    # _EoF_
     $ _
 
 The program, when started, will first look for the INI file in the current directory and only then parse the commandline arguments; in other words: commandline arguments take precedence over INI entries.
@@ -281,6 +279,8 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 But why, you may ask, would we need username/password files anyway?
 Well, you remember me mentioning that you can add, edit and delete articles/postings?
 You wouldn't want anyone on the net beeing able to do that, now, would you?
+For that reason, whenever there's no password file given (either in the INI file or the command-line) all funtionality requiring authentication will be _disabled_.
+(Better safe than sorry, right?)
 
 _Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server both files are _not_ interchangeable because the actual encryption algorithm used by both are different.
 
@@ -290,7 +290,7 @@ _Note_ that the password file generated and used by this system resembles the `h
 
 The system uses a number of slightly different URL groups.
 
-First there are the static files served from the `css`, `img`, `js`, and `static` directories.
+First there are the static files served from the `css`, `img`, and `static` directories.
 The actual location of which you can configure with the `datadir` INI entry and/or commandline option.
 
 Second are the URLs any _normal_ user might see and use:
@@ -330,8 +330,12 @@ Since you don't usually know/remember the article ID you'll first go to show the
 The procedure is the same: go to `/p/34567890abcdef12` and replace the `p` by an `e`.
 * `/r/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
+* `/si` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
+Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
 Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown to edit.
+* `/ss` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
+Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
 
 ### Files
 
@@ -349,12 +353,11 @@ Under that directory the program expects several sub-directories:
 
 * `css/` for stylesheet files,
 * `img/` for image files,
-* `js/` for JavaScript files,
 * `postings/` directory root for the articles/postings,
 * `static/` for static files (like e.g. PDF files),
 * `views/` for page templates
 
-Apart from setting those option(s) to your liking you don't have to worry about it anymore.
+Apart from setting that `datadir` option to your liking you don't have to worry about it anymore.
 
 As mentioned before, it's always advisable to use _absolute pathnames_, not relative one.
 The latter are converted into absolute ones by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
@@ -367,13 +370,22 @@ The `theme` INI setting and the `-theme` commandline option determine which of t
 
 #### Images
 
-The image directory can be used to store, well, images to which you then can link in your articles.
+The `/img/` directory can be used to store, well, images to which you then can link in your articles.
+You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
 
-#### JavaScript
+#### Postings
 
-The `/js/` directory is currently empty.
-The system doesn't require any client-side scripting to work.
-This directory just exist in preparation for a possible future extension.
+The `/postings/` directory is the base for storing all the articles.
+The system creates subdirectories as needed
+
+#### Static
+
+The `/static/` directory can be used to store, well, static files to which you then can link in your articles.
+You can put there whatever file you like either form the command-line or by using the system's `/ss` URL.
+
+#### Views
+
+    //TODO
 
 ### Contents
 
