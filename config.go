@@ -12,6 +12,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 
 	ini "github.com/mwat56/go-ini"
 )
@@ -93,6 +96,7 @@ func initArguments() {
 		data.AddSectionKey("", "lang", "de")
 		data.AddSectionKey("", "listen", "127.0.0.1")
 		data.AddSectionKey("", "logfile", "")
+		data.AddSectionKey("", "maxfilesize", "10MB")
 		data.AddSectionKey("", "passfile", "")
 		data.AddSectionKey("", "port", "8181")
 		data.AddSectionKey("", "realm", "")
@@ -142,6 +146,10 @@ func initArguments() {
 	logStr, _ := defaults.AsString("logfile")
 	flag.StringVar(&logStr, "log", logStr,
 		"(optional) name of the logfile to write to\n")
+
+	mfsStr, _ := defaults.AsString("maxfilesize")
+	flag.StringVar(&mfsStr, "maxfilesize", mfsStr,
+		"max. accepted size of uploaded files")
 
 	/*
 		ndBool := false
@@ -254,6 +262,14 @@ func initArguments() {
 		AppArguments.set("logfile", logStr)
 	}
 
+	if 0 == len(mfsStr) {
+		mfsStr = "10485760" // 10 MB
+	} else {
+		mfs := kmg2Num(mfsStr)
+		mfsStr = fmt.Sprintf("%d", mfs)
+	}
+	AppArguments.set("mfs", mfsStr)
+
 	/*
 		if ndBool {
 			s = fmt.Sprintf("%v", ndBool)
@@ -312,5 +328,31 @@ func initArguments() {
 func init() {
 	initArguments()
 } // init()
+
+var (
+	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
+)
+
+// `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
+func kmg2Num(aString string) (rInt int) {
+	matches := kmgRE.FindStringSubmatch(aString)
+	if 2 < len(matches) {
+		// The RegEx only matches digits so we can
+		// safely ignore all Atoi() errors.
+		rInt, _ = strconv.Atoi(matches[1])
+		switch strings.ToLower(matches[2]) {
+		case "", "b":
+			return
+		case "kb":
+			rInt *= 1024
+		case "mb":
+			rInt *= 1024 * 1024
+		case "gb":
+			rInt *= 1024 * 1024 * 1024
+		}
+	}
+
+	return
+} // kmg2Num()
 
 /* _EoF_ */
