@@ -112,6 +112,7 @@ i, .italic {
 }
 footer {
 	border-radius: 1ex;
+	clear: both;
 	margin: 1em 1ex 0 1ex;
 }
 footer, footer p {
@@ -179,7 +180,7 @@ p {
 	line-height: 1.5;
 	margin: 0.2ex;
 	padding: 0.2ex;
-	text-align: left;
+	text-align: inherit;
 	text-indent: 2ex;
 }
 /*
@@ -258,8 +259,11 @@ ul li {
 }
 
 #bodypage {
+	float: left;
 	margin: 1ex 0;
 	min-height: 3em;
+	max-width: 74%;
+	min-width: 72%;
 }
 #leftbar {
 	max-width: 30%;
@@ -281,7 +285,9 @@ pre#preview {
 	max-height: 19ex;
 }
 #rightbar {
-	max-width: 30%;
+	border-left: thin dotted #ccc;
+	float: right;
+	max-width: 24%;
 	text-align: right;
 }
 
@@ -313,4 +319,38 @@ p.matches {
 	text-align: right;
 	margin-right: 1ex;
 }
+.tc {
+	hyphens: none;
+	margin: 6ex 0 3ex 0;
+}
+.tc5, .tc25, .tc50, .tc99 {
+	font-family: monospace;
+}
+.tc5 {
+	font-size: 88%;
+	font-style: normal;
+	line-height: 2;
+}
+.tc25 {
+	font-size: 93%;
+	font-style: italic;
+	line-height: 2.3;
+}
+.tc50 {
+	font-size: 104%;
+	font-style: normal;
+	font-weight: bold;
+	line-height: 2.4;
+}
+.tc99 {
+	font-size: 111%;
+	font-style: italic;
+	font-weight: bold;
+	line-height: 3;
+}
+.tc5, .tc25, .tc50, .tc99 {
+	border-radius: 0.5ex;
+	padding: 0.3ex 0.6ex 0.6ex 0.6ex;
+}
+
 /* _EoF_ */

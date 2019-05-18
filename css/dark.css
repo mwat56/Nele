@@ -60,4 +60,9 @@ p.matches {
 p#next a {
 	border-bottom: thin dotted #06f;
 }
+a.tc5, a.tc25, a.tc50, a.tc99 {
+	background: #ffc;
+	color: #036;
+}
+
 /* _EoF_ */
