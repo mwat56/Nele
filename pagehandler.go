@@ -13,7 +13,6 @@ package blog
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -55,78 +54,6 @@ func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
 
 	return aData
 } // check4lang()
-
-// `goAddID` checks a newly added posting for #hashtags and @mentions.
-func goAddID(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
-	oldlen := aList.LenTotal()
-
-	aList.IDparse(aID, aText)
-
-	if aList.LenTotal() != oldlen {
-		aList.Store(aFilename)
-	}
-} // goAddID()
-
-// `goInitHashlist` initialises the hash list.
-func goInitHashlist(aList *hashtags.THashList, aFilename string) {
-	if _, err := aList.Load(aFilename); nil == err {
-		return // assume everything is uptodate
-	}
-	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
-	if nil != err {
-		return // we can't recover from this :-(
-	}
-	for _, dirname := range dirnames {
-		filesnames, err := filepath.Glob(dirname + "/*.md")
-		if nil != err {
-			continue // it might be a file (not a directory) …
-		}
-		if 0 >= len(filesnames) {
-			continue // skip empty directory
-		}
-		for _, postname := range filesnames {
-			id := strings.TrimPrefix(postname, dirname+"/")
-			id = id[:len(id)-3] // strip name extension
-			if txt, err := ioutil.ReadFile(postname); nil == err {
-				aList.IDparse(id, txt)
-			}
-		}
-	}
-	if 0 < aList.Len() {
-		aList.Store(aFilename)
-	}
-} // goInitHashlist()
-
-func goRemoveID(aList *hashtags.THashList, aFilename string, aID string) {
-	oldlen := aList.LenTotal()
-
-	aList.IDremove(aID)
-
-	if aList.LenTotal() != oldlen {
-		aList.Store(aFilename)
-	}
-} // goRemoveID()
-
-func goRenameID(aList *hashtags.THashList, aFilename string, aOldID, aNewID string) {
-	oldlen := aList.LenTotal()
-
-	aList.IDrename(aOldID, aNewID)
-
-	if aList.LenTotal() != oldlen {
-		aList.Store(aFilename)
-	}
-} // goRenameID()
-
-func goUpdateID(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
-	oldlen := aList.LenTotal() //FIXME this doesn't catch cases when …
-	// … the number of removals equals the number of additions.
-
-	aList.IDupdate(aID, aText)
-
-	if aList.LenTotal() != oldlen {
-		aList.Store(aFilename)
-	}
-} // goUpdateID()
 
 // `handleShare()` serves the edit page for a shared URL.
 func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -533,6 +460,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 			}
 		}
 	}
+
 	aData = check4lang(aData, aRequest).
 		Set("Robots", "index,follow").
 		Set("Matches", pl.Len()).
