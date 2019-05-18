@@ -174,6 +174,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("Lang", ph.lang).
 		Set("monthURL", fmt.Sprintf("/m/%d%02d%02d", y, m, d)).
 		Set("Robots", "index,follow").
+		Set("Taglist", markupCloud(ph.hl)).
 		Set("Title", ph.realm).
 		Set("weekURL", fmt.Sprintf("/w/%d%02d%02d", y, m, d))
 
