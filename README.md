@@ -37,43 +37,46 @@ which should produce an executable binary.
 On my system it looks like this:
 
     $ ls -l
-    total 21176
-    -rw-rw-r-- 1 matthias matthias      474 Apr 27 00:21 addTest.md
-    -rwxrwxr-x 1 matthias matthias 11051401 Mai  6 14:18 blog
-    -rw-rw-r-- 1 matthias matthias      789 Mai  5 21:25 blog.ini
-    -rw-rw-r-- 1 matthias matthias     6657 Mai  5 15:04 cmdline.go
-    -rw-rw-r-- 1 matthias matthias     8692 Mai  5 21:27 config.go
-    -rw-r--r-- 1 matthias matthias      486 Apr 20 15:35 config_test.go
-    drwxrwxr-x 2 matthias matthias     4096 Mai  5 17:16 css
-    drwxrwxr-x 5 matthias matthias     4096 Mai  5 16:11 _demo
+    total 21296
+    -rwxrwxr-x 1 matthias matthias 11140070 Mai 19 19:47 blog
+    -rw-rw-r-- 1 matthias matthias     1001 Mai 18 19:55 blog.ini
+    drwxrwxr-x 2 matthias matthias     4096 Mai 11 20:11 certs
+    -rw-rw-r-- 1 matthias matthias     6583 Mai 10 09:39 cmdline.go
+    -rw-rw-r-- 1 matthias matthias     9330 Mai 18 21:40 config.go
+    -rw-rw-r-- 1 matthias matthias     1092 Mai 18 19:55 config_test.go
+    drwxrwxr-x 2 matthias matthias     4096 Mai 19 01:35 css
+    drwxrwxr-x 3 matthias matthias     4096 Mai 15 19:29 _demo
     -rw-rw-r-- 1 matthias matthias      823 Mai  4 17:57 doc.go
-    -rw------- 1 matthias matthias      533 Mai  5 16:26 go.mod
-    -rw------- 1 matthias matthias     2327 Mai  5 16:28 go.sum
-    drwxrwxr-x 2 matthias matthias     4096 Mai  5 16:12 img
+    -rw------- 1 matthias matthias      587 Mai 19 12:43 go.mod
+    -rw------- 1 matthias matthias     3837 Mai 19 12:43 go.sum
+    -rw-rw-r-- 1 matthias matthias     4999 Mai 19 19:55 hashfile.db
+    drwxrwxr-x 2 matthias matthias     4096 Mai 18 19:59 img
     -rw-rw-r-- 1 matthias matthias    32474 Mai  2 13:59 LICENSE
-    -rw-rw-r-- 1 matthias matthias    14935 Mai  6 13:21 pagehandler.go
-    -rw-r--r-- 1 matthias matthias      588 Apr 25 16:33 pagehandler_test.go
-    -rw-rw-r-- 1 matthias matthias     8824 Mai  5 15:07 posting.go
-    drwxrwxr-x 6 matthias matthias     4096 Apr 26 12:51 postings
-    -rw-r--r-- 1 matthias matthias    15505 Mai  1 13:11 posting_test.go
-    -rw-r--r-- 1 matthias matthias     8388 Mai  5 15:07 postlist.go
-    -rw-r--r-- 1 matthias matthias     7810 Mai  1 13:00 postlist_test.go
-    -rw-rw-r-- 1 matthias matthias       70 Mai  5 14:52 pwaccess.db
-    -rw-rw-r-- 1 matthias matthias     4229 Mai  6 14:36 README.md
-    -rw-rw-r-- 1 matthias matthias    10669 Mai  6 14:17 regex.go
-    -rw-r--r-- 1 matthias matthias    11046 Mai  1 12:55 regex_test.go
-    drwxrwxr-x 2 matthias matthias     4096 Mai  6 13:34 static
-    -rw-rw-r-- 1 matthias matthias     1300 Apr 25 12:43 template_vars.md
-    drwxrwxr-x 3 matthias matthias     4096 Mai  5 16:12 views
-    -rw-rw-r-- 1 matthias matthias    10623 Mai  5 15:07 views.go
-    -rw-r--r-- 1 matthias matthias     6052 Apr 20 19:00 views_test.go
+    -rw-rw-r-- 1 matthias matthias    20726 Mai 19 16:46 pagehandler.go
+    -rw-r--r-- 1 matthias matthias      619 Mai  8 10:14 pagehandler_test.go
+    -rw-rw-r-- 1 matthias matthias     8981 Mai 19 13:30 posting.go
+    drwxrwxr-x 8 matthias matthias     4096 Mai 19 18:31 postings
+    -rw-r--r-- 1 matthias matthias    14359 Mai  8 10:12 posting_test.go
+    -rw-r--r-- 1 matthias matthias     8240 Mai 11 10:15 postlist.go
+    -rw-r--r-- 1 matthias matthias     7279 Mai 14 09:28 postlist_test.go
+    -rw-rw-r-- 1 matthias matthias      141 Mai  6 17:30 pwaccess.db
+    -rw-rw-r-- 1 matthias matthias    20152 Mai 19 20:03 README.md
+    -rw-rw-r-- 1 matthias matthias    10436 Mai 19 16:31 regex.go
+    -rw-r--r-- 1 matthias matthias     8190 Mai 19 15:53 regex_test.go
+    drwxrwxr-x 2 matthias matthias     4096 Mai 18 18:44 static
+    -rw-rw-r-- 1 matthias matthias     3240 Mai 19 18:13 tags.go
+    -rw-rw-r-- 1 matthias matthias     1367 Mai 19 01:35 template_vars.md
+    -rw-rw-r-- 1 matthias matthias     2853 Mai 19 19:33 TODO.md
+    drwxrwxr-x 3 matthias matthias     4096 Mai 19 13:34 views
+    -rw-rw-r-- 1 matthias matthias     9656 Mai 10 12:11 views.go
+    -rw-r--r-- 1 matthias matthias     6009 Mai  8 10:09 views_test.go
     $ _
 
 You can reduce the binary's size by stripping it:
 
     $ strip blog
     $ ls -l blog
-    -rwxrwxr-x 1 matthias matthias 8077280 Mai  6 14:41 blog
+    -rwxrwxr-x 1 matthias matthias 8138752 Mai 19 20:05 blog
     $ _
 
 As you can see the binary lost about 3MB of its weight.
@@ -82,7 +85,7 @@ Let's start with the command line:
 
     $ ./blog -h
 
-  Usage: ./blog [OPTIONS]
+    Usage: ./blog [OPTIONS]
 
     -certKey string
         <fileName> the name of the TLS certificate key
@@ -296,36 +299,34 @@ The actual location of which you can configure with the `datadir` INI entry and/
 Second are the URLs any _normal_ user might see and use:
 
 * `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
-* `/faq`, `/imprint`, `licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
+* `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
 * `/ht/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
 Provided the given `#tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/m/` shows the articles of the current month.
 You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles/postings from April 2019.
-This URL is not generated but can be used by your users to kind of query your articles/postings.
 * `/mt/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 20 articles/postings.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
 If you want to see the articles in slices of, say, 10 per page (instead of the default 20/page) you could use the URL `/n/10,10` and to see the secong slice user `/n/10,20`, the third with `/n/10,30` and so on.
-However, as long as there are more articles left, there will be a `»»` link at the bottom of the page to ease the navigation for you.
+However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for you.
 * `/p/1234567890abcdef` shows you a single article/posting (the ID is automatically generated).
 This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
 * `/s/searchterm` can be used to search for articles containing a certain word.
 All existing articles/postings will be searched for the given `searchterm`.
 * `/w/` shows the articles of the current week.
 You can, however, specify the week you're interested in by adding a data part defining the week you want to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles/postings from the week in April 2019 containing the 13th.
-This URL is not generated but can be used to kind of query your articles/postings by time.
 
 And third there's a group of URLs your users won't usually see or use, because by design they are reserved for you.
-These URLs are protected by a authentication mechanism called _BasicAuth_; this is where the username/password files comes in.
+These URLs are protected by an authentication mechanism called _BasicAuth_; this is where the username/password files comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
-If you forget that (or the file is not accessible for the program) everybody on the net can read, modify, or delete your articles/postings, or add new ones (which you might not like).
+If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles/postings, or add new ones (which you might not like).
 
 * `/a` add a new posting.
 A simple Web form will allow you to input whatever's on your mind.
 * `/d/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
-Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) and then just replace in the URL the `p` by a `d`.
+Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just replace in the URL the `p` by a `d`.
 * `/e/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
 The procedure is the same: go to `/p/34567890abcdef12` and replace the `p` by an `e`.
 * `/r/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
@@ -376,7 +377,7 @@ You can put there whatever images you like either form the command-line or by us
 #### Postings
 
 The `/postings/` directory is the base for storing all the articles.
-The system creates subdirectories as needed
+The system creates subdirectories as needed to store new articles.
 
 #### Static
 
