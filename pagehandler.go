@@ -60,7 +60,7 @@ func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Requ
 	p := NewPosting()
 	p.Set([]byte("\n\n> [" + aShare + "](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
-		log.Printf("handleShare(): %v", err)
+		log.Printf("handleShare('%s'): %v", aShare, err)
 		//TODO better error handling
 	}
 	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
@@ -369,6 +369,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "share":
 		if 0 < len(tail) {
+			if 0 < len(aRequest.URL.RawQuery) {
+				// we need this for e.g. YouTube
+				tail += "?" + aRequest.URL.RawQuery
+			}
 			handleShare(tail, aWriter, aRequest)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -426,6 +430,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if s := aRequest.FormValue("s"); 0 < len(s) {
 			ph.handleSearch(s, pageData, aWriter, aRequest)
 		} else if s := aRequest.FormValue("share"); 0 < len(s) {
+			if 0 < len(aRequest.URL.RawQuery) {
+				// we need this for e.g. YouTube
+				s += "?" + aRequest.URL.RawQuery
+			}
 			handleShare(s, aWriter, aRequest)
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
 			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
