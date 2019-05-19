@@ -18,6 +18,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -222,7 +223,7 @@ func (p *TPosting) Load() error {
 	if bs, err = ioutil.ReadFile(filepathname); nil != err {
 		return err
 	}
-	p.markdown = bs
+	p.markdown = []byte(strings.TrimSpace(string(bs)))
 
 	return nil
 } // Load()
@@ -288,7 +289,7 @@ func (p *TPosting) Post() template.HTML {
 // `aMarkdown` is the actual Markdown text of the article to assign.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
-		p.markdown = aMarkdown
+		p.markdown = []byte(strings.TrimSpace(string(aMarkdown)))
 	} else {
 		p.Load()
 	}
