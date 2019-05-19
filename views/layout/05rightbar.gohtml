@@ -1,5 +1,9 @@
 {{- define "rightbar" -}}
 	{{- if .Taglist -}}
-	<p class="tc">{{.Taglist}}</p>
+		<p class="tc">
+		{{- range $i, $item := $.Taglist -}}
+		{{$item}}
+		{{- end -}}
+	</p>
 	{{- end -}}
 {{- end -}}

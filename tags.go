@@ -97,14 +97,15 @@ func goUpdateID(aList *hashtags.THashList, aFilename, aID string, aText []byte) 
 	}
 } // goUpdateID()
 
-// `markupCloud()` returns a string mith the markup of all existing
-// #hashtags/@mentions
-func markupCloud(aHashList *hashtags.THashList) (rTags template.HTML) {
+// `markupCloud()` returns a list with the markup of all existing
+// #hashtags/@mentions.
+func markupCloud(aHashList *hashtags.THashList) []template.HTML {
 	var (
 		class, url string
 	)
 	list := aHashList.CountedList()
-	for _, item := range list {
+	tl := make([]template.HTML, len(list))
+	for idx, item := range list {
 		if 5 > item.Count {
 			class = "tc5"
 		} else if 25 > item.Count {
@@ -119,9 +120,10 @@ func markupCloud(aHashList *hashtags.THashList) (rTags template.HTML) {
 		} else {
 			url = "/mt/" + item.Tag[1:]
 		}
-		rTags += template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + item.Tag + ` ">` + item.Tag + `</a> `)
+		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + item.Tag + ` ">` + item.Tag + `</a> `)
 	}
-	return
+
+	return tl
 } // markupCloud()
 
 /* _EoF_ */
