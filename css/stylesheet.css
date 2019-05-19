@@ -95,8 +95,8 @@ dl.posting dt {
 dl.posting dd {
 	border-radius: 1ex;
 	margin: 1ex 0 2ex 0;
-	max-height: 78ex;
-	max-width: 98%;
+	max-height: 26ex;
+	max-width: 99%;
 	overflow: auto;
 	padding: 0.3ex 0.3ex 0.5ex 0.5ex;
 	text-align: left;
@@ -327,29 +327,26 @@ p.matches {
 	font-family: monospace;
 }
 .tc5 {
-	font-size: 88%;
+	font-size: 68%;
 	font-style: normal;
-	line-height: 2;
 }
 .tc25 {
-	font-size: 93%;
+	font-size: 86%;
 	font-style: italic;
-	line-height: 2.3;
 }
 .tc50 {
-	font-size: 104%;
+	font-size: 97%;
 	font-style: normal;
 	font-weight: bold;
-	line-height: 2.4;
 }
 .tc99 {
-	font-size: 111%;
+	font-size: 108%;
 	font-style: italic;
 	font-weight: bold;
-	line-height: 3;
 }
 .tc5, .tc25, .tc50, .tc99 {
 	border-radius: 0.5ex;
+	line-height: 1.9;
 	padding: 0.3ex 0.6ex 0.6ex 0.6ex;
 }
 
