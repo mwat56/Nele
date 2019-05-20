@@ -10,7 +10,7 @@ img/*
 *.log
 Markdown_Syntax.*
 md2htm
-postings/
+postings/*
 static/*
 TODO*
 .vscode/
