@@ -227,6 +227,7 @@ small, .small {
 }
 textarea {
 	border-radius: 1ex;
+	line-height: 1.4;
 	padding: 0.5ex;
 }
 textarea#manuscript {
@@ -321,8 +322,10 @@ p.matches {
 	margin: 6ex 0 3ex 0;
 }
 .tc5, .tc25, .tc50, .tc99 {
+	display: inline-block;
 	font-family: monospace;
 	hyphens: none;
+	margin: 0.2ex 0;
 }
 .tc5 {
 	font-size: 68%;
@@ -344,8 +347,7 @@ p.matches {
 }
 .tc5, .tc25, .tc50, .tc99 {
 	border-radius: 0.5ex;
-	line-height: 1.9;
-	padding: 0.3ex 0.6ex 0.6ex 0.6ex;
+	padding: 0.2ex 0.5ex;
 }
 
 /* _EoF_ */

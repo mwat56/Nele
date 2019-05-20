@@ -62,7 +62,10 @@ p#next a {
 }
 a.tc5, a.tc25, a.tc50, a.tc99 {
 	background: #036;
+	border: 0.3ex outset #69c;
 	color: #ffe;
 }
-
+a.tc5:hover, a.tc25:hover, a.tc50:hover, a.tc99:hover {
+	border: 0.3ex inset #69c;
+}
 /* _EoF_ */
