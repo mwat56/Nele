@@ -234,6 +234,8 @@ func initArguments() {
 		log.Fatalf("Error: Not a directory `%s`", dataStr)
 	}
 	AppArguments.set("datadir", dataStr)
+	// defined in `posting.go`:
+	postingBaseDirectory = filepath.Join(dataStr, "./postings")
 
 	if 0 < len(hashStr) {
 		hashStr, _ = filepath.Abs(hashStr)
