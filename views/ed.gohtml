@@ -3,24 +3,21 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-	{{- if .Manuscript -}}
-		{{- $lang := "de" -}}
-		{{- if .Lang}}{{$lang = .Lang}}{{end -}}
-		<form method="post" action="{{.BackURL}}">
-			<p class="right">
-			{{- if eq $lang "de" -}}
-				<input type="reset" name="reset" title="" value=" Zurücksetzen "> &nbsp;
-				<input type="submit" name="submit" title="" value=" Speichern ">
-			{{- else -}}
-				<input type="reset" name="reset" title="" value=" Reset "> &nbsp;
-				<input type="submit" name="submit" title="" value=" Save ">
-			{{- end -}}
-			</p>
-			<textarea id="manuscript" name="manuscript">
+{{- $lang := "de" -}}
+{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+<form method="post" action="{{.BackURL}}">
+	<p class="right">
+	{{- if eq $lang "de" -}}
+		<input type="reset" name="reset" title="" value=" Zurücksetzen "> &nbsp;
+		<input type="submit" name="submit" title="" value=" Speichern ">
+	{{- else -}}
+		<input type="reset" name="reset" title="" value=" Reset "> &nbsp;
+		<input type="submit" name="submit" title="" value=" Save ">
+	{{- end -}}
+	</p><textarea id="manuscript" name="manuscript">
 
 {{.Manuscript}}
 
 </textarea>
-		</form>
-	{{- end -}}
+</form>
 {{- end -}}

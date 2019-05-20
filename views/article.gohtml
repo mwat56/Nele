@@ -3,23 +3,9 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-{{- if isPost $.Postings -}}
-	{{- if isPostEmpty $.Postings -}}
-		<br>
-	{{- else -}}
-	<dl class="posting"><dt>{{$.Postings.Date}}</dt>
-		{{- $ID := $.Postings.ID -}}
-		<dd><a class="idlink" href="{{postWeekURL $.Postings}}/#p{{$ID}}">[*]</a>
-		{{- postText $.Postings}}</dd>
+	<dl class="posting"><dt>{{$.Posting.Date}}</dt>
+		{{- $ID := $.Posting.ID -}}
+		<dd><a class="idlink" href="{{.WeekURL}}/#p{{$ID}}">[*]</a>
+		{{- $.Posting.Post}}</dd>
 	</dl>
-	{{- end -}}
-{{- else -}}
-	{{- if isPostlist $.Postings}}{{$posting := index $.Postings 0 -}}
-	<dl class="posting"><dt>{{$posting.Date}}</dt>
-		{{- $ID := $posting.ID -}}
-		<dd><a class="idlink" href="{{postWeekURL $posting}}/#p{{$ID}}">[*]</a>
-		{{- postText $posting}}</dd>
-	</dl>
-	{{- end -}}
-{{- end -}}
 {{- end -}}

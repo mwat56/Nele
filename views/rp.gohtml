@@ -3,20 +3,18 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-	{{- if .Manuscript -}}
-		{{- $lang := "de" -}}
-		{{- if .Lang}}{{$lang = .Lang}}{{end -}}
-		<form method="post" action="{{.BackURL}}">
-			<pre id="preview">
+{{- $lang := "de" -}}
+{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+<form method="post" action="{{.BackURL}}">
+	<pre id="preview">
 {{.Manuscript}}
-			</pre>
-			<p class="right">
-			{{- if eq $lang "de" -}}
-				<input type="submit" name="submit" title="Artikel löschen" value=" Löschen ">
-			{{- else -}}
-				<input type="submit" name="submit" title="Delete posting" value=" Delete ">
-			{{- end -}}
-			</p>
-		</form>
+	</pre>
+	<p class="right">
+	{{- if eq $lang "de" -}}
+		<input type="submit" name="submit" title="Artikel löschen" value=" Löschen ">
+	{{- else -}}
+		<input type="submit" name="submit" title="Delete posting" value=" Delete ">
 	{{- end -}}
+	</p>
+</form>
 {{- end -}}

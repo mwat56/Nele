@@ -7,12 +7,11 @@
 	<meta http-equiv="Window-target" content="_top">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-	{{template "htmlhead" .}}
+	{{- template "htmlhead" . -}}
 	<script language="JavaScript" type="text/javascript">if(top!=self)top.location=self.location</script>
 	<link rel="Shortcut icon" type="image/gif" href="/img/favicon.ico" />
-</head>
-<body><div id="main">
-{{template "header" .}}
+</head><body><div id="main">
+{{- template "header" . -}}
 {{- if .Headline}}<h1>{{.Headline}}</h1>{{end -}}
 	<div id="bodypage">
 		{{template "bodypage" .}}
@@ -21,6 +20,5 @@
 		{{template "rightbar" .}}
 	</div>
 {{template "footer" .}}
-</div></body>
-</html>
+</div></body></html>
 {{- end -}}

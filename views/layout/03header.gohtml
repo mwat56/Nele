@@ -1,13 +1,11 @@
 {{- define "header" -}}
 <header>
-{{- if .Lang}}
+{{- $lang := "de" -}}
+{{- if .Lang}}{{$lang = .Lang}}{{end -}}
 	{{- if eq .Lang "de" -}}
 		<h2>Meine Güte, was für'n Blah!</h2>
 	{{- else -}}
 		<h2>O'Dear, what a blah!</h2>
 	{{- end -}}
-{{- else -}}
-	<h2>O'Dear, what a blah!</h2>
-{{- end -}}
 </header>
 {{- end -}}

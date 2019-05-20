@@ -3,21 +3,19 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-{{if isPostlist $.Postings -}}
-	<dl class="posting">
-		{{- $lastDate := change -}}
-		{{- range $i, $post := $.Postings -}}
-			{{$date := $post.Date -}}
-			{{if $lastDate.Changed $date -}}
-				<dt>{{$date}}</dt>
-			{{- end -}}
-			{{$ID := postID $post -}}
-			<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}">[*]</a>
-			{{- postText $post -}}</dd>
+<dl class="posting">
+	{{- $lastDate := change -}}
+	{{- range $i, $post := $.Postings -}}
+		{{$date := $post.Date -}}
+		{{if $lastDate.Changed $date -}}
+			<dt>{{$date}}</dt>
 		{{- end -}}
-	</dl>
-	{{- if .nextLink -}}
-	<p id="next"><a href="{{.nextLink}}">&raquo;&raquo;</a></p>
+		{{$ID := $post.ID -}}
+		<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}">[*]</a>
+		{{- $post.Post -}}</dd>
 	{{- end -}}
+</dl>
+{{- if .nextLink -}}
+<p id="next"><a href="{{.nextLink}}">&raquo;&raquo;</a></p>
 {{- end -}}
 {{- end -}}

@@ -3,25 +3,23 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-	{{- $lang := "de" -}}
-	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
-	<form method="post" action="{{.BackURL}}" enctype="multipart/form-data">
-		<p>
-		{{- if eq $lang "de" -}}
-		<label for="imgFile" title="Name der zu übertragenden Datei">Dateiname:</label>&nbsp;
-		<input type="file" name="imgFile" id="imgFile" title="Name der zu übertragenden Datei">
-		{{- else -}}
-		<label for="imgFile" title="Name of file to upload">Filename:</label>&nbsp;
-		<input type="file" name="imgFile" id="imgFile" title="Name of file to upload">
-		{{- end -}}
-		</p><p class="right">
-		{{- if eq $lang "de" -}}
-			<input type="reset" name="reset" title="Zurücksetzen" value=" Zurücksetzen "> &nbsp;
-			<input type="submit" name="submit" title="Speichern der Datei" value=" Speichern ">
-		{{- else -}}
-			<input type="reset" name="reset" title="Reset" value=" Reset "> &nbsp;
-			<input type="submit" name="submit" title="Store the file" value=" Store ">
-		{{- end -}}
-		</p>
+{{- $lang := "de" -}}
+{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+<form method="post" action="{{.BackURL}}" enctype="multipart/form-data">
+	<p>{{if eq $lang "de" -}}
+	<label for="imgFile" title="Name der zu übertragenden Datei">Dateiname:</label>&nbsp;
+	<input type="file" name="imgFile" id="imgFile" title="Name der zu übertragenden Datei">
+	{{- else -}}
+	<label for="imgFile" title="Name of file to upload">Filename:</label>&nbsp;
+	<input type="file" name="imgFile" id="imgFile" title="Name of file to upload">
+	{{- end -}}
+	</p><p class="right">
+	{{- if eq $lang "de" -}}
+		<input type="reset" name="reset" title="Zurücksetzen" value=" Zurücksetzen "> &nbsp;
+		<input type="submit" name="submit" title="Speichern der Datei" value=" Speichern ">
+	{{- else -}}
+		<input type="reset" name="reset" title="Reset" value=" Reset "> &nbsp;
+		<input type="submit" name="submit" title="Store the file" value=" Store ">
+	{{- end}}</p>
 </form>
 {{- end -}}
