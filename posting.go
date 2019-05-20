@@ -90,8 +90,6 @@ type (
 )
 
 // NewPosting returns a new posting structure with an empty article text.
-//
-// // `aBaseDir` is the base direcetory under which all postings are stored.
 func NewPosting() *TPosting {
 	return newPosting("")
 } // NewPosting()
@@ -273,7 +271,7 @@ func pathname(aID string) string {
 
 // PathFileName returns the article's path-/filename.
 func (p *TPosting) PathFileName() string {
-	return pathname( /* p.basedir, */ p.id)
+	return pathname(p.id)
 } // PathFileName()
 
 // Post returns the artile's HTML markup.
