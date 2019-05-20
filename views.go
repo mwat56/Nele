@@ -17,7 +17,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"time"
 )
 
 type (
@@ -72,125 +71,15 @@ func newChange() *tChange {
 	}
 } // newChange()
 
-// `dateNow()` returns the current date.
-func dateNow() string {
-	y, m, d := time.Now().Date()
-
-	return fmt.Sprintf("%d-%02d-%02d", y, m, d)
-} // dateNow()
-
 // `htmlSafe()` returns `aText` as template.HTML.
 func htmlSafe(aText string) template.HTML {
 	return template.HTML(aText)
 } // htmlSafe()
 
-func int2post(aPost interface{}) *TPosting {
-	if p, ok := aPost.(*TPosting); ok {
-		return p
-	} else if p, ok := aPost.(TPosting); ok {
-		return &p
-	}
-
-	return nil
-} // int2post()
-
-// `isPost()` checks whether `aPost` is an instance of `TPost` or `TPosting`.
-func isPost(aPost interface{}) bool {
-	p := int2post(aPost)
-
-	return (nil != p)
-} // isPost()
-
-// isPostEmpty() checks whether the text of `aPost` is empty or not.
-func isPostEmpty(aPost interface{}) bool {
-	p := int2post(aPost)
-	if nil != p {
-		return (0 == p.Len())
-	}
-
-	return true
-} // isPostEmpty()
-
-// `isPostlist()` checks whether `aPostlist` is an instance of `TPostList`.
-func isPostlist(aPostlist interface{}) (rOK bool) {
-	if _, rOK = aPostlist.(TPostList); rOK {
-		return
-	}
-	_, rOK = aPostlist.(*TPostList)
-
-	return
-} // isPostlist()
-
-// `postID()` returns the ID (i.e. filename) of `aPost`.
-func postID(aPost interface{}) string {
-	p := int2post(aPost)
-	if nil != p {
-		return p.ID()
-	}
-
-	return ""
-} // postID()
-
-// `postMonthURL()` returns the month URL of `aPost`.
-func postMonthURL(aPost interface{}) string {
-	p := int2post(aPost)
-	if nil == p {
-		return ""
-	}
-	y, m, d := timeID(p.ID()).Date()
-
-	return fmt.Sprintf("/m/%d%02d%02d", y, m, d)
-} // postMonthURL()
-
-// `postText()` returns the safe HTML of `aPost`.
-func postText(aPost interface{}) template.HTML {
-	p := int2post(aPost)
-	if nil != p {
-		return p.Post()
-	}
-
-	return ""
-} // postText()
-
-// `postWeekURL()` returns the week URL of `aPost`.
-func postWeekURL(aPost interface{}) string {
-	p := int2post(aPost)
-	if nil == p {
-		return ""
-	}
-	y, m, d := timeID(p.ID()).Date()
-
-	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
-} // postWeekURL()
-
-// // `monthURL()` returns an URL for the current month.
-// func monthURL() string {
-// 	y, m, d := time.Now().Date()
-
-// 	return fmt.Sprintf("/m/%d%02d%02d", y, m, d)
-// } // monthURL()
-
-// // `weekURL()` returns an URL for the current week.
-// func weekURL() string {
-// 	y, m, d := time.Now().Date()
-
-// 	return fmt.Sprintf("/w/%d%02d%02d", y, m, d)
-// } // weekURL()
-
 var (
 	fMap = template.FuncMap{
-		"change":       newChange,    // a new change structure
-		"dateNow":      dateNow,      // the current date
-		"htmlSafe":     htmlSafe,     // returns `aText` as template.HTML
-		"isPost":       isPost,       // whether `aPost` is `TPost`/`TPosting`
-		"isPostEmpty":  isPostEmpty,  // whether the text of `aPost` is empty
-		"isPostlist":   isPostlist,   // whether `aPostlist` is `TPostList`
-		"postID":       postID,       // the ID (i.e. filename) of `aPost`
-		"postText":     postText,     // the safe HTML of `aPost`
-		"postWeekURL":  postWeekURL,  // the week URL of `aPost`
-		"postMonthURL": postMonthURL, // the month URL of `aPost
-		// "monthURL":     monthURL,     // URL for the current month
-		// "weekURL":      weekURL,      // URL for the current week
+		"change":   newChange, // a new change structure
+		"htmlSafe": htmlSafe,  // returns `aText` as template.HTML
 	}
 )
 
