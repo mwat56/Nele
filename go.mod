@@ -3,7 +3,7 @@ module github.com/mwat56/go-blog
 go 1.12
 
 require (
-	github.com/mwat56/go-apachelogger v1.0.0
+	github.com/mwat56/go-apachelogger v1.0.1
 	github.com/mwat56/go-errorhandler v1.0.0
 	github.com/mwat56/go-hashtags v0.0.6
 	github.com/mwat56/go-ini v1.0.0
