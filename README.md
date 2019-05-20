@@ -3,6 +3,25 @@
 [![GoDoc](https://godoc.org/github.com/mwat56/go-blog?status.svg)](https://godoc.org/github.com/mwat56/go-blog)
 [![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/go-blog/blob/master/_demo/blog/blog.go)
 
+- [Blog](#blog)
+	- [Purpose](#purpose)
+	- [Installation](#installation)
+	- [Usage](#usage)
+		- [Commandline postings](#commandline-postings)
+		- [User/password file & handling](#userpassword-file--handling)
+		- [Authentication](#authentication)
+	- [Configuration](#configuration)
+	- [URLs](#urls)
+	- [Files](#files)
+		- [CSS](#css)
+		- [Images](#images)
+		- [Postings](#postings)
+		- [Static](#static)
+		- [Views](#views)
+		- [Contents](#contents)
+	- [Licence](#licence)
+
+
 ## Purpose
 
 The purpose of this package was twofold initially. On one hand I needed a project to learn the (then to me new) `Go` language, and on the other hand I wanted a project, that lead me into different domains, like user authentication, configuration, data formats, error handling, filesystem access, data logging, os, network, regex, templating etc. –
@@ -287,9 +306,14 @@ For that reason, whenever there's no password file given (either in the INI file
 
 _Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server both files are _not_ interchangeable because the actual encryption algorithm used by both are different.
 
-### Configuration
+## Configuration
 
-### URLs
+The system's configuration takes two steps:
+
+1. Prepare the required files and directories.
+2. Customise the INI file and/or prepare a script with all needed commandline arguments.
+
+## URLs
 
 The system uses a number of slightly different URL groups.
 
@@ -338,7 +362,7 @@ Whatever you write after the initial `/share/` is considered a remote URL, and a
 * `/ss` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
 
-### Files
+## Files
 
 Right from the start I mentioned that I wanted to avoid external depenencies – like databases for example.
 Well, that's not exactly true (or even possible), because there is _one_ database that's always already there, regardless of the operating system: the _filesystem_.
@@ -364,38 +388,39 @@ As mentioned before, it's always advisable to use _absolute pathnames_, not rela
 The latter are converted into absolute ones by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
 You can use `./blog -h` to see which directories the program will use (see the example above).
 
-#### CSS
+### CSS
 
 In the configured CSS directory (`datadir`/`css`) there are currently three files that are used automatically (i.a. hardcoded) by the system: `stylesheet.css` with some basic styling rules and `dark.css` and `light.css` with different settings for mainly colours, thus implementing two different _themes_ for the web-presentation.
 The `theme` INI setting and the `-theme` commandline option determine which of the two `dark` and `light` styles to actually use.
 
-#### Images
+### Images
 
-The `/img/` directory can be used to store, well, images to which you then can link in your articles.
+The `/img/` directory can be used to store, well, _images_ to which you then can link in your articles.
 You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
 
-#### Postings
+### Postings
 
 The `/postings/` directory is the base for storing all the articles.
 The system creates subdirectories as needed to store new articles.
+This directory structure is not accessed via a direct URL but used internally by the system.
 
-#### Static
+### Static
 
-The `/static/` directory can be used to store, well, static files to which you then can link in your articles.
+The `/static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
 You can put there whatever file you like either form the command-line or by using the system's `/ss` URL.
 
-#### Views
+### Views
 
-    //TODO
+The `/views/` directory holds the templates with which the final HTML pages are generated.
+Provided that you feel at home working with _Go_ templates you might change them as you seem fit.
+I will, however, __not__ provide any support for you changing the default template structure.
+
+An concise overview of the used templates and which variables they use you'll find in the file [template_vars.md](template_vars.md)
 
 ### Contents
 
-For all the article/postings you write – either on the commandline or with the web-interface – you use [Markdown](https://en.wikipedia.org/wiki/Markdown) to enrich the plain text.
-In fact, the system _expects_ the postings to be using `MarkDown` syntax.
-
-#### Templates
-
-    //TODO
+For all the article/postings you write – either on the commandline or with the web-interface – you can use [Markdown](https://en.wikipedia.org/wiki/Markdown) to enrich the plain text.
+In fact, the system _expects_ the postings to be using `MarkDown` syntax if any markup at all.
 
 ## Licence
 
