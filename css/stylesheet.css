@@ -244,6 +244,9 @@ textarea#manuscript {
 	max-height: 80%;
 	width: 99%;
 }
+u, .underline {
+	text-decoration: underline;
+}
 ul, menu, dir {
 	list-style-type: disc;
 }
@@ -264,6 +267,10 @@ ul li {
 	min-height: 3em;
 	max-width: 74%;
 	min-width: 72%;
+}
+#imprint, #imprint p {
+	hyphens: none;
+	text-indent: 0;
 }
 #leftbar {
 	max-width: 30%;
@@ -325,6 +332,7 @@ p.matches {
 }
 .tc5, .tc25, .tc50, .tc99 {
 	font-family: monospace;
+	hyphens: none;
 }
 .tc5 {
 	font-size: 68%;
