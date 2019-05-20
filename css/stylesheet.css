@@ -132,28 +132,35 @@ h1, h2, h3, h4, h5, h6 {
 }
 h6 {
 	font-size: 1em;
+	margin-bottom: 0.6em;
 }
 h5 {
 	font-size: 1.1em;
 	font-style: italic;
+	margin-bottom: 0.8em;
 }
 h4 {
 	font-size: 1.2em;
+	margin-top: 1.1em;
+	margin-bottom: 1em;
 }
 h3 {
 	font-size: 1.3em;
 	letter-spacing: 0.1ex;
+	margin-top: 1.3em;
+	margin-bottom: 1.2em;
 }
 h2 {
 	font-size: 1.6em;
 	letter-spacing: 0.2ex;
-	margin-bottom: 1.1em;
+	margin-top: 1.5em;
+	margin-bottom: 1.4em;
 }
 h1 {
 	font-size: 1.9em;
 	letter-spacing: 0.3ex;
-	margin-top: 1.4em;
-	margin-bottom: 1.2em;
+	margin-top: 1.7em;
+	margin-bottom: 1.6em;
 	page-break-before: always;
 }
 header {
@@ -178,28 +185,11 @@ p {
 	font-size: 1em;
 	hyphens: auto;
 	line-height: 1.5;
-	margin: 0.2ex;
-	padding: 0.2ex;
+	margin: 0.2ex 0;
+	padding: 0.2ex 0;
 	text-align: inherit;
 	text-indent: 2ex;
 }
-/*
-blockquote + p,
-dd p,
-dt p,
-h1 + p,
-h2 + p,
-h3 + p,
-h4 + p,
-h5 + p,
-dl + p,
-ol + p,
-ul + p,
-li p,
-table + p {
-	text-indent: 0;
-}
-*/
 blockquote p {
 	line-height: 1.16;
 	margin-top: 0.4ex;
@@ -240,7 +230,7 @@ textarea {
 	padding: 0.5ex;
 }
 textarea#manuscript {
-	height: 117ex;
+	height: 94ex;
 	max-height: 80%;
 	width: 99%;
 }
