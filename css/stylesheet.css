@@ -73,6 +73,7 @@ ul {
 dl, dd {
 	margin-left: 2.6ex;
 	line-height: 1.4;
+	text-align: justify;
 }
 dt {
 	font-weight: 600;
@@ -301,6 +302,9 @@ a.idlink {
 	float: left;
 	font-size: 89%;
 	margin: 0.4ex 1ex 0 0;
+}
+.justified {
+	text-align: justify;
 }
 .left {
 	text-align: left;
