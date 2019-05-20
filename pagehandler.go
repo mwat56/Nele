@@ -172,11 +172,11 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 	pageData := NewDataList().
 		Set("CSS", template.HTML(css)).
 		Set("Lang", ph.lang).
-		Set("monthURL", fmt.Sprintf("/m/%d%02d%02d", y, m, d)).
+		Set("monthURL", fmt.Sprintf("/m/%d-%02d-%02d", y, m, d)).
 		Set("Robots", "index,follow").
 		Set("Taglist", markupCloud(ph.hl)).
 		Set("Title", ph.realm).
-		Set("weekURL", fmt.Sprintf("/w/%d%02d%02d", y, m, d))
+		Set("weekURL", fmt.Sprintf("/w/%d-%02d-%02d", y, m, d))
 
 	return pageData
 } // basicPageData()
@@ -219,6 +219,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("BackURL", aRequest.URL.Path). // for POSTing back
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
+
+	case "certs": // this files are handled internally
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "css":
 		ph.fh.ServeHTTP(aWriter, aRequest)
@@ -266,7 +269,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
 	case "favicon.ico":
-		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
 
 	case "ht": // #hashtag search
 		if 0 < len(tail) {
@@ -278,7 +281,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "img":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
-	case "imprint", "imprint.html":
+	case "imprint", "impressum":
 		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
@@ -287,7 +290,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "js":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
-	case "licence", "license":
+	case "licence", "license", "lizenz":
 		ph.viewList.Render("licence", aWriter, pageData)
 
 	case "m", "mm": // handle a given month
@@ -301,7 +304,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				d = 1
 			}
 		}
-		date := fmt.Sprintf("%d%02d%02d", y, m, d)
+		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Month(y, m)
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,follow").
@@ -327,7 +330,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			if err := p.Load(); nil == err {
 				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
-					Set("Postings", p).
+					Set("Posting", p).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date)
 				ph.viewList.Render("article", aWriter, pageData)
@@ -336,7 +339,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		http.NotFound(aWriter, aRequest)
 
-	case "privacy", "privacy.html":
+	case "postings": // this files are handled internally
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+
+	case "privacy", "datenschutz":
 		ph.viewList.Render("privacy", aWriter, check4lang(pageData, aRequest))
 
 	case "q":
@@ -393,6 +399,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "static":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
+	case "views": // this files are handled internally
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+
 	case "w", "ww": // handle a given week
 		var y, d int
 		var m time.Month
@@ -404,7 +413,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				d = 1
 			}
 		}
-		date := fmt.Sprintf("%d%02d%02d", y, m, d)
+		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Week(y, m, d)
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,follow").
