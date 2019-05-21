@@ -183,6 +183,20 @@ func (p *TPosting) Equal(aID string) bool {
 	return timeID(p.id).Equal(timeID(aID))
 } // Equal()
 
+// Exists returns whether there is a file with more than zero bytes.
+func (p *TPosting) Exists() bool {
+	fName := pathname(p.id)
+	fi, err := os.Stat(fName)
+	if nil != err {
+		return false
+	}
+	if (0 == fi.Size()) || fi.IsDir() {
+		return false
+	}
+
+	return true
+} // Exists()
+
 // ID returns the article's identifier.
 //
 // The identifier is based on the article's creation time
