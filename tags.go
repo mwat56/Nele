@@ -52,14 +52,20 @@ func doCheckPost(aHash, aID string) bool {
 } // doCheckPost()
 
 // `goCheckHashes()` walks all postings referenced by `aList`.
-func goCheckHashes(aList *hashtags.THashList) {
+func goCheckHashes(aList *hashtags.THashList, aFilename string) {
+	oldCRC := aList.Checksum()
+
 	aList.Walk(doCheckPost)
+
+	if aList.Checksum() != oldCRC {
+		aList.Store(aFilename)
+	}
 } // goCheckHashes()
 
 // `goInitHashlist()` initialises the hash list.
 func goInitHashlist(aList *hashtags.THashList, aFilename string) {
 	if _, err := aList.Load(aFilename); nil == err {
-		go goCheckHashes(aList)
+		go goCheckHashes(aList, aFilename)
 		return // assume everything is uptodate
 	}
 	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
