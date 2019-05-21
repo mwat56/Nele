@@ -81,7 +81,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 	result.dd = s
 	result.fh = http.FileServer(http.Dir(result.dd + "/"))
-	if result.viewList, err = newViewList(result.dd + "/views"); nil != err {
+	if result.viewList, err = newViewList(filepath.Join(result.dd, "views")); nil != err {
 		return nil, err
 	}
 
@@ -116,11 +116,9 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	if s, err = AppArguments.Get("uf"); nil != err {
 		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-	} else {
-		if result.ul, err = passlist.LoadPasswords(s); nil != err {
-			log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-			result.ul = nil
-		}
+	} else if result.ul, err = passlist.LoadPasswords(s); nil != err {
+		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
+		result.ul = nil
 	}
 
 	if s, err = AppArguments.Get("realm"); nil == err {
