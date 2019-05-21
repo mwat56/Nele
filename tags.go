@@ -25,18 +25,41 @@ import (
 
 // `goAddID()` checks a newly added posting for #hashtags and @mentions.
 func goAddID(aList *hashtags.THashList, aFilename string, aID string, aText []byte) {
-	oldlen := aList.LenTotal()
+	oldCRC := aList.Checksum()
 
 	aList.IDparse(aID, aText)
 
-	if aList.LenTotal() != oldlen {
+	if aList.Checksum() != oldCRC {
 		aList.Store(aFilename)
 	}
 } // goAddID()
 
+// `doCheckPost` returns whether there is a file identified
+// by `aID` containing `aHash`.
+func doCheckPost(aHash, aID string) bool {
+	p := newPosting(aID)
+	if !p.Exists() {
+		return false
+	}
+	if err := p.Load(); nil != err {
+		return false
+	}
+	if txt := strings.ToLower(string(p.Markdown())); 0 > strings.Index(txt, aHash) {
+		return false
+	}
+
+	return true
+} // doCheckPost()
+
+// `goCheckHashes()` walks all postings referenced by `aList`.
+func goCheckHashes(aList *hashtags.THashList) {
+	aList.Walk(doCheckPost)
+} // goCheckHashes()
+
 // `goInitHashlist()` initialises the hash list.
 func goInitHashlist(aList *hashtags.THashList, aFilename string) {
 	if _, err := aList.Load(aFilename); nil == err {
+		go goCheckHashes(aList)
 		return // assume everything is uptodate
 	}
 	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
@@ -65,34 +88,33 @@ func goInitHashlist(aList *hashtags.THashList, aFilename string) {
 
 // `goRemoveID()` removes `aID` from `aList`s items.
 func goRemoveID(aList *hashtags.THashList, aFilename, aID string) {
-	oldLen := aList.LenTotal()
+	oldCRC := aList.Checksum()
 
 	aList.IDremove(aID)
 
-	if aList.LenTotal() != oldLen {
+	if aList.Checksum() != oldCRC {
 		aList.Store(aFilename)
 	}
 } // goRemoveID()
 
 // `goRenameID()` renames all references of `aOldID` to `aNewID`.
 func goRenameID(aList *hashtags.THashList, aFilename, aOldID, aNewID string) {
-	oldLen := aList.LenTotal()
+	oldCRC := aList.Checksum()
 
 	aList.IDrename(aOldID, aNewID)
 
-	if aList.LenTotal() != oldLen {
+	if aList.Checksum() != oldCRC {
 		aList.Store(aFilename)
 	}
 } // goRenameID()
 
 // `goUpdateID()` updates the #hashtag/@mention references of `aID`.
 func goUpdateID(aList *hashtags.THashList, aFilename, aID string, aText []byte) {
-	oldLen := aList.LenTotal() //FIXME this doesn't catch cases when …
-	// … the number of removals equals the number of additions.
+	oldCRC := aList.Checksum()
 
 	aList.IDupdate(aID, aText)
 
-	if aList.LenTotal() != oldLen {
+	if aList.Checksum() != oldCRC {
 		aList.Store(aFilename)
 	}
 } // goUpdateID()
