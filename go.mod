@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/mwat56/go-apachelogger v1.1.0
-	github.com/mwat56/go-errorhandler v1.0.0
+	github.com/mwat56/go-errorhandler v1.0.1
 	github.com/mwat56/go-hashtags v0.1.0
 	github.com/mwat56/go-ini v1.0.0
 	github.com/mwat56/go-passlist v1.0.0

@@ -1,7 +1,8 @@
 github.com/mwat56/go-apachelogger v1.1.0 h1:4zq1GY+o8ZhUtxzvtau7JPBS4JltMfA815/9FjQ+YeA=
 github.com/mwat56/go-apachelogger v1.1.0/go.mod h1:phzNMUnJ3tG9EAMZAx60VmyVmHDxoOaoDsBtgeFm6ms=
-github.com/mwat56/go-errorhandler v1.0.0 h1:j2ve/76KxnUkH7UNNpQ5vAqcBwemfLYVVQcDCCN4RV4=
 github.com/mwat56/go-errorhandler v1.0.0/go.mod h1:2mq5VrHXxeJfu7yjys9iKOzR50PbTnvlpEyYDR+n8aY=
+github.com/mwat56/go-errorhandler v1.0.1 h1:noZixoiMEyBWXWKd7LFFKWNaHBJnyTcNNazk1/7QlPo=
+github.com/mwat56/go-errorhandler v1.0.1/go.mod h1:2mq5VrHXxeJfu7yjys9iKOzR50PbTnvlpEyYDR+n8aY=
 github.com/mwat56/go-hashtags v0.1.0 h1:jWQe+N9xC/Q6osA4GvfaMeBgYcraQwmva1cl0hb+ziw=
 github.com/mwat56/go-hashtags v0.1.0/go.mod h1:Ob/wWtlqgYC2VTXFFQS0brSuciD3m2ClHWpqcvl2IXM=
 github.com/mwat56/go-ini v1.0.0 h1:mzCegxLmyyZ9iC7tQjBSAVsjhE6HjF6kdxkdoBt9e8s=
