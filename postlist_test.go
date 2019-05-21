@@ -225,7 +225,7 @@ func TestTPostList_Month(t *testing.T) {
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{2019, 1}, 93},
+		{" 1", pl1, args{2019, 1}, 94},
 		{" 2", pl2, args{2019, 2}, 84},
 		{" 3", pl3, args{2019, 3}, 60},
 		{" 4", pl4, args{2019, 4}, 0},

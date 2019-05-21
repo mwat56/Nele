@@ -110,17 +110,17 @@ func newPosting(aID string) *TPosting {
 // After reports whether this posting is younger than the one
 // identified by `aID`.
 //
-// `aID` is the (timestamp base) ID of another posting to compare.
+// `aID` is the ID of another posting to compare.
 func (p *TPosting) After(aID string) bool {
-	return timeID(p.id).After(timeID(aID))
+	return (p.id > aID)
 } // After()
 
 // Before reports whether this posting is older than the one
 // identified by `aID`.
 //
-// `aID` is the (timestamp base) ID of another posting to compare.
+// `aID` is the ID of another posting to compare.
 func (p *TPosting) Before(aID string) bool {
-	return timeID(p.id).Before(timeID(aID))
+	return (p.id < aID)
 } // Before()
 
 // Clear resets the internal fields to their respective zero values.
@@ -261,18 +261,27 @@ func (p *TPosting) makeDir() (string, error) {
 //
 // If the markup is not already in memory this methods tries
 // to read the required data from the filesystem.
+//
+// In case of I/O errors while accessing the file an empty
+// byte slice is returned.
 func (p *TPosting) Markdown() []byte {
 	if 0 < len(p.markdown) {
 		// that's the easy path ...
 		return p.markdown
 	}
+	var err error
 
 	// now we have to check the filesystem
 	filepathname := p.PathFileName()
-	if _, err := os.Stat(filepathname); nil != err {
+	if _, err = os.Stat(filepathname); nil != err {
 		return p.markdown // return empty slice
 	}
-	p.markdown, _ = ioutil.ReadFile(filepathname)
+
+	var bs []byte
+	if bs, err = ioutil.ReadFile(filepathname); nil != err {
+		return p.markdown // return empty slice
+	}
+	p.markdown = []byte(strings.TrimSpace(string(bs)))
 
 	return p.markdown
 } // Markdown()
@@ -288,7 +297,7 @@ func (p *TPosting) PathFileName() string {
 	return pathname(p.id)
 } // PathFileName()
 
-// Post returns the artile's HTML markup.
+// Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
 	p.Markdown()
