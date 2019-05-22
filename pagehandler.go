@@ -31,6 +31,7 @@ type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
 		addr     string                        // listen address ("1.2.3.4:5678")
+		bn       string                        // the blog's name
 		dd       string                        // datadir: base dir for data
 		fh       http.Handler                  // static file handler
 		hashfile string                        // name of #hashtags file
@@ -75,6 +76,10 @@ func NewPageHandler() (*TPageHandler, error) {
 		s   string
 	)
 	result := new(TPageHandler)
+
+	if s, err = AppArguments.Get("blogname"); nil == err {
+		result.bn = s
+	}
 
 	if s, err = AppArguments.Get("datadir"); nil != err {
 		return nil, err
@@ -167,6 +172,7 @@ func (ph *TPageHandler) Address() string {
 func (ph *TPageHandler) basicPageData() *TDataList {
 	y, m, d := time.Now().Date()
 	pageData := NewDataList().
+		Set("Blogname", ph.bn).
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
 		Set("monthURL", fmt.Sprintf("/m/%d-%02d-%02d", y, m, d)).

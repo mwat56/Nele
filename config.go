@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	ini "github.com/mwat56/go-ini"
 )
@@ -45,20 +46,24 @@ func (al tAguments) Get(aKey string) (string, error) {
 	return "", fmt.Errorf("Missing config value: %s", aKey)
 } // Get()
 
-// ShowHelp lists the commandline options to `Stderr`.
-func ShowHelp() {
-	fmt.Fprintf(os.Stderr, "\n  Usage: %s [OPTIONS]\n\n", os.Args[0])
-	flag.PrintDefaults()
-	fmt.Fprint(os.Stderr, "\nMost options can be set in an INI file to keep he commandline short ;-)\n")
-} // ShowHelp()
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// `iniWalker()` is an internal helper used to set all INI file
-// key-value pairs to the global `AppArguments` list.
-func iniWalker(aSect, aKey, aVal string) {
-	// Since we're only using the `Default` section we can
-	// ignore the `aSect` argument here.
-	AppArguments.set(aKey, aVal)
-} // iniWalker()
+// `absolute()` return `aDir` as an absolute path
+func absolute(aBaseDir, aDir string) string {
+	if 0 == len(aDir) {
+		return aDir
+	}
+	if '/' == aDir[0] {
+		s, _ := filepath.Abs(aDir)
+		return s
+	}
+
+	return filepath.Join(aBaseDir, aDir)
+} // absolute()
+
+func init() {
+	initArguments()
+} // init()
 
 // `initArguments()` reads the commandline arguments into a list
 // structure merging it with key-value pairs read from an INI file.
@@ -82,17 +87,16 @@ func initArguments() {
 		data.Walk(iniWalker)
 	} else {
 		data = ini.NewSections()
+		data.AddSectionKey("", "blogname", "")
 		data.AddSectionKey("", "certKey", "")
 		data.AddSectionKey("", "certPem", "")
 		s, _ := filepath.Abs("./")
 		data.AddSectionKey("", "datadir", s)
-		s, _ = filepath.Abs("./hashfile.db")
+		s = absolute(s, "./hashfile.db")
 		data.AddSectionKey("", "hashfile", s)
 		data.AddSectionKey("", "inifile", defIniFile)
-		// s, _ = filepath.Abs("./intl.ini")
-		// data.AddSectionKey("", "intl", s)
-		s, _ = filepath.Abs("./js/")
-		data.AddSectionKey("", "js", s)
+		// data.AddSectionKey("", "intl", "./intl.ini")
+		// data.AddSectionKey("", "js", "./js/")
 		data.AddSectionKey("", "lang", "de")
 		data.AddSectionKey("", "listen", "127.0.0.1")
 		data.AddSectionKey("", "logfile", "")
@@ -104,29 +108,33 @@ func initArguments() {
 	}
 	defaults := data.GetSection("")
 
-	s, _ := defaults.AsString("certKey")
-	ckStr, _ := filepath.Abs(s)
-	flag.StringVar(&ckStr, "certKey", ckStr,
-		"<fileName> the name of the TLS certificate key\n")
+	bnStr, _ := defaults.AsString("blogname")
+	flag.StringVar(&bnStr, "blogname", bnStr,
+		"Name of this Blog (shown on every page)\n")
 
-	s, _ = defaults.AsString("certPem")
-	cpStr, _ := filepath.Abs(s)
-	flag.StringVar(&cpStr, "certPem", cpStr,
-		"<fileName> the name of the TLS certificate PEM\n")
-
-	s, _ = defaults.AsString("datadir")
+	s, _ := defaults.AsString("datadir")
 	dataStr, _ := filepath.Abs(s)
 	flag.StringVar(&dataStr, "datadir", dataStr,
 		"<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories\n")
 
+	s, _ = defaults.AsString("certKey")
+	ckStr := absolute(dataStr, s)
+	flag.StringVar(&ckStr, "certKey", ckStr,
+		"<fileName> the name of the TLS certificate key\n")
+
+	s, _ = defaults.AsString("certPem")
+	cpStr := absolute(dataStr, s)
+	flag.StringVar(&cpStr, "certPem", cpStr,
+		"<fileName> the name of the TLS certificate PEM\n")
+
 	s, _ = defaults.AsString("hashfile")
-	hashStr, _ := filepath.Abs(s)
+	hashStr := absolute(dataStr, s)
 	flag.StringVar(&hashStr, "hashfile", hashStr,
 		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
 
 	/*
 		s, _ = defaults.AsString("intl")
-		intlStr, _ := filepath.Abs(s)
+		intlStr := absolute(dataStr, s)
 		flag.StringVar(&intlStr, "intl", intlStr,
 			"<fileName> the path/filename of the localisation file\n")
 	*/
@@ -143,7 +151,8 @@ func initArguments() {
 	flag.StringVar(&listenStr, "listen", listenStr,
 		"the host's IP to listen at ")
 
-	logStr, _ := defaults.AsString("logfile")
+	s, _ = defaults.AsString("logfile")
+	logStr := absolute(dataStr, s)
 	flag.StringVar(&logStr, "log", logStr,
 		"(optional) name of the logfile to write to\n")
 
@@ -191,7 +200,7 @@ func initArguments() {
 		"<userName> (optional) user delete: remove a username from the password file")
 
 	s, _ = defaults.AsString("passfile")
-	ufStr, _ := filepath.Abs(s)
+	ufStr := absolute(dataStr, s)
 	flag.StringVar(&ufStr, "uf", ufStr,
 		"<fileName> (optional) user passwords file storing user/passwords for BasicAuth\n")
 
@@ -206,7 +215,7 @@ func initArguments() {
 	flag.Usage = ShowHelp
 	flag.Parse()
 
-	cmdIniFile, _ := filepath.Abs(iniStr)
+	cmdIniFile := absolute(dataStr, iniStr)
 	if cmdIniFile != defIniFile {
 		data := ini.NewSections()
 		if data, err := data.Load(defIniFile); nil == err {
@@ -215,15 +224,10 @@ func initArguments() {
 	}
 	AppArguments.set("inifile", cmdIniFile)
 
-	if 0 < len(ckStr) {
-		ckStr, _ = filepath.Abs(ckStr)
-		AppArguments.set("certKey", ckStr)
+	if 0 == len(bnStr) {
+		bnStr = time.Now().Format("2006:01:02:15:04:05")
 	}
-
-	if 0 < len(cpStr) {
-		cpStr, _ = filepath.Abs(cpStr)
-		AppArguments.set("certPem", cpStr)
-	}
+	AppArguments.set("blogname", bnStr)
 
 	if 0 < len(dataStr) {
 		dataStr, _ = filepath.Abs(dataStr)
@@ -234,19 +238,30 @@ func initArguments() {
 		log.Fatalf("Error: Not a directory `%s`", dataStr)
 	}
 	AppArguments.set("datadir", dataStr)
-	// defined in `posting.go`:
+
+	if 0 < len(ckStr) {
+		ckStr = absolute(dataStr, ckStr)
+		AppArguments.set("certKey", ckStr)
+	}
+
+	if 0 < len(cpStr) {
+		cpStr = absolute(dataStr, cpStr)
+		AppArguments.set("certPem", cpStr)
+	}
+
+	// `postingBaseDirectory` defined in `posting.go`:
 	postingBaseDirectory = filepath.Join(dataStr, "./postings")
 
 	if 0 < len(hashStr) {
-		hashStr, _ = filepath.Abs(hashStr)
+		hashStr = absolute(dataStr, hashStr)
 		AppArguments.set("hashfile", hashStr)
 	}
 
 	/*
-		if 0 == len(intlStr) {
-			intlStr, _ = filepath.Abs(intlStr)
-		}
+		if 0 <len(intlStr) {
+			intlStr = absolute(dataStr, intlStr)
 			AppArguments.set("intl", intlStr)
+		}
 	*/
 
 	if 0 == len(langStr) {
@@ -260,7 +275,7 @@ func initArguments() {
 	AppArguments.set("listen", listenStr)
 
 	if 0 < len(logStr) {
-		logStr, _ = filepath.Abs(logStr)
+		logStr = absolute(dataStr, logStr)
 		AppArguments.set("logfile", logStr)
 	}
 
@@ -288,7 +303,7 @@ func initArguments() {
 	}
 
 	if 0 < len(pfStr) {
-		pfStr, _ = filepath.Abs(pfStr)
+		pfStr = absolute(dataStr, pfStr)
 		AppArguments.set("pf", pfStr)
 	}
 
@@ -309,7 +324,7 @@ func initArguments() {
 	}
 
 	if 0 < len(ufStr) {
-		ufStr, _ = filepath.Abs(ufStr)
+		ufStr = absolute(dataStr, ufStr)
 		AppArguments.set("uf", ufStr)
 		// w/o password file there's no BasicAuth
 		if 0 < len(realStr) {
@@ -327,9 +342,13 @@ func initArguments() {
 	}
 } // initArguments()
 
-func init() {
-	initArguments()
-} // init()
+// `iniWalker()` is an internal helper used to set all INI file
+// key-value pairs to the global `AppArguments` list.
+func iniWalker(aSect, aKey, aVal string) {
+	// Since we're only using the `Default` section we can
+	// ignore the `aSect` argument here.
+	AppArguments.set(aKey, aVal)
+} // iniWalker()
 
 var (
 	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
@@ -356,5 +375,12 @@ func kmg2Num(aString string) (rInt int) {
 
 	return
 } // kmg2Num()
+
+// ShowHelp lists the commandline options to `Stderr`.
+func ShowHelp() {
+	fmt.Fprintf(os.Stderr, "\n  Usage: %s [OPTIONS]\n\n", os.Args[0])
+	flag.PrintDefaults()
+	fmt.Fprint(os.Stderr, "\nMost options can be set in an INI file to keep the command-line short ;-)\n")
+} // ShowHelp()
 
 /* _EoF_ */

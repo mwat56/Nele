@@ -12,6 +12,7 @@
   + `Title` == the page's HTML/HEAD `<title>` entry
 
 * `03header.gohtml`: includes the BODY/HEADER element.
+  + `Blogname` == the "name" of the blog
   + `Lang` == the page's language
 
 * `05rightbar.gohtml`: fills the right side of the page.

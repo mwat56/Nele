@@ -14,13 +14,13 @@
 	- [URLs](#urls)
 	- [Files](#files)
 		- [CSS](#css)
+		- [Fonts](#fonts)
 		- [Images](#images)
 		- [Postings](#postings)
 		- [Static](#static)
 		- [Views](#views)
 		- [Contents](#contents)
 	- [Licence](#licence)
-
 
 ## Purpose
 
@@ -106,6 +106,9 @@ Let's start with the command line:
 
     Usage: ./blog [OPTIONS]
 
+    -blogname string
+        Name of this Blog (shown on every page)
+        (default "Meine Güte, was für'n Blah!")
     -certKey string
         <fileName> the name of the TLS certificate key
         (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
@@ -137,7 +140,7 @@ Let's start with the command line:
         <portNumber> the IP port to listen to  (default 8181)
     -realm string
         (optional) <hostName> name of host/domain to secure by BasicAuth
-         (default "This Host")
+        (default "This Host")
     -theme string
         <name> the display theme to use ('light' or 'dark')
         (default "light")
@@ -155,7 +158,7 @@ Let's start with the command line:
     -uu string
         <userName> (optional) user update: update a username in the password file
 
-    Most options can be set in an INI file to keep he commandline short ;-)
+    Most options can be set in an INI file to keep the command-line short ;-)
 
     $ _
 
@@ -163,49 +166,59 @@ However, to just run the program you'll usually don't need any of those options 
 There is an INI file called `blog.ini` coming with the package, where you can store the most common settings:
 
     $ cat blog.ini
+    # Default configuration file
 
     [Default]
 
+        # Name of this Blog (shown on every page)
+        blogname = "Meine Güte, was für'n Blah!"
+
         # path-/filename of TLS certificate's private key to enable TLS/HTTPS
         # (if empty standard HTTP is used)
+        # NOTE: a relative path/name will be combined with `dadadir` (below).
         certKey = ./certs/server.key
 
         # path-/filename of TLS (server) certificate to enable TLS/HTTPS
         # (if empty standard HTTP is used)
+        # NOTE: a relative path/name will be combined with `dadadir` (below).
         certPem = ./certs/server.pem
 
-        # The directory root for CSS, IMG, JS, POSTINGS, STATIC,
-        # and VIEWS sub-directories
+        # The directory root for CSS, FONTS, IMG, JS, POSTINGS, STATIC,
+        # and VIEWS sub-directories.
         # NOTE: this should be an absolute path name.
         datadir = ./
 
-        # The file to store #hashtags and @mentions
+        # The file to store #hashtags and @mentions.
+        # NOTE: a relative path/name will be combined with `dadadir` (above).
         hashfile = ./hashfile.db
 
-        # the default language to use
+        # The default language to use:
         lang = de
 
-        # the host's IP to listen at:
+        # The host's IP to listen at:
         listen = 127.0.0.1
 
-        # the IP port to listen to
+        # The IP port to listen to:
         port = 8181
 
-        # name of the optional logfile to write to:
+        # Name of the optional logfile to write to.
+        # NOTE: a relative path/name will be combined with `dadadir` (above).
         logfile = /dev/stdout
 
-        # accepted size of uploaded files
+        # Accepted size of uploaded files
         maxfilesize = 10MB
 
-        # password file for HTTP Basic Authentication
+        # Password file for HTTP Basic Authentication.
+        # NOTE: a relative path/name will be combined with `dadadir` (above).
         passfile = ./pwaccess.db
 
-        # name of host/domain to secure by BasicAuth
+        # Name of host/domain to secure by BasicAuth:
         realm = "This Host"
 
-        # web/display theme: `dark` or `light'
+        # Web/display theme: `dark` or `light':
         theme = light
 
+    # _EoF_
     $ _
 
 The program, when started, will first look for the INI file in the current directory and only then parse the commandline arguments; in other words: commandline arguments take precedence over INI entries.
@@ -390,28 +403,32 @@ You can use `./blog -h` to see which directories the program will use (see the e
 
 ### CSS
 
-In the configured CSS directory (`datadir`/`css`) there are currently three files that are used automatically (i.a. hardcoded) by the system: `stylesheet.css` with some basic styling rules and `dark.css` and `light.css` with different settings for mainly colours, thus implementing two different _themes_ for the web-presentation.
+In the CSS directory (`datadir`/`css`) there are currently four files that are used automatically (i.a. hardcoded) by the system: `stylesheet.css` with some basic styling rules and `dark.css` and `light.css` with different settings for mainly colours, thus implementing two different _themes_ for the web-presentation, and there's the `fonts.css` file setting up the custom fonts to use.
 The `theme` INI setting and the `-theme` commandline option determine which of the two `dark` and `light` styles to actually use.
+
+### Fonts
+
+The `datadir`/`fonts` directory contains some freely available fonts used by the CSS files.
 
 ### Images
 
-The `/img/` directory can be used to store, well, _images_ to which you then can link in your articles.
+The `datadir`/`/img/` directory can be used to store, well, _images_ to which you then can link in your articles.
 You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
 
 ### Postings
 
-The `/postings/` directory is the base for storing all the articles.
+The `datadir`/`/postings/` directory is the base for storing all the articles.
 The system creates subdirectories as needed to store new articles.
 This directory structure is not accessed via a direct URL but used internally by the system.
 
 ### Static
 
-The `/static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
+The `datadir`/`/static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
 You can put there whatever file you like either form the command-line or by using the system's `/ss` URL.
 
 ### Views
 
-The `/views/` directory holds the templates with which the final HTML pages are generated.
+The `datadir`/`/views/` directory holds the templates with which the final HTML pages are generated.
 Provided that you feel at home working with _Go_ templates you might change them as you seem fit.
 I will, however, __not__ provide any support for you changing the default template structure.
 
