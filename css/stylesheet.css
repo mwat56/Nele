@@ -76,7 +76,6 @@ dt {
 	margin: 1ex 0 0.6ex 0;
 	padding-top: 0.3ex;
 }
-
 dl.posting {
 	margin:1ex auto;
 	text-align: center;
@@ -93,10 +92,13 @@ dl.posting dd {
 	border-radius: 1ex;
 	margin: 1ex 0 2ex 0;
 	max-height: 26ex;
-	max-width: 99%;
+	max-width: 99.88%;
 	overflow: auto;
 	padding: 0.3ex 0.3ex 0.5ex 0.5ex;
 	text-align: left;
+}
+dl.posting dd#manuscript {
+	max-height: 90%;
 }
 dl.posting dd blockquote {
 	border-radius: 1ex;
@@ -117,10 +119,6 @@ footer, footer p {
 h1, h2, h3, h4, h5, h6 {
 	border: 0;
 	font-weight: 600;
-	margin-top: 1em;
-	margin-right: auto;
-	margin-bottom: 0;
-	margin-left: auto;
 	padding: 0;
 	page-break-after: avoid;
 	page-break-inside: avoid;
@@ -132,31 +130,29 @@ h6 {
 h5 {
 	font-size: 1.1em;
 	font-style: italic;
-	margin-bottom: 0.8em;
 }
 h4 {
 	font-size: 1.2em;
 	margin-top: 1.1em;
-	margin-bottom: 1em;
 }
 h3 {
-	font-size: 1.3em;
+	font-size: 1.4em;
 	letter-spacing: 0.1ex;
-	margin-top: 1.3em;
-	margin-bottom: 1.2em;
 }
 h2 {
 	font-size: 1.6em;
 	letter-spacing: 0.2ex;
-	margin-top: 1.5em;
-	margin-bottom: 1.4em;
 }
 h1 {
 	font-size: 1.9em;
 	letter-spacing: 0.3ex;
-	margin-top: 1.7em;
-	margin-bottom: 1.6em;
 	page-break-before: always;
+}
+h1, h2, h3, h4, h5, h6 {
+	margin: 1em auto;
+}
+h1+h2, h2+h3, h3+h4, h4+h5, h5+h6 {
+	margin-top: -1ex;
 }
 header {
 	border-radius: 1ex;
@@ -175,6 +171,9 @@ hr {
 	text-align: center;
 	text-indent: 0;
 }
+ol {
+	list-style-type: decimal;
+}
 p {
 	font-family: serif;
 	font-size: 1em;
@@ -192,7 +191,7 @@ blockquote p {
 	text-align: inherit;
 	text-indent: inherit;
 }
-p:first-of-type {
+p:first-of-type, blockquote+p,h1+p, h2+p, h3+p, h4+p, h5+p, h6+p dl+p, ol+p, ul+p {
 	text-indent: 0;
 }
 pre, xmp {
@@ -225,8 +224,8 @@ textarea {
 }
 textarea#manuscript {
 	height: 94ex;
-	max-height: 80%;
-	width: 99%;
+	max-height: 45em;
+	width: 99.88%;
 }
 u, .underline {
 	text-decoration: underline;
@@ -273,7 +272,7 @@ p#next a {
 }
 pre#preview {
 	overflow: auto;
-	max-height: 19ex;
+	max-height: 90%;
 }
 #rightbar {
 	border-left: thin dotted #ccc;
