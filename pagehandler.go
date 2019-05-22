@@ -166,9 +166,8 @@ func (ph *TPageHandler) Address() string {
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TDataList {
 	y, m, d := time.Now().Date()
-	css := fmt.Sprintf(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css" /><link rel="stylesheet" type="text/css" href="/css/%s.css" />`, ph.theme)
 	pageData := NewDataList().
-		Set("CSS", template.HTML(css)).
+		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
 		Set("monthURL", fmt.Sprintf("/m/%d-%02d-%02d", y, m, d)).
 		Set("Robots", "index,follow").
@@ -268,6 +267,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "favicon.ico":
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
+
+	case "fonts":
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "ht": // #hashtag search
 		if 0 < len(tail) {
