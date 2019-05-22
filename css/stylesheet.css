@@ -18,8 +18,8 @@ table { border-collapse:collapse;border-spacing:0.1ex; }
 
 /* individual site styles */
 html, body {
-	font-size: 13pt;
 	font-family: serif, sans-serif, monospace;
+	font-size: 13pt;
 }
 a:link, a[href] {
 	text-decoration: none;
@@ -39,9 +39,7 @@ blockquote {
 	text-align: left;
 	text-indent: 0;
 }
-b, .bold,
-strong, .strong,
-.strong p {
+b, .bold, strong, .strong, .strong p {
 	color: inherit;
 	font-weight: 900;
 	line-height: inherit;
@@ -63,9 +61,7 @@ code, .code, kbd, pre, tt, xmp {
 	padding: 0.1ex 0.3ex;
 	white-space: normal;
 }
-dl,
-ol,
-ul {
+dl, ol, ul {
 	font-size: 1em;
 	margin: 1ex 0 1ex 1ex;
 	page-break-before: avoid;
@@ -106,8 +102,7 @@ dl.posting dd blockquote {
 	border-radius: 1ex;
 	margin-left: 2ex;
 }
-em, .em,
-i, .italic {
+em, .em, i, .italic {
 	color: inherit;
 	font-style: italic;
 }
@@ -121,7 +116,6 @@ footer, footer p {
 }
 h1, h2, h3, h4, h5, h6 {
 	border: 0;
-	/* font-family: sans-serif, monospace; /* */
 	font-weight: 600;
 	margin-top: 1em;
 	margin-right: auto;
@@ -185,7 +179,7 @@ p {
 	font-family: serif;
 	font-size: 1em;
 	hyphens: auto;
-	line-height: 1.5;
+	line-height: 1.4;
 	margin: 0.2ex 0;
 	padding: 0.2ex 0;
 	text-align: inherit;
@@ -193,10 +187,8 @@ p {
 }
 blockquote p {
 	line-height: 1.16;
-	margin-top: 0.4ex;
-	margin-bottom: 0.4ex;
-	padding-top: 0.4ex;
-	padding-bottom: 0.4ex;
+	margin: 0.4ex 0;
+	padding: 0.4ex 0;
 	text-align: inherit;
 	text-indent: inherit;
 }
