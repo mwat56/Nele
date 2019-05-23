@@ -5,6 +5,7 @@
 
 - [Blog](#blog)
 	- [Purpose](#purpose)
+	- [Features](#features)
 	- [Installation](#installation)
 	- [Usage](#usage)
 		- [Commandline postings](#commandline-postings)
@@ -31,14 +32,24 @@ And, I didn't care for Windows(tm) compatibility since I left the MS-platform ab
 
 That's how I ended up with this little blog-system (for lack of a better word).
 It's a system that lets you write and add articles from both the command line and a web-interface.
-It provides options to add, modify and delete entries in a user/password list used for authentication when accessing certain URLs in this system.
-Articles/postings can be added, edited (e.g. for correcting typos etc.), or removed altogether.
-If the styles coming with the package you can, of course, change them in your own installation.
+It provides options to add, modify and delete entries using a user/password list for authentication when accessing certain URLs in this system.
+Articles can be added, edited (e.g. for correcting typos etc.), or removed altogether.
+If you don't like the styles coming with the package you can, of course, change them acoording to your preferences in your own installation.
 
-The articles/postings you write are then available on the net as _web-pages_.
+The articles you write are then available on the net as _web-pages_.
 
 It is not, however, a discussion platform. It's supposed to be used as a publication platform, not some kind of _social media_.
 So I intentionally didn't bother with comments or discussion threading.
+
+## Features
+
+* Markdown support
+* Multiple user accounts supported
+* No database (like SQLite, MariaDB, etc.) required
+* No JavaScript dependency
+* No cookies needed
+* Privacy aware
+* Simplicity of use
 
 ## Installation
 
@@ -53,49 +64,52 @@ After downloading this package you go to its directory and compile
     go build _demo/blog/blog.go
 
 which should produce an executable binary.
-On my system it looks like this:
+On my system it looks (at a certain point in time) like this:
 
     $ ls -l
-    total 21296
-    -rwxrwxr-x 1 matthias matthias 11140070 Mai 19 19:47 blog
-    -rw-rw-r-- 1 matthias matthias     1001 Mai 18 19:55 blog.ini
-    drwxrwxr-x 2 matthias matthias     4096 Mai 11 20:11 certs
-    -rw-rw-r-- 1 matthias matthias     6583 Mai 10 09:39 cmdline.go
-    -rw-rw-r-- 1 matthias matthias     9330 Mai 18 21:40 config.go
-    -rw-rw-r-- 1 matthias matthias     1092 Mai 18 19:55 config_test.go
-    drwxrwxr-x 2 matthias matthias     4096 Mai 19 01:35 css
-    drwxrwxr-x 3 matthias matthias     4096 Mai 15 19:29 _demo
-    -rw-rw-r-- 1 matthias matthias      823 Mai  4 17:57 doc.go
-    -rw------- 1 matthias matthias      587 Mai 19 12:43 go.mod
-    -rw------- 1 matthias matthias     3837 Mai 19 12:43 go.sum
-    -rw-rw-r-- 1 matthias matthias     4999 Mai 19 19:55 hashfile.db
-    drwxrwxr-x 2 matthias matthias     4096 Mai 18 19:59 img
-    -rw-rw-r-- 1 matthias matthias    32474 Mai  2 13:59 LICENSE
-    -rw-rw-r-- 1 matthias matthias    20726 Mai 19 16:46 pagehandler.go
-    -rw-r--r-- 1 matthias matthias      619 Mai  8 10:14 pagehandler_test.go
-    -rw-rw-r-- 1 matthias matthias     8981 Mai 19 13:30 posting.go
-    drwxrwxr-x 8 matthias matthias     4096 Mai 19 18:31 postings
-    -rw-r--r-- 1 matthias matthias    14359 Mai  8 10:12 posting_test.go
-    -rw-r--r-- 1 matthias matthias     8240 Mai 11 10:15 postlist.go
-    -rw-r--r-- 1 matthias matthias     7279 Mai 14 09:28 postlist_test.go
-    -rw-rw-r-- 1 matthias matthias      141 Mai  6 17:30 pwaccess.db
-    -rw-rw-r-- 1 matthias matthias    20152 Mai 19 20:03 README.md
-    -rw-rw-r-- 1 matthias matthias    10436 Mai 19 16:31 regex.go
-    -rw-r--r-- 1 matthias matthias     8190 Mai 19 15:53 regex_test.go
-    drwxrwxr-x 2 matthias matthias     4096 Mai 18 18:44 static
-    -rw-rw-r-- 1 matthias matthias     3240 Mai 19 18:13 tags.go
-    -rw-rw-r-- 1 matthias matthias     1367 Mai 19 01:35 template_vars.md
-    -rw-rw-r-- 1 matthias matthias     2853 Mai 19 19:33 TODO.md
-    drwxrwxr-x 3 matthias matthias     4096 Mai 19 13:34 views
-    -rw-rw-r-- 1 matthias matthias     9656 Mai 10 12:11 views.go
-    -rw-r--r-- 1 matthias matthias     6009 Mai  8 10:09 views_test.go
+	total 21312
+	-rw-rw-r-- 1 matthias matthias      474 Apr 27 00:21 addTest.md
+	-rwxrwxr-x 1 matthias matthias 11153958 Mai 23 15:02 blog
+	-rw-rw-r-- 1 matthias matthias     1458 Mai 22 17:54 blog.ini
+	drwxrwxr-x 2 matthias matthias     4096 Mai 11 20:11 certs
+	-rw-rw-r-- 1 matthias matthias     6583 Mai 10 09:39 cmdline.go
+	-rw-rw-r-- 1 matthias matthias    10072 Mai 22 17:54 config.go
+	-rw-rw-r-- 1 matthias matthias     1846 Mai 22 17:54 config_test.go
+	drwxrwxr-x 2 matthias matthias     4096 Mai 22 11:36 css
+	drwxrwxr-x 3 matthias matthias     4096 Mai 15 19:29 _demo
+	-rw-rw-r-- 1 matthias matthias      823 Mai  4 17:57 doc.go
+	drwxrwxr-x 2 matthias matthias     4096 Mai 22 11:36 fonts
+	-rw-rw-r-- 1 matthias matthias      587 Mai 23 11:33 go.mod
+	-rw------- 1 matthias matthias     3833 Mai 23 12:05 go.sum
+	-rw-rw-r-- 1 matthias matthias     4959 Mai 23 12:10 hashfile.db
+	drwxrwxr-x 2 matthias matthias     4096 Mai 18 19:59 img
+	-rw-rw-r-- 1 matthias matthias       84 Apr 12 15:46 intl.ini
+	-rw-rw-r-- 1 matthias matthias    32474 Mai  2 13:59 LICENSE
+	-rw-rw-r-- 1 matthias matthias    21803 Mai 23 15:00 pagehandler.go
+	-rw-r--r-- 1 matthias matthias      619 Mai  8 10:14 pagehandler_test.go
+	-rw-rw-r-- 1 matthias matthias     9313 Mai 21 16:34 posting.go
+	drwxrwxr-x 8 matthias matthias     4096 Mai 20 21:12 postings
+	-rw-rw-r-- 1 matthias matthias    15319 Mai 21 16:34 posting_test.go
+	-rw-r--r-- 1 matthias matthias     8240 Mai 11 10:15 postlist.go
+	-rw-rw-r-- 1 matthias matthias     7279 Mai 21 16:34 postlist_test.go
+	-rw-rw-r-- 1 matthias matthias       70 Mai 21 17:21 pwaccess.db
+	-rw-rw-r-- 1 matthias matthias    22591 Mai 23 15:25 README.md
+	-rw-rw-r-- 1 matthias matthias    10436 Mai 19 16:31 regex.go
+	-rw-r--r-- 1 matthias matthias     8190 Mai 19 15:53 regex_test.go
+	drwxrwxr-x 2 matthias matthias     4096 Mai 20 21:08 static
+	-rw-rw-r-- 1 matthias matthias     3657 Mai 23 11:34 tags.go
+	-rw-rw-r-- 1 matthias matthias     3811 Mai 23 14:02 template_vars.md
+	-rw-rw-r-- 1 matthias matthias     3108 Mai 23 15:22 TODO.md
+	drwxrwxr-x 3 matthias matthias     4096 Mai 22 11:36 views
+	-rw-rw-r-- 1 matthias matthias     6787 Mai 20 19:41 views.go
+	-rw-r--r-- 1 matthias matthias     6009 Mai  8 10:09 views_test.go
     $ _
 
 You can reduce the binary's size by stripping it:
 
     $ strip blog
     $ ls -l blog
-    -rwxrwxr-x 1 matthias matthias 8138752 Mai 19 20:05 blog
+    -rwxrwxr-x 1 matthias matthias 8151040 Mai 23 15:28 blog
     $ _
 
 As you can see the binary lost about 3MB of its weight.
@@ -104,61 +118,62 @@ Let's start with the command line:
 
     $ ./blog -h
 
-    Usage: ./blog [OPTIONS]
+	Usage: ./blog [OPTIONS]
 
-    -blogname string
-        Name of this Blog (shown on every page)
-        (default "Meine Güte, was für'n Blah!")
-    -certKey string
-        <fileName> the name of the TLS certificate key
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
-    -certPem string
-        <fileName> the name of the TLS certificate PEM
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
-    -datadir string
-        <dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
-    -hashfile string
-        <fileName> (optional) the name of a file storing #hashtags and @mentions
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
-    -ini string
-        <fileName> the path/filename of the INI file
-    -lang string
-        (optional) the default language to use  (default "de")
-    -listen string
-        the host's IP to listen at  (default "127.0.0.1")
-    -log string
-        (optional) name of the logfile to write to
-        (default "/dev/stdout")
-    -maxfilesize string
-        max. accepted size of uploaded files (default "10MB")
-    -pa
-        (optional) posting add: write a posting from the commandline
-    -pf string
-        <fileName> (optional) post file: name of a file to add as new posting
-    -port int
-        <portNumber> the IP port to listen to  (default 8181)
-    -realm string
-        (optional) <hostName> name of host/domain to secure by BasicAuth
-        (default "This Host")
-    -theme string
-        <name> the display theme to use ('light' or 'dark')
-        (default "light")
-    -ua string
-        <userName> (optional) user add: add a username to the password file
-    -uc string
-        <userName> (optional) user check: check a username in the password file
-    -ud string
-        <userName> (optional) user delete: remove a username from the password file
-    -uf string
-        <fileName> (optional) user passwords file storing user/passwords for BasicAuth
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
-    -ul
-        (optional) user list: show all users in the password file
-    -uu string
-        <userName> (optional) user update: update a username in the password file
+	-blogname string
+		Name of this Blog (shown on every page)
+		(default "Meine Güte, was für'n Blah!")
+	-certKey string
+		<fileName> the name of the TLS certificate key
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
+	-certPem string
+		<fileName> the name of the TLS certificate PEM
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
+	-datadir string
+		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
+	-hashfile string
+		<fileName> (optional) the name of a file storing #hashtags and @mentions
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
+	-ini string
+		<fileName> the path/filename of the INI file
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/blog.ini")
+	-lang string
+		(optional) the default language to use  (default "de")
+	-listen string
+		the host's IP to listen at  (default "127.0.0.1")
+	-log string
+		(optional) name of the logfile to write to
+		(default "/dev/stdout")
+	-maxfilesize string
+		max. accepted size of uploaded files (default "10MB")
+	-pa
+		(optional) posting add: write a posting from the commandline
+	-pf string
+		<fileName> (optional) post file: name of a file to add as new posting
+	-port int
+		<portNumber> the IP port to listen to  (default 8181)
+	-realm string
+		(optional) <hostName> name of host/domain to secure by BasicAuth
+		(default "This Host")
+	-theme string
+		<name> the display theme to use ('light' or 'dark')
+		(default "light")
+	-ua string
+		<userName> (optional) user add: add a username to the password file
+	-uc string
+		<userName> (optional) user check: check a username in the password file
+	-ud string
+		<userName> (optional) user delete: remove a username from the password file
+	-uf string
+		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
+	-ul
+		(optional) user list: show all users in the password file
+	-uu string
+		<userName> (optional) user update: update a username in the password file
 
-    Most options can be set in an INI file to keep the command-line short ;-)
+	Most options can be set in an INI file to keep the command-line short ;-)
 
     $ _
 
@@ -312,12 +327,12 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 ### Authentication
 
 But why, you may ask, would we need username/password files anyway?
-Well, you remember me mentioning that you can add, edit and delete articles/postings?
+Well, you remember me mentioning that you can add, edit and delete articles?
 You wouldn't want anyone on the net beeing able to do that, now, would you?
 For that reason, whenever there's no password file given (either in the INI file or the command-line) all funtionality requiring authentication will be _disabled_.
 (Better safe than sorry, right?)
 
-_Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server both files are _not_ interchangeable because the actual encryption algorithm used by both are different.
+_Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both are different.
 
 ## Configuration
 
@@ -330,35 +345,35 @@ The system's configuration takes two steps:
 
 The system uses a number of slightly different URL groups.
 
-First there are the static files served from the `css`, `img`, and `static` directories.
+First, there are the static files served from the `css`, `img`, and `static` directories.
 The actual location of which you can configure with the `datadir` INI entry and/or commandline option.
 
-Second are the URLs any _normal_ user might see and use:
+Second, are the URLs any _normal_ user might see and use:
 
 * `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
 * `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
 * `/ht/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
 Provided the given `#tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/m/` shows the articles of the current month.
-You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles/postings from April 2019.
+You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
 * `/mt/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
-* `/n/` gives you the newest 20 articles/postings.
+* `/n/` gives you the newest 20 articles.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
 If you want to see the articles in slices of, say, 10 per page (instead of the default 20/page) you could use the URL `/n/10,10` and to see the secong slice user `/n/10,20`, the third with `/n/10,30` and so on.
 However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for you.
 * `/p/1234567890abcdef` shows you a single article/posting (the ID is automatically generated).
 This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
 * `/s/searchterm` can be used to search for articles containing a certain word.
-All existing articles/postings will be searched for the given `searchterm`.
+All existing articles will be searched for the given `searchterm`.
 * `/w/` shows the articles of the current week.
-You can, however, specify the week you're interested in by adding a data part defining the week you want to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles/postings from the week in April 2019 containing the 13th.
+You can, however, specify the week you're interested in by adding a data part defining the week you want to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles from the week in April 2019 containing the 13th.
 
-And third there's a group of URLs your users won't usually see or use, because by design they are reserved for you.
-These URLs are protected by an authentication mechanism called _BasicAuth_; this is where the username/password files comes in.
+And, third, there's a group of URLs your users won't usually see or use, because by design they are reserved for you.
+These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password files comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
-If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles/postings, or add new ones (which you might not like).
+If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like and therefor the system disables all options that might modify your system.
 
 * `/a` add a new posting.
 A simple Web form will allow you to input whatever's on your mind.
@@ -377,28 +392,29 @@ Once the upload is done you (i.e. the user) will be presented an edit page in wh
 
 ## Files
 
-Right from the start I mentioned that I wanted to avoid external depenencies – like databases for example.
+Right at the start I mentioned that I wanted to avoid external dependencies – like databases for example.
 Well, that's not exactly true (or even possible), because there is _one_ database that's always already there, regardless of the operating system: the _filesystem_.
 The trick is to figure out how to best use it for our own purposes.
-The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles/postings, and use part of that very timestamp as ID and name for the directory names as well.
+The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles, and use part of that very timestamp as ID and name for the directory names as well.
 
 Both directory- and file-names are automatically handled by the system.
-Each directory can hold up to 52 days worth of articles/postings.
+Each directory can hold up to 52 days worth of articles.
 After extensive experimentation – with hundreds of thousands of automatically generated (and deleted) test files – that number seemed to be a reasonable compromise between directories not growing too big (_search times_) and keeping the number of directories used low (about seven per year).
 
 All this data (files and directories) will be created under the directory you configure either in the INI file (entry `datadir`) or on the commandline (option `-datadir`).
 Under that directory the program expects several sub-directories:
 
 * `css/` for stylesheet files,
+* `fonts/` for font files,
 * `img/` for image files,
-* `postings/` directory root for the articles/postings,
+* `postings/` directory root for the articles,
 * `static/` for static files (like e.g. PDF files),
 * `views/` for page templates
 
 Apart from setting that `datadir` option to your liking you don't have to worry about it anymore.
 
 As mentioned before, it's always advisable to use _absolute pathnames_, not relative one.
-The latter are converted into absolute ones by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
+The latter are converted into absolute ones (based on `datadir`) by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
 You can use `./blog -h` to see which directories the program will use (see the example above).
 
 ### CSS
@@ -417,7 +433,7 @@ You can put there whatever images you like either form the command-line or by us
 
 ### Postings
 
-The `datadir`/`/postings/` directory is the base for storing all the articles.
+The `datadir`/`/` directory is the base for storing all the articles.
 The system creates subdirectories as needed to store new articles.
 This directory structure is not accessed via a direct URL but used internally by the system.
 
@@ -436,7 +452,7 @@ An concise overview of the used templates and which variables they use you'll fi
 
 ### Contents
 
-For all the article/postings you write – either on the commandline or with the web-interface – you can use [Markdown](https://en.wikipedia.org/wiki/Markdown) to enrich the plain text.
+For all the article you write – either on the commandline or with the web-interface – you can use [Markdown](https://en.wikipedia.org/wiki/Markdown) to enrich the plain text.
 In fact, the system _expects_ the postings to be using `MarkDown` syntax if any markup at all.
 
 ## Licence
