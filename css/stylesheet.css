@@ -51,7 +51,7 @@ br, div {
 	padding: 0;
 	text-indent: 0;
 }
-code, .code, kbd, pre, tt, xmp {
+code, .code, input, kbd, pre, textarea, tt, xmp {
 	color: inherit;
 	font-family: monospace;
 	font-size: 0.987em;
@@ -194,7 +194,7 @@ blockquote p {
 p:first-of-type, blockquote+p,h1+p, h2+p, h3+p, h4+p, h5+p, h6+p dl+p, ol+p, ul+p {
 	text-indent: 0;
 }
-pre, xmp {
+pre, textarea, xmp {
 	border-radius: 1ex;
 	display: block;
 	font-family: monospace;

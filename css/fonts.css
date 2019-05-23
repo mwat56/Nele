@@ -57,7 +57,7 @@ html, body {
 b, .bold, strong, .strong, .strong p {
 	font-family: "Noto Serif Bold", serif;
 }
-code, .code, kbd, pre, tt, xmp {
+code, .code, input, kbd, pre, textarea, tt, xmp {
 	font-family: "Hack Mono", monospace;
 }
 dt, dl.posting dt {
@@ -83,9 +83,6 @@ pre em, pre .em, pre i, pre.italic {
 }
 pre b, pre.bold, pre strong, pre.strong {
 	font-family: "Hack Mono Bold", monospace;
-}
-textarea {
-	font-family: "Hack Mono", monospace;
 }
 .tc5, .tc25, .tc50, .tc99 {
 	font-family: "Hack Mono", monospace;
