@@ -64,10 +64,11 @@ func goCheckHashes(aList *hashtags.THashList) {
 
 // `goInitHashlist()` initialises the hash list.
 func goInitHashlist(aList *hashtags.THashList) {
-	if _, err := aList.Load(); nil == err {
+	if _, err := aList.Load(); (nil == err) && (0 < aList.Len()) {
 		go goCheckHashes(aList)
 		return // assume everything is uptodate
 	}
+
 	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
@@ -87,9 +88,8 @@ func goInitHashlist(aList *hashtags.THashList) {
 			}
 		}
 	}
-	if 0 < aList.Len() {
-		aList.Store()
-	}
+
+	aList.Store()
 } // goInitHashlist()
 
 // `goRemoveID()` removes `aID` from `aList`s items.
