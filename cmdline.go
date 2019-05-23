@@ -4,7 +4,7 @@
            EMail : <support@mwat.de>
 */
 
-package blog
+package nele
 
 /*
  * This file provides functions to add postings from the commandline

@@ -1,4 +1,4 @@
-package blog
+package nele
 
 import (
 	"fmt"
@@ -287,7 +287,7 @@ func TestTPostList_Week(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{" 1", pl1, args{0, 0, 0}, 0},
-		{" 2", pl2, args{2019, 1, 1}, 21},
+		{" 2", pl2, args{2019, 1, 1}, 22},
 		{" 3", pl3, args{2019, 2, 2}, 21},
 		{" 4", pl4, args{2019, 3, 3}, 21},
 	}

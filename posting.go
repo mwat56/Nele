@@ -4,7 +4,7 @@
           EMail : <support@mwat.de>
 */
 
-package blog
+package nele
 
 /*
  * This file provides article/posting related functions and methods.

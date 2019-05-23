@@ -4,7 +4,7 @@
               EMail : <support@mwat.de>
 */
 
-package blog
+package nele
 
 /*
 * This files provides functions related to #hashtags/@mentions

@@ -1,4 +1,4 @@
-package blog
+package nele
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ func TestNewPageHandler(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", 13, false},
+		{" 1", 15, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

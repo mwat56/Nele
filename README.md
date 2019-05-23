@@ -1,7 +1,8 @@
 # Blog
 
-[![GoDoc](https://godoc.org/github.com/mwat56/go-blog?status.svg)](https://godoc.org/github.com/mwat56/go-blog)
-[![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/go-blog/blob/master/_demo/blog/blog.go)
+[![GoDoc](https://godoc.org/github.com/mwat56/Nele?status.svg)](https://godoc.org/github.com/mwat56/Nele)
+[![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/Nele/blob/master/_demo/nele.go)
+[![License](https://img.shields.io/eclipse-marketplace/l/notepad4e.svg)](https://github.com/mwat56/Nele/blob/master/LICENSE)
 
 - [Blog](#blog)
 	- [Purpose](#purpose)
@@ -55,61 +56,70 @@ So I intentionally didn't bother with comments or discussion threading.
 
 You can use `Go` to install this package for you:
 
-    go get -u github.com/mwat56/go-blog
+    go get -u github.com/mwat56/Nele
 
 ## Usage
 
 After downloading this package you go to its directory and compile
 
-    go build _demo/blog/blog.go
+    go build _demo/nele.go
 
 which should produce an executable binary.
 On my system it looks (at a certain point in time) like this:
 
     $ ls -l
-	total 21312
-	-rw-rw-r-- 1 matthias matthias      474 Apr 27 00:21 addTest.md
-	-rwxrwxr-x 1 matthias matthias 11153958 Mai 23 15:02 blog
-	-rw-rw-r-- 1 matthias matthias     1458 Mai 22 17:54 blog.ini
-	drwxrwxr-x 2 matthias matthias     4096 Mai 11 20:11 certs
-	-rw-rw-r-- 1 matthias matthias     6583 Mai 10 09:39 cmdline.go
-	-rw-rw-r-- 1 matthias matthias    10072 Mai 22 17:54 config.go
-	-rw-rw-r-- 1 matthias matthias     1846 Mai 22 17:54 config_test.go
-	drwxrwxr-x 2 matthias matthias     4096 Mai 22 11:36 css
-	drwxrwxr-x 3 matthias matthias     4096 Mai 15 19:29 _demo
-	-rw-rw-r-- 1 matthias matthias      823 Mai  4 17:57 doc.go
-	drwxrwxr-x 2 matthias matthias     4096 Mai 22 11:36 fonts
-	-rw-rw-r-- 1 matthias matthias      587 Mai 23 11:33 go.mod
-	-rw------- 1 matthias matthias     3833 Mai 23 12:05 go.sum
-	-rw-rw-r-- 1 matthias matthias     4959 Mai 23 12:10 hashfile.db
-	drwxrwxr-x 2 matthias matthias     4096 Mai 18 19:59 img
-	-rw-rw-r-- 1 matthias matthias       84 Apr 12 15:46 intl.ini
-	-rw-rw-r-- 1 matthias matthias    32474 Mai  2 13:59 LICENSE
-	-rw-rw-r-- 1 matthias matthias    21803 Mai 23 15:00 pagehandler.go
-	-rw-r--r-- 1 matthias matthias      619 Mai  8 10:14 pagehandler_test.go
-	-rw-rw-r-- 1 matthias matthias     9313 Mai 21 16:34 posting.go
-	drwxrwxr-x 8 matthias matthias     4096 Mai 20 21:12 postings
-	-rw-rw-r-- 1 matthias matthias    15319 Mai 21 16:34 posting_test.go
-	-rw-r--r-- 1 matthias matthias     8240 Mai 11 10:15 postlist.go
-	-rw-rw-r-- 1 matthias matthias     7279 Mai 21 16:34 postlist_test.go
-	-rw-rw-r-- 1 matthias matthias       70 Mai 21 17:21 pwaccess.db
-	-rw-rw-r-- 1 matthias matthias    22591 Mai 23 15:25 README.md
-	-rw-rw-r-- 1 matthias matthias    10436 Mai 19 16:31 regex.go
-	-rw-r--r-- 1 matthias matthias     8190 Mai 19 15:53 regex_test.go
-	drwxrwxr-x 2 matthias matthias     4096 Mai 20 21:08 static
-	-rw-rw-r-- 1 matthias matthias     3657 Mai 23 11:34 tags.go
-	-rw-rw-r-- 1 matthias matthias     3811 Mai 23 14:02 template_vars.md
-	-rw-rw-r-- 1 matthias matthias     3108 Mai 23 15:22 TODO.md
-	drwxrwxr-x 3 matthias matthias     4096 Mai 22 11:36 views
-	-rw-rw-r-- 1 matthias matthias     6787 Mai 20 19:41 views.go
-	-rw-r--r-- 1 matthias matthias     6009 Mai  8 10:09 views_test.go
+	total 11420
+	drwxrwxr-x 12 matthias matthias     4096 Mai 23 18:35 .
+	drwxrwxr-x 12 matthias matthias     4096 Mai 23 17:58 ..
+	-rw-rw-r--  1 matthias matthias      474 Apr 27 00:21 addTest.md
+	-rw-rw-r--  1 matthias matthias     1458 Mai 23 17:58 blog.ini
+	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 certs
+	-rw-rw-r--  1 matthias matthias     6583 Mai 23 18:14 cmdline.go
+	-rw-rw-r--  1 matthias matthias    10149 Mai 23 18:20 config.go
+	-rw-rw-r--  1 matthias matthias     1846 Mai 23 18:14 config_test.go
+	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 css
+	drwxrwxr-x  3 matthias matthias     4096 Mai 23 18:14 _demo
+	-rw-rw-r--  1 matthias matthias      823 Mai 23 18:14 doc.go
+	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 fonts
+	drwxrwxr-x  8 matthias matthias     4096 Mai 23 18:10 .git
+	drwxrwxr-x  3 matthias matthias     4096 Mai 23 17:58 .github
+	-rw-rw-r--  1 matthias matthias      123 Mai 23 17:58 .gitignore
+	-rw-------  1 matthias matthias      507 Mai 23 18:11 go.mod
+	-rw-------  1 matthias matthias     4004 Mai 23 18:11 go.sum
+	-rw-rw-r--  1 matthias matthias     5010 Mai 23 18:18 hashfile.db
+	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 img
+	-rw-rw-r--  1 matthias matthias       84 Apr 12 15:46 intl.ini
+	-rw-rw-r--  1 matthias matthias    32474 Mai 23 17:58 LICENSE
+	-rw-rw-r--  2 matthias matthias    31324 Apr 22 09:56 Markdown_Syntax.html
+	-rw-rw-r--  2 matthias matthias    27462 Apr 10 15:49 Markdown_Syntax.md
+	-rw-rw-r--  2 matthias matthias   173400 Apr 22 09:59 Markdown_Syntax.pdf
+	-rwxrwxr-x  1 matthias matthias 11149115 Mai 23 18:19 nele
+	-rw-rw-r--  1 matthias matthias    21803 Mai 23 18:14 pagehandler.go
+	-rw-rw-r--  1 matthias matthias      619 Mai 23 18:22 pagehandler_test.go
+	-rw-rw-r--  1 matthias matthias     9313 Mai 23 18:14 posting.go
+	drwxrwxr-x  8 matthias matthias     4096 Mai 23 18:01 postings
+	-rw-rw-r--  1 matthias matthias    15319 Mai 23 18:14 posting_test.go
+	-rw-rw-r--  1 matthias matthias     8240 Mai 23 18:14 postlist.go
+	-rw-rw-r--  1 matthias matthias     7279 Mai 23 18:23 postlist_test.go
+	-rw-rw-r--  1 matthias matthias       70 Mai 23 18:19 pwaccess.db
+	-rw-rw-r--  1 matthias matthias    22792 Mai 23 18:35 README.md
+	-rw-rw-r--  1 matthias matthias    10435 Mai 23 18:24 regex.go
+	-rw-rw-r--  1 matthias matthias     8190 Mai 23 18:14 regex_test.go
+	-rw-rw-r--  1 matthias matthias      936 Mai 23 18:14 sed.sh
+	drwxrwxr-x  2 matthias matthias     4096 Mai 23 17:58 static
+	-rw-rw-r--  1 matthias matthias     3656 Mai 23 18:14 tags.go
+	-rw-rw-r--  1 matthias matthias     3811 Mai 23 17:58 template_vars.md
+	-rw-rw-r--  2 matthias matthias     3109 Mai 23 18:16 TODO.md
+	drwxrwxr-x  3 matthias matthias     4096 Mai 23 18:14 views
+	-rw-rw-r--  1 matthias matthias     6787 Mai 23 18:14 views.go
+	-rw-rw-r--  1 matthias matthias     6009 Mai 23 18:14 views_test.go
     $ _
 
 You can reduce the binary's size by stripping it:
 
-    $ strip blog
-    $ ls -l blog
-    -rwxrwxr-x 1 matthias matthias 8151040 Mai 23 15:28 blog
+    $ strip nele
+    $ ls -l nele
+	-rwxrwxr-x 1 matthias matthias 8146912 Mai 23 18:38 nele
     $ _
 
 As you can see the binary lost about 3MB of its weight.
@@ -118,35 +128,35 @@ Let's start with the command line:
 
     $ ./blog -h
 
-	Usage: ./blog [OPTIONS]
+	Usage: ./nele [OPTIONS]
 
 	-blogname string
 		Name of this Blog (shown on every page)
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
 		<fileName> the name of the TLS certificate key
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.key")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
 	-certPem string
 		<fileName> the name of the TLS certificate PEM
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/certs/server.pem")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
 	-datadir string
 		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
 	-hashfile string
 		<fileName> (optional) the name of a file storing #hashtags and @mentions
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/hashfile.db")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
 	-ini string
 		<fileName> the path/filename of the INI file
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/blog.ini")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/blog.ini")
 	-lang string
-		(optional) the default language to use  (default "de")
+			(optional) the default language to use  (default "de")
 	-listen string
 		the host's IP to listen at  (default "127.0.0.1")
 	-log string
 		(optional) name of the logfile to write to
 		(default "/dev/stdout")
 	-maxfilesize string
-		max. accepted size of uploaded files (default "10MB")
+			max. accepted size of uploaded files (default "10MB")
 	-pa
 		(optional) posting add: write a posting from the commandline
 	-pf string
@@ -167,7 +177,7 @@ Let's start with the command line:
 		<userName> (optional) user delete: remove a username from the password file
 	-uf string
 		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/go-blog/pwaccess.db")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
 	-ul
 		(optional) user list: show all users in the password file
 	-uu string

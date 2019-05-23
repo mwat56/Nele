@@ -4,7 +4,7 @@
               EMail : <support@mwat.de>
 */
 
-package blog
+package nele
 
 /*
  * This files provides a few RegEx based functions.
@@ -136,8 +136,8 @@ func MDtoHTML(aMarkdown []byte) []byte {
 			bf.SmartypantsDashes |
 			bf.SmartypantsLatexDashes,
 	})
-	result := bf.Run(aMarkdown,
-		bf.WithRenderer(r), extensions)
+	result := bf.Run(aMarkdown, bf.WithRenderer(r), extensions)
+
 	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
 		// no need for RegEx execution
 		return result

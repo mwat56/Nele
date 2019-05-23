@@ -4,7 +4,7 @@
            EMail : <support@mwat.de>
 */
 
-package blog
+package nele
 
 /*
  * This file provides list_of_post related functions and methods.
