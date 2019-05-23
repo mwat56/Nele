@@ -25,13 +25,7 @@ import (
 
 // `goAddID()` checks a newly added posting for #hashtags and @mentions.
 func goAddID(aList *hashtags.THashList, aID string, aText []byte) {
-	oldCRC := aList.Checksum()
-
 	aList.IDparse(aID, aText)
-
-	if aList.Checksum() != oldCRC {
-		aList.Store()
-	}
 } // goAddID()
 
 // `doCheckPost` returns whether there is a file identified
@@ -53,13 +47,8 @@ func doCheckPost(aHash, aID string) bool {
 
 // `goCheckHashes()` walks all postings referenced by `aList`.
 func goCheckHashes(aList *hashtags.THashList) {
-	oldCRC := aList.Checksum()
-
 	aList.Walk(doCheckPost)
 
-	if aList.Checksum() != oldCRC {
-		aList.Store()
-	}
 } // goCheckHashes()
 
 // `goInitHashlist()` initialises the hash list.
@@ -94,44 +83,26 @@ func goInitHashlist(aList *hashtags.THashList) {
 
 // `goRemoveID()` removes `aID` from `aList`s items.
 func goRemoveID(aList *hashtags.THashList, aID string) {
-	oldCRC := aList.Checksum()
-
 	aList.IDremove(aID)
-
-	if aList.Checksum() != oldCRC {
-		aList.Store()
-	}
 } // goRemoveID()
 
 // `goRenameID()` renames all references of `aOldID` to `aNewID`.
 func goRenameID(aList *hashtags.THashList, aOldID, aNewID string) {
-	oldCRC := aList.Checksum()
-
 	aList.IDrename(aOldID, aNewID)
-
-	if aList.Checksum() != oldCRC {
-		aList.Store()
-	}
 } // goRenameID()
 
 // `goUpdateID()` updates the #hashtag/@mention references of `aID`.
 func goUpdateID(aList *hashtags.THashList, aID string, aText []byte) {
-	oldCRC := aList.Checksum()
-
 	aList.IDupdate(aID, aText)
-
-	if aList.Checksum() != oldCRC {
-		aList.Store()
-	}
 } // goUpdateID()
 
 // `markupCloud()` returns a list with the markup of all existing
 // #hashtags/@mentions.
-func markupCloud(aHashList *hashtags.THashList) []template.HTML {
+func markupCloud(aList *hashtags.THashList) []template.HTML {
 	var (
 		class, url string
 	)
-	list := aHashList.CountedList()
+	list := aList.CountedList()
 	tl := make([]template.HTML, len(list))
 	for idx, item := range list {
 		if 5 > item.Count {
