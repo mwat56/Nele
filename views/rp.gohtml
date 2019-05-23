@@ -5,14 +5,16 @@
 {{- define "bodypage" -}}
 {{- $lang := "de" -}}
 {{- if .Lang}}{{$lang = .Lang}}{{end -}}
-<form method="post" action="{{.BackURL}}">
+<form method="post" action="/r/{{.ID}}" enctype="application/x-www-form-urlencoded">
 	<pre id="preview">
 {{.Manuscript}}
 	</pre>
 	<p class="right">
 	{{- if eq $lang "de" -}}
+		<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain" formmethod="get" formaction="/p/{{.ID}}"> &nbsp;
 		<input type="submit" name="submit" title="Artikel löschen" value=" Löschen ">
 	{{- else -}}
+		<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain" formmethod="get" formaction="/p/{{.ID}}"> &nbsp;
 		<input type="submit" name="submit" title="Delete posting" value=" Delete ">
 	{{- end -}}
 	</p>

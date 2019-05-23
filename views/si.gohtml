@@ -5,7 +5,7 @@
 {{- define "bodypage" -}}
 {{- $lang := "de" -}}
 {{- if .Lang}}{{$lang = .Lang}}{{end -}}
-<form method="post" action="{{.BackURL}}" enctype="multipart/form-data">
+<form method="post" action="/si/" enctype="multipart/form-data">
 	<p>{{if eq $lang "de" -}}
 	<label for="imgFile" title="Name der zu übertragenden Datei">Dateiname:</label>&nbsp;
 	<input type="file" name="imgFile" id="imgFile" title="Name der zu übertragenden Datei">
@@ -15,9 +15,11 @@
 	{{- end -}}
 	</p><p class="right">
 	{{- if eq $lang "de" -}}
+		<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain" formmethod="get" formaction="/n/"> &nbsp;
 		<input type="reset" name="reset" title="Zurücksetzen" value=" Zurücksetzen "> &nbsp;
 		<input type="submit" name="submit" title="Speichern der Datei" value=" Speichern ">
 	{{- else -}}
+		<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain" formmethod="get" formaction="/n/"> &nbsp;
 		<input type="reset" name="reset" title="Reset" value=" Reset "> &nbsp;
 		<input type="submit" name="submit" title="Store the file" value=" Store ">
 	{{- end}}</p>
