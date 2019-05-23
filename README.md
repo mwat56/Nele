@@ -1,10 +1,10 @@
-# Blog
+# Nele Blog
 
 [![GoDoc](https://godoc.org/github.com/mwat56/Nele?status.svg)](https://godoc.org/github.com/mwat56/Nele)
 [![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/Nele/blob/master/_demo/nele.go)
 [![License](https://img.shields.io/eclipse-marketplace/l/notepad4e.svg)](https://github.com/mwat56/Nele/blob/master/LICENSE)
 
-- [Blog](#blog)
+- [Nele Blog](#nele-blog)
 	- [Purpose](#purpose)
 	- [Features](#features)
 	- [Installation](#installation)
@@ -90,9 +90,6 @@ On my system it looks (at a certain point in time) like this:
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 img
 	-rw-rw-r--  1 matthias matthias       84 Apr 12 15:46 intl.ini
 	-rw-rw-r--  1 matthias matthias    32474 Mai 23 17:58 LICENSE
-	-rw-rw-r--  2 matthias matthias    31324 Apr 22 09:56 Markdown_Syntax.html
-	-rw-rw-r--  2 matthias matthias    27462 Apr 10 15:49 Markdown_Syntax.md
-	-rw-rw-r--  2 matthias matthias   173400 Apr 22 09:59 Markdown_Syntax.pdf
 	-rwxrwxr-x  1 matthias matthias 11149115 Mai 23 18:19 nele
 	-rw-rw-r--  1 matthias matthias    21803 Mai 23 18:14 pagehandler.go
 	-rw-rw-r--  1 matthias matthias      619 Mai 23 18:22 pagehandler_test.go
@@ -126,7 +123,7 @@ As you can see the binary lost about 3MB of its weight.
 
 Let's start with the command line:
 
-    $ ./blog -h
+    $ ./nele -h
 
 	Usage: ./nele [OPTIONS]
 
@@ -149,14 +146,14 @@ Let's start with the command line:
 		<fileName> the path/filename of the INI file
 		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/blog.ini")
 	-lang string
-			(optional) the default language to use  (default "de")
+		(optional) the default language to use  (default "de")
 	-listen string
 		the host's IP to listen at  (default "127.0.0.1")
 	-log string
 		(optional) name of the logfile to write to
 		(default "/dev/stdout")
 	-maxfilesize string
-			max. accepted size of uploaded files (default "10MB")
+		max. accepted size of uploaded files (default "10MB")
 	-pa
 		(optional) posting add: write a posting from the commandline
 	-pf string
@@ -252,21 +249,21 @@ But let's look at some of the commandline options more closely.
 
 ### Commandline postings
 
-`./blog -pa` allows you to write an article/posting directly on the commandline.
+`./nele -pa` allows you to write an article/posting directly on the commandline.
 
-    $ ./blog -pa
+    $ ./nele -pa
     This is
     a test
     posting directly
     from the commandline.
     <Ctrl-D>
-    2019/05/06 14:57:30 ./blog wrote 54 bytes in a new posting
+    2019/05/06 14:57:30 ./nele wrote 54 bytes in a new posting
     $ _
 
-`./blog -pf <fileName>` allows you to include an already existing text file (with possibly some Markdown markup) into the system.
+`./nele -pf <fileName>` allows you to include an already existing text file (with possibly some Markdown markup) into the system.
 
-    $ ./blog -pf addTest.md
-    2019/05/06 15:09:27 ./blog stored 474 bytes in a new posting
+    $ ./nele -pf addTest.md
+    2019/05/06 15:09:27 ./nele stored 474 bytes in a new posting
     $ _
 
 These two options (`-pa` and `-pf`) are only usable from the commandline.
@@ -276,7 +273,7 @@ These two options (`-pa` and `-pf`) are only usable from the commandline.
 Only usable from the commandline as well are the `-uXX` options, most of which need a username and the name of the password file to use.
 _Note_ that whenever you're prompted to input a password this will _not_ be echoed to the console.
 
-    $ ./blog -ua testuser1 -uf pwaccess.db
+    $ ./nele -ua testuser1 -uf pwaccess.db
 
      password:
     repeat pw:
@@ -289,7 +286,7 @@ Since we have the `passfile` setting already in our INI file we can forget the `
 
 With `-uc` you can check a user's password:
 
-    $ ./blog -uc testuser1
+    $ ./nele -uc testuser1
 
      password:
         'testuser1' password check successful
@@ -299,13 +296,13 @@ This `-uc` you'll probably never actually use, it was just easy to implement.
 
 If you want to remove a user the `-ud` will do the trick:
 
-    $ ./blog -ud testuser1
+    $ ./nele -ud testuser1
         removed 'testuser1' from list
     $ _
 
 When you want to know which users are stored in your password file `-ul` is your fried:
 
-    $ ./blog -ul
+    $ ./nele -ul
     matthias
 
     $ _
@@ -314,19 +311,19 @@ Since we deleted the `testuser1` before only one entry remains.
 
 That only leaves `-uu` to update (change) a user's password.
 
-    $ ./blog -ua testuser2
+    $ ./nele -ua testuser2
 
      password:
     repeat pw:
         added 'testuser2' to list
 
-    $ ./blog -uu testuser2
+    $ ./nele -uu testuser2
 
      password:
     repeat pw:
         updated user 'testuser2' in list
 
-    $ ./blog -ul
+    $ ./nele -ul
     matthias
     testuser2
 
@@ -425,7 +422,7 @@ Apart from setting that `datadir` option to your liking you don't have to worry 
 
 As mentioned before, it's always advisable to use _absolute pathnames_, not relative one.
 The latter are converted into absolute ones (based on `datadir`) by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
-You can use `./blog -h` to see which directories the program will use (see the example above).
+You can use `./nele -h` to see which directories the program will use (see the example above).
 
 ### CSS
 
