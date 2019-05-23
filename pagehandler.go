@@ -526,6 +526,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
 	case "a": // add a new post
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
+		}
 		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
 			p := NewPosting()
 			p.Set(m)
@@ -542,6 +546,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case "d": // change date
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+			return
+		}
 		if 0 < len(tail) {
 			op := newPosting(tail)
 			t := op.Time()
@@ -577,6 +585,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case "e": // edit posting
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+			return
+		}
 		if 0 < len(tail) {
 			var old []byte
 			m := replCRLF([]byte(aRequest.FormValue("manuscript")))
@@ -600,6 +612,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case "r": // remove posting
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+			return
+		}
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			if err := p.Delete(); nil != err {
@@ -614,6 +630,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case "si": // store image
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
+		}
 		if nil == ph.iup { // lazy initialisation
 			ph.iup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/img/"),
 				"imgFile", ph.mfs)
@@ -621,6 +641,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		ph.handleUpload(aWriter, aRequest, true)
 
 	case "ss": // store static
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
+		}
 		if nil == ph.sup { // lazy initialisation
 			ph.sup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/static/"),
 				"statFile", ph.mfs)
