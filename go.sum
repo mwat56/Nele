@@ -3,8 +3,8 @@ github.com/mwat56/go-apachelogger v1.1.0/go.mod h1:phzNMUnJ3tG9EAMZAx60VmyVmHDxo
 github.com/mwat56/go-errorhandler v1.0.0/go.mod h1:2mq5VrHXxeJfu7yjys9iKOzR50PbTnvlpEyYDR+n8aY=
 github.com/mwat56/go-errorhandler v1.0.1 h1:noZixoiMEyBWXWKd7LFFKWNaHBJnyTcNNazk1/7QlPo=
 github.com/mwat56/go-errorhandler v1.0.1/go.mod h1:2mq5VrHXxeJfu7yjys9iKOzR50PbTnvlpEyYDR+n8aY=
-github.com/mwat56/go-hashtags v0.1.1 h1:OeGZ6dfk9AEaDF4kA6w2SHtgSoIDW8WKJ12Bm1nUIcg=
-github.com/mwat56/go-hashtags v0.1.1/go.mod h1:Ob/wWtlqgYC2VTXFFQS0brSuciD3m2ClHWpqcvl2IXM=
+github.com/mwat56/go-hashtags v0.2.2 h1:EB4FAosznGrSxcS9dj8lgDbLD1CfCSrnQy20bwzEu4M=
+github.com/mwat56/go-hashtags v0.2.2/go.mod h1:Ob/wWtlqgYC2VTXFFQS0brSuciD3m2ClHWpqcvl2IXM=
 github.com/mwat56/go-ini v1.0.0 h1:mzCegxLmyyZ9iC7tQjBSAVsjhE6HjF6kdxkdoBt9e8s=
 github.com/mwat56/go-ini v1.0.0/go.mod h1:/odwG1ZML10LavEamjuq+NdwEWBgEwsGY7ki4A104fU=
 github.com/mwat56/go-passlist v1.0.0 h1:HVi3nJiRPqadTAb7F1dfhE+IRqIpvwtDMQcP2BACWLE=
