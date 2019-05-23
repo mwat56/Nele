@@ -1,5 +1,5 @@
 /*
-Package blog implements a simple blog-server.
+Package nele implements a simple blog-server.
 
     Copyright © 2019  M.Watermann, 10247 Berlin, Germany
                 All rights reserved
