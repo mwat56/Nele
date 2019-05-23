@@ -34,7 +34,6 @@ type (
 		bn       string                        // the blog's name
 		dd       string                        // datadir: base dir for data
 		fh       http.Handler                  // static file handler
-		hashfile string                        // name of #hashtags file
 		hl       *hashtags.THashList           // #hashtags/@mentions list
 		iup      *uploadhandler.TUploadHandler // `img` upload handler
 		lang     string                        // default language
@@ -91,9 +90,9 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 
 	if s, err = AppArguments.Get("hashfile"); nil == err {
-		result.hashfile = s
-		result.hl = hashtags.NewList()
-		go goInitHashlist(result.hl, result.hashfile)
+		result.hl, _ = hashtags.New("")
+		result.hl.SetFilename(s)
+		go goInitHashlist(result.hl)
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -171,15 +170,16 @@ func (ph *TPageHandler) Address() string {
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TDataList {
 	y, m, d := time.Now().Date()
+	date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 	pageData := NewDataList().
 		Set("Blogname", ph.bn).
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
-		Set("monthURL", fmt.Sprintf("/m/%d-%02d-%02d", y, m, d)).
+		Set("monthURL", "/m/"+date).
 		Set("Robots", "index,follow").
 		Set("Taglist", markupCloud(ph.hl)).
-		Set("Title", ph.realm).
-		Set("weekURL", fmt.Sprintf("/w/%d-%02d-%02d", y, m, d))
+		Set("Title", ph.realm+": "+date).
+		Set("weekURL", "/w/"+date)
 
 	return pageData
 } // basicPageData()
@@ -534,7 +534,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				log.Printf("handlePOST(a): %v\n", err)
 				//TODO better error handling
 			}
-			go goAddID(ph.hl, ph.hashfile, p.ID(), p.Markdown())
+			go goAddID(ph.hl, p.ID(), p.Markdown())
 
 			// tail = p.ID() + "?z=" + p.Date()
 			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
@@ -570,7 +570,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				log.Printf("handlePOST(d2): %v\n", err)
 				//TODO better error handling
 			}
-			go goRenameID(ph.hl, ph.hashfile, tail, np.ID())
+			go goRenameID(ph.hl, tail, np.ID())
 
 			http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 		} else {
@@ -592,7 +592,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					p.Set(old).Store()
 				}
 			}
-			go goUpdateID(ph.hl, ph.hashfile, tail, m)
+			go goUpdateID(ph.hl, tail, m)
 
 			tail += "?z=" + p.ID() // kick the browser cache
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
@@ -607,7 +607,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				log.Printf("handlePOST(r): %v\n", err)
 				//TODO better error handling
 			}
-			go goRemoveID(ph.hl, ph.hashfile, tail)
+			go goRemoveID(ph.hl, tail)
 
 			http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 		} else {
