@@ -139,7 +139,10 @@ func initArguments() {
 			"<fileName> the path/filename of the localisation file\n")
 	*/
 
-	iniStr := ""
+	iniStr, _ := defaults.AsString("inifile")
+	if 0 == len(iniStr) {
+		iniStr = defIniFile
+	}
 	flag.StringVar(&iniStr, "ini", iniStr,
 		"<fileName> the path/filename of the INI file\n")
 
