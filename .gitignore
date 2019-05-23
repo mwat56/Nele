@@ -1,6 +1,5 @@
 *~
 addTest.md
-blog
 certs/*
 *.db
 _demo/
@@ -10,6 +9,7 @@ img/*
 *.log
 Markdown_Syntax.*
 md2htm
+nele
 postings/*
 static/*
 TODO*

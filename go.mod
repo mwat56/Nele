@@ -10,6 +10,7 @@ require (
 	github.com/mwat56/go-ini v1.0.0
 	github.com/mwat56/go-passlist v1.0.0
 	github.com/mwat56/go-uploadhandler v0.2.1
+	github.com/mwat56/hashtags v0.2.3
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	gopkg.in/russross/blackfriday.v2 v2.0.1
 )
