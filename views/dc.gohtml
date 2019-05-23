@@ -13,7 +13,7 @@
 	<form method="post" action="/d/{{.ID}}" enctype="application/x-www-form-urlencoded">
 	{{- if eq $lang "de" -}}
 		<p class="right"><label for="ymd">Datum: </label> &nbsp;
-		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
+		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
 		<p class="right"><label for="hms">Zeit: </label> &nbsp;
 		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
 		<p class="right">
@@ -22,7 +22,7 @@
 		<input type="submit" name="submit" title=" Speichern " value=" Speichern "></p>
 	{{- else -}}
 		<p class="right"><label for="ymd">Date: </label> &nbsp;
-		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}"></p>
+		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
 		<p class="right"><label for="hms">Time: </label> &nbsp;
 		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
 		<p class="right">

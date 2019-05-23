@@ -5,7 +5,7 @@
 {{- define "bodypage" -}}
 	<dl class="posting"><dt>{{$.Posting.Date}}</dt>
 		{{- $ID := $.Posting.ID -}}
-		<dd id="manuscript"><a class="idlink" href="{{.WeekURL}}/#p{{$ID}}">[*]</a>
+		<dd id="manuscript"><a class="idlink" id="{{$ID}}" href="{{.weekURL}}/#p{{$ID}}">[*]</a>
 		{{- $.Posting.Post}}</dd>
 	</dl>
 {{- end -}}

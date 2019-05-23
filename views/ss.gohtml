@@ -8,10 +8,10 @@
 <form method="post" action="/ss/" enctype="multipart/form-data">
 	<p>{{if eq $lang "de" -}}
 	<label for="statFile" title="Name der zu übertragenden Datei">Dateiname:</label>&nbsp;
-	<input type="file" name="statFile" id="statFile" title="Name der zu übertragenden Datei">
+	<input type="file" name="statFile" id="statFile" title="Name der zu übertragenden Datei" autofocus required>
 	{{- else -}}
 	<label for="statFile" title="Name of file to upload">Filename:</label>&nbsp;
-	<input type="file" name="statFile" id="statFile" title="Name of file to upload">
+	<input type="file" name="statFile" id="statFile" title="Name of file to upload" autofocus required>
 	{{- end -}}
 	</p><p class="right">
 	{{- if eq $lang "de" -}}
