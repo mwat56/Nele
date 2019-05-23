@@ -24,7 +24,6 @@
 `./views/`
 
 * `ap.gohtml`: called for the URL `"/a"` to add a new posting.
-  + `BackURL` == the system's URL to POST the form's data to
   + `Lang` == the page's language
 
 * `article.gohtml`: called for the URL `"/p/…"` to show a single posting.
@@ -34,15 +33,15 @@
     - `Post` == the actual text of the single posting
 
 * `dc.gohtml`: called for the URL `"/d/…"` to change an article's date/time.
-  + `BackURL` == the system's URL to POST the form's data to
   + `HMS` == the posting's hour-minute-second
+  + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
   + `NOW` == the current date's year-month-date
   + `YMD` == the posting's year-month-day
 
 * `ed.gohtml`: called for the URL `"/e/…"` to edit an article's text.
-  + `BackURL` == the system's URL to POST the form's data to
+  + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
 
@@ -71,6 +70,7 @@
   + Please be aware that the actual contents of this file is subject to your own country's laws and legislation.
 
 * `rp.gohtml`: called for the URL `"/r/…"` to remove an article's alltogether.
+  + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
 
@@ -83,10 +83,8 @@
     - `Post` == the actual text of the respective posting
 
 * `si.gohtml`: called for the URL `"/si"` to upload an image.
-  + `BackURL` == the system's URL to POST the form's data to
   + `Lang` == the page's language
 
 * `ss.gohtml`: called for the URL `"/ss"` to upload a static file.
-  + `BackURL` == the system's URL to POST the form's data to
   + `Lang` == the page's language
 

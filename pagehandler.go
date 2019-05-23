@@ -219,7 +219,6 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	switch path {
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
-			Set("BackURL", aRequest.URL.Path). // for POSTing back
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ap", aWriter, pageData)
 
@@ -238,9 +237,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			t := p.Time()
 			y, mo, d = t.Date()
 			pageData = check4lang(pageData, aRequest).
-				Set("BackURL", aRequest.URL.Path).
 				Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
 					t.Hour(), t.Minute(), t.Second())).
+				Set("ID", p.ID()).
 				Set("Manuscript", template.HTML(txt)).
 				Set("NOW", now).
 				Set("Robots", "noindex,nofollow").
@@ -257,7 +256,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			if 0 < len(txt) {
 				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
-					Set("BackURL", aRequest.URL.Path).
+					Set("ID", p.ID()).
 					Set("Manuscript", template.HTML(txt)).
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
@@ -293,8 +292,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "index", "index.html":
 		ph.handleRoot("20", pageData, aWriter, aRequest)
 
-	case "js":
-		ph.fh.ServeHTTP(aWriter, aRequest)
+		/*
+			case "js":
+				ph.fh.ServeHTTP(aWriter, aRequest)
+		*/
 
 	case "licence", "license", "lizenz":
 		ph.viewList.Render("licence", aWriter, pageData)
@@ -327,7 +328,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "n", "nn": // handle newest postings
+	case "n", "np": // handle newest postings
 		ph.handleRoot(tail, pageData, aWriter, aRequest)
 
 	case "p", "pp": // handle a single posting
@@ -362,7 +363,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			if 0 < len(txt) {
 				pageData = check4lang(pageData, aRequest).
 					Set("Manuscript", template.HTML(txt)).
-					Set("BackURL", aRequest.URL.Path).
+					Set("ID", p.ID()).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date).
 					Set("Robots", "noindex,nofollow")
@@ -392,13 +393,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "si": // store images
 		pageData = check4lang(pageData, aRequest).
-			Set("BackURL", aRequest.URL.Path). // for POSTing back
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("si", aWriter, pageData)
 
 	case "ss": // store static
 		pageData = check4lang(pageData, aRequest).
-			Set("BackURL", aRequest.URL.Path). // for POSTing back
 			Set("Robots", "noindex,nofollow")
 		ph.viewList.Render("ss", aWriter, pageData)
 
@@ -526,7 +525,7 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
-	case "a", "ap": // add a new post
+	case "a": // add a new post
 		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
 			p := NewPosting()
 			p.Set(m)
@@ -542,7 +541,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "d", "dp": // change date
+	case "d": // change date
 		if 0 < len(tail) {
 			op := newPosting(tail)
 			t := op.Time()
@@ -577,7 +576,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "e", "ep": // edit posting
+	case "e": // edit posting
 		if 0 < len(tail) {
 			var old []byte
 			m := replCRLF([]byte(aRequest.FormValue("manuscript")))
@@ -600,7 +599,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "r", "rp": // remove posting
+	case "r": // remove posting
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			if err := p.Delete(); nil != err {
