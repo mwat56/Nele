@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	ini "github.com/mwat56/go-ini"
+	"github.com/mwat56/ini"
 )
 
 type (

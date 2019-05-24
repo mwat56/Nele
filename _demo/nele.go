@@ -16,8 +16,8 @@ import (
 	"syscall"
 
 	nele "github.com/mwat56/Nele"
-	"github.com/mwat56/go-apachelogger"
-	"github.com/mwat56/go-errorhandler"
+	"github.com/mwat56/apachelogger"
+	"github.com/mwat56/errorhandler"
 )
 
 // `doConsole()` checks for the `add` commandline argument, adds the

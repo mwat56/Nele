@@ -20,7 +20,7 @@ import (
 	"strings"
 	"syscall"
 
-	passlist "github.com/mwat56/go-passlist"
+	"github.com/mwat56/passlist"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

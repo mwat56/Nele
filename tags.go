@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	hashtags "github.com/mwat56/go-hashtags"
+	"github.com/mwat56/hashtags"
 )
 
 /*

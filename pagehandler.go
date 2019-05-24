@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	hashtags "github.com/mwat56/go-hashtags"
-	passlist "github.com/mwat56/go-passlist"
-	uploadhandler "github.com/mwat56/go-uploadhandler"
+	"github.com/mwat56/hashtags"
+	"github.com/mwat56/passlist"
+	"github.com/mwat56/uploadhandler"
 )
 
 type (
