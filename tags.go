@@ -11,6 +11,7 @@ package nele
  */
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path/filepath"
@@ -119,7 +120,7 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 		} else {
 			url = "/mt/" + item.Tag[1:]
 		}
-		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + item.Tag + ` ">` + item.Tag + `</a> `)
+		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) + ` ">` + item.Tag + `</a> `)
 	}
 
 	return tl
