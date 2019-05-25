@@ -194,6 +194,7 @@ func TestURLparts(t *testing.T) {
 		{" 6a", args{"/q/?s=earchterm"}, "q", "?s=earchterm"},
 		{" 7", args{"/q/search?s=term"}, "q", "search?s=term"},
 		{" 8", args{"/static/https://github.com/"}, "static", "https://github.com/"},
+		{" 9", args{"/ht/kurzerklärt"}, "ht", "kurzerklärt"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
