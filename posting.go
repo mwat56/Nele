@@ -185,8 +185,7 @@ func (p *TPosting) Equal(aID string) bool {
 
 // Exists returns whether there is a file with more than zero bytes.
 func (p *TPosting) Exists() bool {
-	fName := pathname(p.id)
-	fi, err := os.Stat(fName)
+	fi, err := os.Stat(pathname(p.id))
 	if nil != err {
 		return false
 	}
@@ -207,16 +206,6 @@ func (p *TPosting) Exists() bool {
 func (p *TPosting) ID() string {
 	return p.id
 } // ID()
-
-// IsFile returns whether the posting is stored in the filesystem.
-func (p *TPosting) IsFile() bool {
-	f, err := os.Stat(p.PathFileName())
-	if nil != err {
-		return false
-	}
-
-	return (0 < f.Size())
-} // IsFile()
 
 // Len returns the current length of the posting's Markdown text.
 func (p *TPosting) Len() int {
