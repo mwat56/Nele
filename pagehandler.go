@@ -58,7 +58,7 @@ func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
 // `handleShare()` serves the edit page for a shared URL.
 func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
 	p := NewPosting()
-	p.Set([]byte("\n\n> [" + aShare + "](" + aShare + ")\n"))
+	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
 		log.Printf("handleShare('%s'): %v", aShare, err)
 		//TODO better error handling
