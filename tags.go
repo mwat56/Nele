@@ -29,8 +29,12 @@ func goAddID(aList *hashtags.THashList, aID string, aText []byte) {
 	aList.IDparse(aID, aText)
 } // goAddID()
 
-// `doCheckPost` returns whether there is a file identified
+// `doCheckPost()` returns whether there is a file identified
 // by `aID` containing `aHash`.
+//
+// The function's result is `false` (1) if the file associated with
+// `aID` doesnt't exist, or (2) if the file can't be read, or (3)
+// the given `aHash` can't be found in the posting's text.
 func doCheckPost(aHash, aID string) bool {
 	p := newPosting(aID)
 	if !p.Exists() {
@@ -49,7 +53,7 @@ func doCheckPost(aHash, aID string) bool {
 // `goCheckHashes()` walks all postings referenced by `aList`.
 func goCheckHashes(aList *hashtags.THashList) {
 	aList.Walk(doCheckPost)
-
+	go goCacheCleanup()
 } // goCheckHashes()
 
 // `goInitHashlist()` initialises the hash list.
@@ -63,8 +67,8 @@ func goInitHashlist(aList *hashtags.THashList) {
 	if nil != err {
 		return // we can't recover from this :-(
 	}
-	for _, dName := range dirnames {
-		filesnames, err := filepath.Glob(dName + "/*.md")
+	for _, mdName := range dirnames {
+		filesnames, err := filepath.Glob(mdName + "/*.md")
 		if nil != err {
 			continue // it might be a file (not a directory) …
 		}
@@ -72,7 +76,7 @@ func goInitHashlist(aList *hashtags.THashList) {
 			continue // skip empty directory
 		}
 		for _, postName := range filesnames {
-			id := strings.TrimPrefix(postName, dName+"/")
+			id := strings.TrimPrefix(postName, mdName+"/")
 			if txt, err := ioutil.ReadFile(postName); nil == err {
 				aList.IDparse(id[:len(id)-3], txt) // strip name extension
 			}
@@ -80,16 +84,19 @@ func goInitHashlist(aList *hashtags.THashList) {
 	}
 
 	aList.Store()
+	go goCacheCleanup()
 } // goInitHashlist()
 
 // `goRemoveID()` removes `aID` from `aList`s items.
 func goRemoveID(aList *hashtags.THashList, aID string) {
 	aList.IDremove(aID)
+	go goCacheCleanup()
 } // goRemoveID()
 
 // `goRenameID()` renames all references of `aOldID` to `aNewID`.
 func goRenameID(aList *hashtags.THashList, aOldID, aNewID string) {
 	aList.IDrename(aOldID, aNewID)
+	go goCacheCleanup()
 } // goRenameID()
 
 // `goUpdateID()` updates the #hashtag/@mention references of `aID`.
