@@ -10,12 +10,19 @@ import (
 	"compress/zlib"
 	"html/template"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 /*
+This file provides functions to maintain a simple cache for articles.
 
-intercept a `posting`'s HTML generation
+The original posting is stored in Markdown (i.e. text) which has on
+each request converted to HTML before showing it to the remote user.
+To minimise the need for Markdown/HTML conversion each generated HTML
+is stored in compressed form to a separate file.
+The next time the posting's markup is requested the prepared HTML is
+returned instead of converting the Markdown again.
 
 */
 
@@ -81,9 +88,48 @@ func cachedHTML(aPost *TPosting) template.HTML {
 	return template.HTML(txt)
 } // cachedHTML()
 
+// `goCacheCleanup()` is intended to be run in background and
+// searches for stale and outdated cache files and deletes them.
+func goCacheCleanup() {
+	var (
+		dirnames, filenames []string
+		err                 error
+		fi                  os.FileInfo
+		mdTime              time.Time
+	)
+	if dirnames, err = filepath.Glob(postingBaseDirectory + "/*"); nil != err {
+		return
+	}
+	for _, dirname := range dirnames {
+		if filenames, err = filepath.Glob(dirname + "/*.ht"); nil != err {
+			continue // it might be a file (not a directory) …
+		}
+		if 0 >= len(filenames) {
+			continue // skip empty directory
+		}
+		for _, htName := range filenames {
+			if fi, err = os.Stat(htName); nil != err {
+				//TODO better error handling
+				continue
+			}
+			htTime := fi.ModTime()
+
+			mdName := htName[:len(htName)-2] + "md"
+			if fi, err = os.Stat(mdName); nil != err {
+				mdTime = htTime.AddDate(1, 1, 1)
+			} else {
+				mdTime = fi.ModTime()
+			}
+			if htTime.Before(mdTime) {
+				os.Remove(htName)
+			}
+		}
+	}
+} // goCacheCleanup()
+
+// `goCacheHTML()` is intended to be run in background and writes
+// `aText` in compressed form to `aFilename`.
 func goCacheHTML(aFilename string, aText []byte) {
-	// Now, write the compressed HTML to a file so it's available the
-	// next time this article is requested.
 	file, err := os.OpenFile(aFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if nil != err {
 		os.Remove(aFilename) // what else could we do here?
@@ -95,45 +141,5 @@ func goCacheHTML(aFilename string, aText []byte) {
 
 	w.Write(aText)
 } // goCacheHTML()
-
-/*
-func cachedHTML2(aPost *TPosting) template.HTML {
-	var (
-		err    error
-		fi     os.FileInfo
-		htTime time.Time
-		txt    []byte
-	)
-	mdName := aPost.PathFileName()
-	htName := mdName[:len(mdName)-2] + "ht"
-	if fi, err = os.Stat(mdName); nil != err {
-		// return empty result
-		return template.HTML(txt)
-	}
-	mdTime := fi.ModTime()
-
-	if fi, err = os.Stat(htName); nil != err {
-		htTime = mdTime.AddDate(-1, -1, -1)
-	} else {
-		htTime = fi.ModTime()
-	}
-	if htTime.After(mdTime) {
-		// read cached/compressed HTML file
-		var buf []byte
-		if buf, err = ioutil.ReadFile(htName); nil == err {
-			return template.HTML(buf)
-		}
-	}
-
-	// get the current Markdown and convert it into HTML
-	txt = MDtoHTML(aPost.Markdown())
-
-	if err = ioutil.WriteFile(htName, txt, 0644); nil != err {
-		os.Remove(htName) // what else could we do here?
-	}
-
-	return template.HTML(txt)
-} // cachedHTML2()
-*/
 
 /* _EoF_ */
