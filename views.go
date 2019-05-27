@@ -133,8 +133,9 @@ func (v *TView) render(aWriter io.Writer, aData *TDataList) (rErr error) {
 		return
 	}
 
-	// if _, rErr := aWriter.Write(page); nil != rErr {
-	if _, rErr := aWriter.Write(RemoveWhiteSpace(page)); nil != rErr {
+	page = addExternURLtagets(RemoveWhiteSpace(page))
+
+	if _, rErr := aWriter.Write(page); nil != rErr {
 		return rErr
 	}
 

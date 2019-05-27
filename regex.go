@@ -26,6 +26,21 @@ import (
 )
 
 var (
+	// RegEx to HREF= tag attributes
+	hrefRE = regexp.MustCompile(` (href="http)`)
+)
+
+const (
+	// replacement text for `hrefRE`
+	hrefReplace = ` target="_extern" $1`
+)
+
+// `addExternURLtagets()` adds a TARGET attribute to HREFs.
+func addExternURLtagets(aPage []byte) []byte {
+	return hrefRE.ReplaceAll(aPage, []byte(hrefReplace))
+} // addExternURLtagets()
+
+var (
 	// RegEx to match hh:mm:ss
 	hmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])[^0-9]([0-5]?[0-9]))?[^0-9]?|$`)
 )

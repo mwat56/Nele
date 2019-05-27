@@ -220,6 +220,38 @@ func BenchmarkMDtoHTML(b *testing.B) {
 	}
 } // BenchmarkMDtoHTML()
 
+func Test_addExternURLtagets(t *testing.T) {
+	t1 := ` bla <a href="https://site/page">bla</a> `
+	p1 := []byte(t1)
+	w1 := []byte(` bla <a target="_extern" href="https://site/page">bla</a> `)
+	t2 := t1 + `bla <a href="/page">bla</a>`
+	p2 := []byte(t2)
+	w2 := []byte(` bla <a target="_extern" href="https://site/page">bla</a> bla <a href="/page">bla</a>`)
+	t3 := t1 + `bla <a href="http://site.com/page">bla</a>`
+	p3 := []byte(t3)
+	w3 := []byte(` bla <a target="_extern" href="https://site/page">bla</a> bla <a target="_extern" href="http://site.com/page">bla</a>`)
+	type args struct {
+		aPage []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		// TODO: Add test cases.
+		{" 1", args{p1}, w1},
+		{" 2", args{p2}, w2},
+		{" 3", args{p3}, w3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := addExternURLtagets(tt.args.aPage); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("addExternURLtagets() = %s,\nwant %s", got, tt.want)
+			}
+		})
+	}
+} // Test_addExternURLtagets()
+
 func Test_getHMS(t *testing.T) {
 	type args struct {
 		aTime string
