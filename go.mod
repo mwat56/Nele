@@ -6,7 +6,7 @@ require (
 	github.com/mwat56/apachelogger v1.1.1
 	github.com/mwat56/errorhandler v1.0.2
 	github.com/mwat56/hashtags v0.3.2
-	github.com/mwat56/ini v1.0.1
+	github.com/mwat56/ini v1.3.0
 	github.com/mwat56/passlist v1.0.1
 	github.com/mwat56/uploadhandler v1.0.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect

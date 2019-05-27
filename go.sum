@@ -4,8 +4,8 @@ github.com/mwat56/errorhandler v1.0.2 h1:mlvQaV6A40YAnu6uTBxfdAuXWqLuuvdS5sPkoH+
 github.com/mwat56/errorhandler v1.0.2/go.mod h1:NFz8HNMovjavnhZLyJOR/muQJnrLl1jHbkHp2lbz+/o=
 github.com/mwat56/hashtags v0.3.2 h1:9RGex3Pt3fHf4ms6n60TAjV5cPLdDne0zubKk0T0eBU=
 github.com/mwat56/hashtags v0.3.2/go.mod h1:6Vp4cgRQRE7advIVbl/33WH37UlnjNmzNFMDitzMjbw=
-github.com/mwat56/ini v1.0.1 h1:F9R+gY297CANAKInR8c4g8Tv8bDbAjY9wppbdjHK8kk=
-github.com/mwat56/ini v1.0.1/go.mod h1:8o0vuCi7Vq9rKy5JRuPN5HLMcKMB58mqhc/fYhVmpWo=
+github.com/mwat56/ini v1.3.0 h1:Cy0MSGAdjHLG8LcJLjoVUiSP5/esLlKvZUGKWKM/EpQ=
+github.com/mwat56/ini v1.3.0/go.mod h1:8o0vuCi7Vq9rKy5JRuPN5HLMcKMB58mqhc/fYhVmpWo=
 github.com/mwat56/passlist v1.0.1 h1:K5zhIsOBWb7FgfN9yNiMz6Kr3rT/7699p075CrfMvBo=
 github.com/mwat56/passlist v1.0.1/go.mod h1:m4H2fg/m7UqRTqHcpzJAmDEsNmKXsbgPFTIlghrBKfs=
 github.com/mwat56/uploadhandler v1.0.0 h1:+cE4fkPi7VWBpxlhoG4OBr8sfip3HIc0nqFyoMAYrVc=
