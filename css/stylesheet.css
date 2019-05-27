@@ -111,7 +111,7 @@ em, .em, i, .italic {
 footer {
 	border-radius: 1ex;
 	clear: both;
-	margin: 1em 1ex 0 1ex;
+	margin: 1em 0 0 0;
 }
 footer, footer p {
 	text-align: right;
@@ -170,6 +170,13 @@ hr {
 	padding: 0;
 	text-align: center;
 	text-indent: 0;
+}
+img, svg {
+	vertical-align: middle;
+	max-width: 99%;
+	max-height: 99%;
+	height: auto;
+	width: auto;
 }
 input[type="reset"], input[type="submit"] {
 	font-size: 75%;
