@@ -7,7 +7,6 @@
 package nele
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -44,23 +43,18 @@ func Test_absolute(t *testing.T) {
 } // Test_absolute()
 
 func Test_iniData(t *testing.T) {
-	// w1 := &ini.TSection{}
-	w1 := 13
 	tests := []struct {
 		name string
-		want int // *ini.TSection
 	}{
 		// TODO: Add test cases.
-		{" 1", w1},
+		{" 1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := iniData().Len(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("iniData() = %v,\nwant %v", got, tt.want)
-			}
+			iniData()
 		})
 	}
-} // Test_iniData()
+}
 
 func Test_initArgs(t *testing.T) {
 	tests := []struct {
