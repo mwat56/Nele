@@ -1,5 +1,9 @@
 *~
+access.*
 addTest.md
+bla.mwat.de.*
+blog.*
+blog_local.sh
 certs/*
 *.db
 _demo/
@@ -10,6 +14,7 @@ img/*
 Markdown_Syntax.*
 md2htm
 nele
+nele.*
 postings/*
 static/*
 TODO*
