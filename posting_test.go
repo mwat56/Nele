@@ -1,3 +1,9 @@
+/*
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+              EMail : <support@mwat.de>
+*/
+
 package nele
 
 import (
@@ -407,10 +413,10 @@ func TestTPosting_makeDir(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	p1 := newPosting(id1)
-	rp1 := "/tmp/postings/158/158d2fcc0ff16000"
+	rp1 := "/tmp/postings/2019158/158d2fcc0ff16000"
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	p2 := newPosting(id2)
-	rp2 := "/tmp/postings/159/159b4b37fb6ac000"
+	rp2 := "/tmp/postings/2019159/159b4b37fb6ac000"
 	type fields struct {
 		p *TPosting
 	}
@@ -475,10 +481,10 @@ func TestTPosting_pathFileName(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	p1 := newPosting(id1)
-	rp1 := "/tmp/postings/158/158d2fcc0ff16000.md"
+	rp1 := "/tmp/postings/2019158/158d2fcc0ff16000.md"
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	p2 := newPosting(id2)
-	rp2 := "/tmp/postings/159/159b4b37fb6ac000.md"
+	rp2 := "/tmp/postings/2019159/159b4b37fb6ac000.md"
 	type fields struct {
 		p *TPosting
 	}

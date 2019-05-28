@@ -32,7 +32,12 @@ import (
 // Internal function to allow for unit testing.
 // The `timeID()` function reverses this computation.
 func newID(aTime time.Time) string {
-	return fmt.Sprintf("%x", aTime.UnixNano())
+	id := fmt.Sprintf("%x", aTime.UnixNano())
+	if 16 > len(id) {
+		return strings.Repeat("0", 16-len(id)) + id
+	}
+
+	return id
 } // newID()
 
 // NewID returns a new article ID.
@@ -47,7 +52,7 @@ func NewID() string {
 // `aID` is a posting's ID as returned by `newID()`.
 func timeID(aID string) (rTime time.Time) {
 	if i64, err := strconv.ParseInt(aID, 16, 64); nil == err {
-		rTime = time.Unix(0, i64)
+		return time.Unix(0, i64)
 	}
 
 	return
@@ -236,9 +241,12 @@ func (p *TPosting) Load() error {
 func (p *TPosting) makeDir() (string, error) {
 	fmode := os.ModeDir | 0775
 
+	// We need the year to guard against ID overflows.
+	y, _, _ := timeID(p.id).Date()
 	// Using the aID's first three characters leads to
 	// directories worth about 52 days of data.
-	dirname := path.Join(postingBaseDirectory, string(p.id[:3]))
+	dir := fmt.Sprintf("%04d%s", y, p.id[:3])
+	dirname := path.Join(postingBaseDirectory, dir)
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fmode); nil != err {
 		return "", err
 	}
@@ -261,13 +269,13 @@ func (p *TPosting) Markdown() []byte {
 	var err error
 
 	// now we have to check the filesystem
-	filepathname := p.PathFileName()
-	if _, err = os.Stat(filepathname); nil != err {
+	fName := p.PathFileName()
+	if _, err = os.Stat(fName); nil != err {
 		return p.markdown // return empty slice
 	}
 
 	var bs []byte
-	if bs, err = ioutil.ReadFile(filepathname); nil != err {
+	if bs, err = ioutil.ReadFile(fName); nil != err {
 		return p.markdown // return empty slice
 	}
 	p.markdown = []byte(strings.TrimSpace(string(bs)))
@@ -275,13 +283,19 @@ func (p *TPosting) Markdown() []byte {
 	return p.markdown
 } // Markdown()
 
+// `pathname()` returns the complete article path-/filename.
 func pathname(aID string) string {
+	// We need the year to guard against ID overflows.
+	y, _, _ := timeID(aID).Date()
+
 	// Using the aID's first three characters leads to
 	// directories worth about 52 days of data.
-	return path.Join(postingBaseDirectory, string(aID[:3]), aID+".md")
+	dir := fmt.Sprintf("%04d%s", y, aID[:3])
+
+	return path.Join(postingBaseDirectory, dir, aID+".md")
 } // pathname()
 
-// PathFileName returns the article's path-/filename.
+// PathFileName returns the article's complete path-/filename.
 func (p *TPosting) PathFileName() string {
 	return pathname(p.id)
 } // PathFileName()
@@ -328,12 +342,12 @@ func (p *TPosting) Store() (int64, error) {
 			return result, fmt.Errorf("Markdown '%s' is empty", p.id)
 		}
 	}
-	filepathname := p.PathFileName()
-	if err = ioutil.WriteFile(filepathname, p.markdown, 0644); nil != err {
+	fName := p.PathFileName()
+	if err = ioutil.WriteFile(fName, p.markdown, 0644); nil != err {
 		return result, err
 	}
 
-	if fi, err := os.Stat(filepathname); nil == err {
+	if fi, err := os.Stat(fName); nil == err {
 		result = fi.Size()
 	}
 
@@ -344,5 +358,34 @@ func (p *TPosting) Store() (int64, error) {
 func (p *TPosting) Time() time.Time {
 	return timeID(p.id)
 } // Time()
+
+/*
+func updatePostDirs() {
+	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	if nil != err {
+		return
+	}
+	for _, dirname := range dirnames {
+		filesnames, err := filepath.Glob(dirname + "/*.md")
+		if nil != err {
+			continue // it might be a file (not a directory) …
+		}
+		if 0 >= len(filesnames) {
+			continue // skip empty directory
+		}
+		for _, fName := range filesnames {
+			pName := strings.TrimPrefix(fName, dirname+"/")
+			id := pName[:len(pName)-3]
+			newName := pathname(id)
+
+			y, _, _ := timeID(id).Date()
+			dir := fmt.Sprintf("%04d%s", y, id[:3])
+			dirname := path.Join(postingBaseDirectory, dir)
+			os.MkdirAll(filepath.FromSlash(dirname), os.ModeDir|0775)
+			os.Rename(fName, newName)
+		}
+	}
+} // updatePostDirs()
+*/
 
 /* _EoF_ */
