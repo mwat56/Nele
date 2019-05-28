@@ -1,3 +1,9 @@
+/*
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+              EMail : <support@mwat.de>
+*/
+
 package nele
 
 import (
@@ -69,7 +75,7 @@ func TestTPostList_Article(t *testing.T) {
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{"1580002c0c472200"}, 1},
+		{" 1", pl1, args{"156dfb3d4f4d7000"}, 1},
 		{" 2", pl2, args{"1234567890123456"}, 0},
 	}
 	for _, tt := range tests {
@@ -187,18 +193,20 @@ func TestTPostList_IsSorted(t *testing.T) {
 } // TestTPostList_IsSorted()
 
 func storeNewPost(aBaseDir string, aDay, aHour int) {
-	// n := time.Now()
-	// y, m := n.Year(), n.Month()
-	y, m := 2018, time.December
-	t := time.Date(y, m, aDay, aHour, aHour, aHour, 0, time.Local)
-	p := newPosting(newID(t)).
-		Set([]byte(fmt.Sprintf("\n> %s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", aBaseDir, aDay, aHour, aDay)))
+	t := time.Date(1970, 1, aDay, aHour, aHour, aHour, 0, time.Local)
+	p := newPosting(newID(t))
+	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
+	p.Store()
+
+	t = time.Date(2018, 12, aDay, aHour, aHour, aHour, 0, time.Local)
+	p = newPosting(newID(t))
+	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	p.Store()
 } // storeNewPost()
 
 func prepareTestFiles() {
 	bd, _ := filepath.Abs(PostingBaseDirectory())
-	for i := 0; i < 111; i++ {
+	for i := 1; i < 13; i++ {
 		storeNewPost(bd, i, 1)
 		storeNewPost(bd, i, 8)
 		storeNewPost(bd, i, 16)
@@ -212,8 +220,6 @@ func TestTPostList_Month(t *testing.T) {
 	pl2 := NewPostList()
 	pl3 := NewPostList()
 	pl4 := NewPostList()
-	// pl5 := NewPostList()
-	// pl6 := NewPostList()
 	type args struct {
 		aYear  int
 		aMonth time.Month
@@ -225,10 +231,10 @@ func TestTPostList_Month(t *testing.T) {
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{2019, 1}, 94},
-		{" 2", pl2, args{2019, 2}, 84},
-		{" 3", pl3, args{2019, 3}, 60},
-		{" 4", pl4, args{2019, 4}, 0},
+		{" 1", pl1, args{1970, 1}, 36},
+		{" 2", pl2, args{2018, 12}, 36},
+		{" 3", pl3, args{1970, 6}, 0},
+		{" 4", pl4, args{2018, 12}, 36},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -287,9 +293,9 @@ func TestTPostList_Week(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{" 1", pl1, args{0, 0, 0}, 0},
-		{" 2", pl2, args{2019, 1, 1}, 22},
-		{" 3", pl3, args{2019, 2, 2}, 21},
-		{" 4", pl4, args{2019, 3, 3}, 21},
+		{" 2", pl2, args{1970, 1, 1}, 12},
+		{" 3", pl3, args{2018, 12, 1}, 6},
+		{" 4", pl4, args{2018, 12, 8}, 21},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

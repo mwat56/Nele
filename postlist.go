@@ -145,8 +145,10 @@ func (pl *TPostList) Len() int {
 // `aMonth` the year's month to lookup; if `0` (zero) the
 // current month is used.
 func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
-	var y int
-	var m time.Month
+	var (
+		y int
+		m time.Month
+	)
 	tLo := time.Now()
 
 	if 0 < aYear {
@@ -160,8 +162,8 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 		m = tLo.Month()
 	}
 
-	tLo = time.Date(y, m, 1, 0, 0, 0, -1, time.Local)
-	tHi := time.Date(y, m+1, 1, 0, 0, 0, 0, time.Local)
+	tLo = time.Date(y, m, 1, 0, 0, 0, 0, time.Local)
+	tHi := time.Date(y, m+1, 1, 0, 0, 0, -1, time.Local)
 
 	return pl.prepareWalk(tLo, tHi)
 } // Month()
@@ -220,7 +222,6 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 //
 // `aHi` is the latest ID time to use.
 func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
-	// bd := (*pl)[0].basedir
 	tn := time.Now()
 	if tn.Before(aHi) {
 		aHi = tn // exclude postings from the future ;-)
@@ -286,7 +287,7 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	} else {
 		d -= (int(wd) - 1)
 	}
-	tLo = time.Date(y, m, d, 0, 0, 0, -1, time.Local)
+	tLo = time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 	tHi := tLo.Add((time.Hour * 24 * 7) + 1)
 
 	return pl.prepareWalk(tLo, tHi)
