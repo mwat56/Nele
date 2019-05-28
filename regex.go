@@ -311,21 +311,27 @@ func SearchPostings(aText string) *TPostList {
 		return pl // empty list
 	}
 
-	files, err := filepath.Glob(postingBaseDirectory + "/*/*.md")
+	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
 	if nil != err {
-		return pl // empty list
+		return pl
 	}
-
-	for _, fName := range files {
-		fTxt, err := ioutil.ReadFile(fName)
-		if (nil != err) || (!pattern.Match(fTxt)) {
-			// We 'eat' possible errors here, indirectly
-			// assuming them to be a no-match.
-			continue
+	for _, dirname := range dirnames {
+		files, err := filepath.Glob(dirname + "/*.md")
+		if nil != err {
+			continue // it might be a file (not a directory) …
 		}
-		id := path.Base(fName)
-		p := newPosting(id[:len(id)-3]) // exclude file extension
-		pl.Add(p.Set(fTxt))
+
+		for _, fName := range files {
+			fTxt, err := ioutil.ReadFile(fName)
+			if (nil != err) || (!pattern.Match(fTxt)) {
+				// We 'eat' possible errors here, indirectly
+				// assuming them to be a no-match.
+				continue
+			}
+			id := path.Base(fName)
+			p := newPosting(id[:len(id)-3]) // exclude file extension
+			pl.Add(p.Set(fTxt))
+		}
 	}
 
 	return pl

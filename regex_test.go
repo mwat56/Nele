@@ -1,3 +1,9 @@
+/*
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+              EMail : <support@mwat.de>
+*/
+
 package nele
 
 import (
@@ -151,13 +157,13 @@ func TestSearchPostings(t *testing.T) {
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", args{bd, "16"}, 113},
-		{" 2", args{bd, "8"}, 151},
-		{" 3", args{bd, "1\\d+"}, 153},
-		{" 4", args{bd, "10\\d+"}, 30},
+		{" 1", args{bd, "16"}, 24},
+		{" 2", args{bd, "8"}, 50},
+		{" 3", args{bd, "1\\d+"}, 72},
+		{" 4", args{bd, "10\\d+"}, 0},
 		{" 5", args{bd, "08\\s+08"}, 2},
-		{" 6", args{bd, bd}, 333},
-		{" 7", args{bd, "postings"}, 333},
+		{" 6", args{bd, bd}, 72},
+		{" 7", args{bd, "postings"}, 72},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
