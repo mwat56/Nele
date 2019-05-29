@@ -123,9 +123,9 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 			class = "tc99"
 		}
 		if '#' == item.Tag[0] {
-			url = "/ht/" + item.Tag[1:]
+			url = "/hl/" + item.Tag[1:]
 		} else {
-			url = "/mt/" + item.Tag[1:]
+			url = "/ml/" + item.Tag[1:]
 		}
 		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) + ` ">` + item.Tag + `</a> `)
 	}

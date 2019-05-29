@@ -276,7 +276,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "fonts":
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
-	case "ht": // #hashtag search
+	case "hl": // #hashtag list
 		if 0 < len(tail) {
 			ph.handleHashtag(tail, pageData, aWriter, aRequest)
 		} else {
@@ -321,7 +321,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("weekURL", "/w/"+date)
 		ph.viewList.Render("searchresult", aWriter, pageData)
 
-	case "mt": // @mention search
+	case "ml": // @mention list
 		if 0 < len(tail) {
 			ph.handleMention(tail, pageData, aWriter, aRequest)
 		} else {
