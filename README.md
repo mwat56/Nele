@@ -359,11 +359,11 @@ Second, are the URLs any _normal_ user might see and use:
 
 * `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
 * `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
-* `/ht/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
+* `/hl/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
 Provided the given `#tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/m/` shows the articles of the current month.
 You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
-* `/mt/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
+* `/ml/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 20 articles.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
