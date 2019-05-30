@@ -8,7 +8,6 @@ package nele
 
 import (
 	"compress/zlib"
-	"html/template"
 	"os"
 	"path/filepath"
 	"time"
@@ -37,7 +36,7 @@ returned instead of converting the Markdown again.
 // might even grow due to the compression.
 //
 // `aPost` is the posting whose Markdown is used.
-func cachedHTML(aPost *TPosting) template.HTML {
+func cachedHTML(aPost *TPosting) []byte {
 	var (
 		err    error
 		fi     os.FileInfo
@@ -48,7 +47,7 @@ func cachedHTML(aPost *TPosting) template.HTML {
 	mdName := aPost.PathFileName()
 	if fi, err = os.Stat(mdName); nil != err {
 		// return empty result
-		return template.HTML(txt)
+		return txt
 	}
 	mdTime := fi.ModTime()
 
@@ -70,7 +69,7 @@ func cachedHTML(aPost *TPosting) template.HTML {
 
 				txt = make([]byte, htSize*4)
 				if _, err = reader.Read(txt); nil == err {
-					return template.HTML(txt)
+					return txt
 				}
 			}
 		}
@@ -85,7 +84,7 @@ func cachedHTML(aPost *TPosting) template.HTML {
 	// next time this article is requested.
 	go goCacheHTML(htName, txt)
 
-	return template.HTML(txt)
+	return txt
 } // cachedHTML()
 
 // `goCacheCleanup()` is intended to be run in background and
