@@ -259,9 +259,9 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 	// Make sure PREformatted parts remain as-is.
 	// (1) replace the PRE parts with a dummy text:
 	for l, cnt := len(preMatches), 0; cnt < l; cnt++ {
-		search := fmt.Sprintf("\\s*%s\\s*", regexp.QuoteMeta(string(preMatches[cnt])))
+		search = fmt.Sprintf("\\s*%s\\s*", regexp.QuoteMeta(string(preMatches[cnt])))
 		if re, err := regexp.Compile(search); nil == err {
-			repl = fmt.Sprintf("</@%d@%d@%d@%d@/>", cnt, cnt, cnt, cnt)
+			repl = fmt.Sprintf("</-%d-%d-%d-%d-/>", cnt, cnt, cnt, cnt)
 			aPage = re.ReplaceAllLiteral(aPage, []byte(repl))
 		}
 	}
@@ -275,7 +275,7 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 
 	// (3) replace the PRE dummies with the real markup:
 	for l, cnt := len(preMatches), 0; cnt < l; cnt++ {
-		search = fmt.Sprintf("\\s*</@%d@%d@%d@%d@/>\\s*", cnt, cnt, cnt, cnt)
+		search = fmt.Sprintf("\\s*</-%d-%d-%d-%d-/>\\s*", cnt, cnt, cnt, cnt)
 		if re, err := regexp.Compile(search); nil == err {
 			aPage = re.ReplaceAllLiteral(aPage, preMatches[cnt])
 		}
@@ -359,7 +359,7 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 var (
 	// RegEx to find path and possible added path components
 	// routeRE = regexp.MustCompile(`^/?([\w._-]+)?/?([\w.?=:;/,_-]*)?`)
-	routeRE = regexp.MustCompile(`(?i)^/?([ÄÖÜß\w._-]+)?/?([ÄÖÜß\w.?=:;/,_-]*)?`)
+	routeRE = regexp.MustCompile(`(?i)^/?([ÄÖÜß\w._-]+)?/?([§ÄÖÜß\w.?=:;/,_-]*)?`)
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
