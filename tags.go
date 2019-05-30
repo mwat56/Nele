@@ -15,6 +15,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/mwat56/hashtags"
@@ -132,5 +133,84 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 
 	return tl
 } // markupCloud()
+
+var (
+	// RegEx to find PREformatted parts in an HTML page.
+	aHrefRE = regexp.MustCompile(`(?si)(<a[^>]*>.*?</a>)`)
+
+	// RegEx to identify a numeric HTML entity.
+	entityRE = regexp.MustCompile(`(#[0-9]+;)`)
+
+	// match: #hashtag|@mention
+	hashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
+)
+
+// `markupTags()` returns `aPage` with all #hashtags/@mentions marked
+// up as a HREF links.
+func markupTags(aPage []byte) []byte {
+	var repl, search string
+	// (0) Check whether there are any links present:
+	linkMatches := aHrefRE.FindAll(aPage, -1)
+	if (nil != linkMatches) || (0 < len(linkMatches)) {
+		// (1) replace the links with a dummy text:
+		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+			search = regexp.QuoteMeta(string(linkMatches[cnt]))
+			if re, err := regexp.Compile(search); nil == err {
+				repl = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
+				aPage = re.ReplaceAllLiteral(aPage, []byte(repl))
+			}
+		}
+	}
+
+	// (2) markup the #hashtags/@mentions:
+	result := hashMentionRE.ReplaceAllStringFunc(string(aPage),
+		func(aString string) string {
+			sub := hashMentionRE.FindSubmatch([]byte(aString))
+			if (nil == sub) || (0 >= len(sub)) || (0 >= len(sub[1])) {
+				return aString
+			}
+
+			var suffix, url string
+
+			hash := string(sub[1])
+			// '_' can be both, part of the hashtag and italic
+			// markup so we must remove it if it's at the end:
+			if '_' == hash[len(hash)-1] {
+				hash = hash[:len(hash)-1]
+				suffix = `_`
+			}
+			if '#' == hash[0] {
+				if 0 < len(sub[2]) {
+					if '"' == sub[2][0] {
+						// double quote following a possible hashtag: most
+						// probably an URL#fragment, hence leave it as is
+						return aString
+					}
+					if (';' == sub[2][0]) && entityRE.MatchString(aString) {
+						// leave HTML entities as is
+						return aString
+					}
+				}
+				url = "/hl/" + hash[1:]
+			} else {
+				url = "/ml/" + hash[1:]
+			}
+			if 0 < len(sub[2]) {
+				suffix += string(sub[2])
+			}
+
+			return `<a href="` + url + `" class="smaller">` + hash + `</a>` + suffix
+		})
+
+	// (3) replace the link dummies with the real markup:
+	for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+		search = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
+		if re, err := regexp.Compile(search); nil == err {
+			result = re.ReplaceAllLiteralString(result, string(linkMatches[cnt]))
+		}
+	}
+
+	return []byte(result)
+} // markupTags()
 
 /* _EoF_ */

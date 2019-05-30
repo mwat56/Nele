@@ -302,12 +302,12 @@ func (p *TPosting) PathFileName() string {
 
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
-	return cachedHTML(p)
+	return template.HTML(markupTags(cachedHTML(p)))
 	/*
 		// make sure we have the most recent version:
 		p.Markdown()
 
-		return template.HTML(MDtoHTML(p.markdown))
+		return template.HTML(markupTags(MDtoHTML(p.markdown)))
 	*/
 } // Post()
 

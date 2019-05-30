@@ -225,9 +225,9 @@ pre + p {
 	text-indent: 0;
 }
 small, .small {
-	color:inherit;
-	font-size:79%;
-	font-weight:inherit;
+	color: inherit;
+	font-size: 79%;
+	font-weight: inherit;
 }
 textarea {
 	padding: 0.5ex;
@@ -321,6 +321,11 @@ p.matches {
 .right {
 	text-align: right;
 	margin-right: 1ex;
+}
+.smaller {
+	color: inherit;
+	font-size: 89%;
+	font-weight: inherit;
 }
 .tc {
 	hyphens: none;
