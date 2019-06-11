@@ -200,7 +200,6 @@ func initArguments() {
 	portInt, _ := AppArguments.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
 		"<portNumber> the IP port to listen to ")
-	portStr := fmt.Sprintf("%d", portInt)
 
 	paBool := false
 	flag.BoolVar(&paBool, "pa", paBool,
@@ -324,8 +323,7 @@ func initArguments() {
 		AppArguments.set("nd", s)
 	*/
 
-	portStr = fmt.Sprintf("%d", portInt)
-	AppArguments.set("port", portStr)
+	AppArguments.set("port", fmt.Sprintf("%d", portInt))
 
 	if paBool {
 		s = "true"
