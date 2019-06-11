@@ -8,13 +8,13 @@ certs/*
 *.db
 _demo/
 .git/
+go-build-executable.sh
 img/*
 *.ini
 *.log
 Markdown_Syntax.*
 md2htm
-nele
-nele.*
+nele*
 postings/*
 static/*
 TODO*

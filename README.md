@@ -63,7 +63,7 @@ You can use `Go` to install this package for you:
 
 After downloading this package you go to its directory and compile
 
-    go build _demo/nele.go
+    go build app/nele.go
 
 which should produce an executable binary.
 On my system it looks (at a certain point in time) like this:
