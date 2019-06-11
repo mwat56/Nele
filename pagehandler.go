@@ -383,7 +383,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "share":
 		if 0 < len(tail) {
 			if 0 < len(aRequest.URL.RawQuery) {
-				// we need this for e.g. YouTube
+				// we need this for e.g. YouTube URLs
 				tail += "?" + aRequest.URL.RawQuery
 			}
 			handleShare(tail, aWriter, aRequest)
@@ -445,7 +445,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.handleSearch(s, pageData, aWriter, aRequest)
 		} else if s := aRequest.FormValue("share"); 0 < len(s) {
 			if 0 < len(aRequest.URL.RawQuery) {
-				// we need this for e.g. YouTube
+				// we need this for e.g. YouTube URLs
 				s += "?" + aRequest.URL.RawQuery
 			}
 			handleShare(s, aWriter, aRequest)
@@ -454,6 +454,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else {
 			ph.handleRoot("20", pageData, aWriter, aRequest)
 		}
+
 	default:
 		// if nothing matched (above) reply to the request
 		// with an HTTP 404 not found error.
@@ -489,7 +490,6 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
 	ph.viewList.Render("searchresult", aWriter, aData)
-
 } // handleTagMentions()
 
 // `handleUpload()` processes a file upload.
@@ -515,8 +515,6 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 		}
 		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
 	} else {
-		// aWriter.WriteHeader(status)
-		// aWriter.Write([]byte(txt))
 		http.Error(aWriter, txt, status)
 	}
 } // handleUpload()
@@ -539,7 +537,6 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			go goAddID(ph.hl, p.ID(), p.Markdown())
 
-			// tail = p.ID() + "?z=" + p.Date()
 			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -693,7 +690,7 @@ func (ph *TPageHandler) Len() int {
 // NeedAuthentication returns `true` if authentication is needed,
 // or `false` otherwise.
 //
-// `aURL` is the URL to check.
+// `aRequest` is the request to check.
 func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	path, _ := URLparts(aRequest.URL.Path)
 	switch path {
