@@ -180,7 +180,7 @@ type (
 
 // NewViewList returns a new (empty) `TViewList` instance.
 func NewViewList() *TViewList {
-	result := make(TViewList, 8)
+	result := make(TViewList, 16)
 
 	return &result
 } // NewViewlist()
