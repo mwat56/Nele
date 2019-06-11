@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 
 	nele "github.com/mwat56/Nele"
@@ -81,6 +82,9 @@ func setupSinals(aServer *http.Server) {
 
 // Actually run the program …
 func main() {
+	// use all CPU cores for maximum performance
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	var (
 		err       error
 		handler   http.Handler
