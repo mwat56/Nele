@@ -22,6 +22,7 @@
 		- [Static](#static)
 		- [Views](#views)
 		- [Contents](#contents)
+	- [Libraries](#libraries)
 	- [Licence](#licence)
 
 ## Purpose
@@ -31,7 +32,7 @@ And, I wanted no external dependencies (like databases etc.). –
 And, I didn't care for Windows(tm) compatibility since I left the MS-platform about 25 years ago after using it in the 80s and early 90s of the last century.
 (But who, in his right mind, would want to run a web-service on such a platform anyway?)
 
-That's how I ended up with this little blog-system (for lack of a better word).
+That's how I ended up with this little blog-system (for lack of a better word; or: diary, notes, …).
 It's a system that lets you write and add articles from both the command line and a web-interface.
 It provides options to add, modify and delete entries using a user/password list for authentication when accessing certain URLs in this system.
 Articles can be added, edited (e.g. for correcting typos etc.), or removed altogether.
@@ -461,6 +462,19 @@ An concise overview of the used templates and which variables they use you'll fi
 
 For all the article you write – either on the commandline or with the web-interface – you can use [Markdown](https://en.wikipedia.org/wiki/Markdown) to enrich the plain text.
 In fact, the system _expects_ the postings to be using `MarkDown` syntax if any markup at all.
+
+## Libraries
+
+The following external libraries were used building `Nele`:
+
+* [ApacheLogger](https://github.com/mwat56/apachelogger)
+* [BlackFriday](https://gopkg.in/russross/blackfriday.v2)
+* [Crypto](https://golang.org/x/crypto)
+* [ErrorHandler](https://github.com/mwat56/errorhandler)
+* [Hashtags](https://github.com/mwat56/hashtags)
+* [INI](https://github.com/mwat56/ini)
+* [PassList](https://github.com/mwat56/passlist)
+* [UploadHandler](https://github.com/mwat56/uploadhandler)
 
 ## Licence
 
