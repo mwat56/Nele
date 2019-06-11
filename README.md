@@ -198,12 +198,12 @@ There is an INI file called `blog.ini` coming with the package, where you can st
 
         # path-/filename of TLS certificate's private key to enable TLS/HTTPS
         # (if empty standard HTTP is used)
-        # NOTE: a relative path/name will be combined with `dadadir` (below).
+        # NOTE: a relative path/name will be combined with `datadir` (below).
         certKey = ./certs/server.key
 
         # path-/filename of TLS (server) certificate to enable TLS/HTTPS
         # (if empty standard HTTP is used)
-        # NOTE: a relative path/name will be combined with `dadadir` (below).
+        # NOTE: a relative path/name will be combined with `datadir` (below).
         certPem = ./certs/server.pem
 
         # The directory root for CSS, FONTS, IMG, JS, POSTINGS, STATIC,
@@ -225,14 +225,14 @@ There is an INI file called `blog.ini` coming with the package, where you can st
         port = 8181
 
         # Name of the optional logfile to write to.
-        # NOTE: a relative path/name will be combined with `dadadir` (above).
+        # NOTE: a relative path/name will be combined with `datadir` (above).
         logfile = /dev/stdout
 
         # Accepted size of uploaded files
         maxfilesize = 10MB
 
         # Password file for HTTP Basic Authentication.
-        # NOTE: a relative path/name will be combined with `dadadir` (above).
+        # NOTE: a relative path/name will be combined with `datadir` (above).
         passfile = ./pwaccess.db
 
         # Name of host/domain to secure by BasicAuth:
