@@ -301,7 +301,7 @@ If you want to remove a user the `-ud` will do the trick:
         removed 'testuser1' from list
     $ _
 
-When you want to know which users are stored in your password file `-ul` is your fried:
+When you want to know which users are stored in your password file `-ul` is your friend:
 
     $ ./nele -ul
     matthias
@@ -334,10 +334,10 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 
 ### Authentication
 
-But why, you may ask, would we need username/password files anyway?
+But why, you may ask, would we need an username/password file anyway?
 Well, you remember me mentioning that you can add, edit and delete articles?
 You wouldn't want anyone on the net beeing able to do that, now, would you?
-For that reason, whenever there's no password file given (either in the INI file or the command-line) all funtionality requiring authentication will be _disabled_.
+For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_.
 (Better safe than sorry, right?)
 
 _Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both are different.
