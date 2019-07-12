@@ -132,6 +132,7 @@ func goCacheHTML(aFilename string, aText []byte) {
 	file, err := os.OpenFile(aFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if nil != err {
 		os.Remove(aFilename) // what else could we do here?
+		return
 	}
 	defer file.Close()
 
