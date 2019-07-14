@@ -1,5 +1,5 @@
-github.com/mwat56/apachelogger v1.1.1 h1:qQSCPN59dmvzZwW1q8GU/w2EYRPNFjK+Ci1/CUDOF4k=
-github.com/mwat56/apachelogger v1.1.1/go.mod h1:45zInWy72WRwZCCl0dphgXIHjlzR3qQvxsXEZoMatFQ=
+github.com/mwat56/apachelogger v1.1.2 h1:1/Cmoi5/uAJI8zZXsI4Ptz42soZ0l154BfQCaXM6VBs=
+github.com/mwat56/apachelogger v1.1.2/go.mod h1:45zInWy72WRwZCCl0dphgXIHjlzR3qQvxsXEZoMatFQ=
 github.com/mwat56/errorhandler v1.0.2 h1:mlvQaV6A40YAnu6uTBxfdAuXWqLuuvdS5sPkoH+5dFo=
 github.com/mwat56/errorhandler v1.0.2/go.mod h1:NFz8HNMovjavnhZLyJOR/muQJnrLl1jHbkHp2lbz+/o=
 github.com/mwat56/hashtags v0.4.3 h1:1D96mNARkt3/oSqWURE0pgitwamaoVGC6M3mhgv68nE=
@@ -10,7 +10,6 @@ github.com/mwat56/passlist v1.1.0 h1:LFGZ1R292V4MUH8K32ggQ/elZcrDQopBNylV4WYB0yg
 github.com/mwat56/passlist v1.1.0/go.mod h1:m4H2fg/m7UqRTqHcpzJAmDEsNmKXsbgPFTIlghrBKfs=
 github.com/mwat56/uploadhandler v1.0.0 h1:+cE4fkPi7VWBpxlhoG4OBr8sfip3HIc0nqFyoMAYrVc=
 github.com/mwat56/uploadhandler v1.0.0/go.mod h1:Y7CKfR2UFqH+a9rmJiqFkr5MrKfcv7rNu0cdcEjOqGc=
-github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=
