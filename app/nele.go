@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	nele "github.com/mwat56/Nele"
 	"github.com/mwat56/apachelogger"
@@ -125,8 +126,15 @@ func main() {
 		// we assume, an error means: no logfile
 		handler = apachelogger.Wrap(handler, s)
 	}
-	// We need a `server` reference to use it in setupSinals() below
-	server := &http.Server{Addr: ph.Address(), Handler: handler}
+	// We need a `server` reference to use it in `setupSinals()` below
+	// and to set some reasonable timeouts:
+	server := &http.Server{
+		Addr:              ph.Address(),
+		Handler:           handler,
+		IdleTimeout:       120 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
 	setupSinals(server)
 
 	ck, _ = nele.AppArguments.Get("certKey")
