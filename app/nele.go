@@ -8,11 +8,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -141,16 +143,26 @@ func main() {
 	cp, _ = nele.AppArguments.Get("certPem")
 
 	if 0 < len(ck) && (0 < len(cp)) {
-		log.Printf("%s listening HTTPS at: %s", Me, ph.Address())
+		s = fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
+		log.Println(s)
+		apachelogger.Log("Nele/main", s)
 		if err = server.ListenAndServeTLS(cp, ck); nil != err {
-			log.Fatalf("%s: %v", Me, err)
+			s = fmt.Sprintf("%s: %v", Me, err)
+			apachelogger.Log("Nele/main", s)
+			runtime.Gosched() // let the logger write
+			log.Fatalln(s)
 		}
 		return
 	}
 
-	log.Printf("%s listening HTTP at: %s", Me, ph.Address())
+	s = fmt.Sprintf("%s listening HTTP at: %s", Me, ph.Address())
+	log.Println(s)
+	apachelogger.Log("Nele/main", s)
 	if err = server.ListenAndServe(); nil != err {
-		log.Fatalf("%s: %v", Me, err)
+		s = fmt.Sprintf("%s: %v", Me, err)
+		apachelogger.Log("Nele/main", s)
+		runtime.Gosched() // let the logger write
+		log.Fatalln(s)
 	}
 } // main()
 
