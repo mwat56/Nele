@@ -1,8 +1,12 @@
 # Nele Blog
 
-[![GoDoc](https://godoc.org/github.com/mwat56/Nele?status.svg)](https://godoc.org/github.com/mwat56/Nele)
-[![view examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg?style=flat-square)](https://github.com/mwat56/Nele/blob/master/_demo/nele.go)
-[![License](https://img.shields.io/eclipse-marketplace/l/notepad4e.svg)](https://github.com/mwat56/Nele/blob/master/LICENSE)
+[![Golang](https://img.shields.io/badge/Language-Go-green.svg)](https://golang.org/)
+[![GoDoc](https://godoc.org/github.com/mwat56/Nele?status.svg)](https://godoc.org/github.com/mwat56/Nele/)
+[![Issues](https://img.shields.io/github/issues/mwat56/Nele.svg)](https://github.com/mwat56/Nele/issues?q=is%3Aopen+is%3Aissue)
+[![Size](https://img.shields.io/github/repo-size/mwat56/Nele.svg)](https://github.com/mwat56/Nele/)
+[![Tag](https://img.shields.io/github/tag/mwat56/Nele.svg)](https://github.com/mwat56/Nele/tags)
+[![License](https://img.shields.io/github/license/mwat56/Nele.svg)](https://github.com/mwat56/Nele/blob/master/LICENSE)
+[![View examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg)](https://github.com/mwat56/Nele/blob/master/app/nele.go)
 
 - [Nele Blog](#nele-blog)
 	- [Purpose](#purpose)
@@ -103,7 +107,6 @@ On my system it looks (at a certain point in time) like this:
 	-rw-rw-r--  1 matthias matthias    22792 Mai 23 18:35 README.md
 	-rw-rw-r--  1 matthias matthias    10435 Mai 23 18:24 regex.go
 	-rw-rw-r--  1 matthias matthias     8190 Mai 23 18:14 regex_test.go
-	-rw-rw-r--  1 matthias matthias      936 Mai 23 18:14 sed.sh
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 17:58 static
 	-rw-rw-r--  1 matthias matthias     3656 Mai 23 18:14 tags.go
 	-rw-rw-r--  1 matthias matthias     3811 Mai 23 17:58 template_vars.md
@@ -117,7 +120,7 @@ You can reduce the binary's size by stripping it:
 
     $ strip nele
     $ ls -l nele
-	-rwxrwxr-x 1 matthias matthias 8146912 Mai 23 18:38 nele
+    -rwxrwxr-x 1 matthias matthias 8146912 Mai 23 18:38 nele
     $ _
 
 As you can see the binary lost about 3MB of its weight.
