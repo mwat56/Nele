@@ -61,7 +61,7 @@ func cachedHTML(aPost *TPosting) []byte {
 		// read cached/compressed HTML file
 		htSize := fi.Size()
 
-		if file, err = os.OpenFile(htName, os.O_RDONLY, 0644); nil == err {
+		if file, err = os.OpenFile(htName, os.O_RDONLY, 0640); /* #nosec G302 */ nil == err {
 			defer file.Close()
 
 			if reader, err := zlib.NewReader(file); nil == err {
@@ -120,7 +120,7 @@ func goCacheCleanup() {
 				mdTime = fi.ModTime()
 			}
 			if htTime.Before(mdTime) {
-				os.Remove(htName)
+				_ = os.Remove(htName)
 			}
 		}
 	}
@@ -129,9 +129,9 @@ func goCacheCleanup() {
 // `goCacheHTML()` is intended to be run in background and writes
 // `aText` in compressed form to `aFilename`.
 func goCacheHTML(aFilename string, aText []byte) {
-	file, err := os.OpenFile(aFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(aFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0640) // #nosec G302
 	if nil != err {
-		os.Remove(aFilename) // what else could we do here?
+		_ = os.Remove(aFilename) // what else could we do here?
 		return
 	}
 	defer file.Close()
@@ -139,7 +139,7 @@ func goCacheHTML(aFilename string, aText []byte) {
 	w, _ := zlib.NewWriterLevel(file, zlib.BestCompression)
 	defer w.Close()
 
-	w.Write(aText)
+	_, _ = w.Write(aText)
 } // goCacheHTML()
 
 /* _EoF_ */

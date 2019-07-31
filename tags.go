@@ -78,13 +78,13 @@ func goInitHashlist(aList *hashtags.THashList) {
 		}
 		for _, postName := range filesnames {
 			id := strings.TrimPrefix(postName, mdName+"/")
-			if txt, err := ioutil.ReadFile(postName); nil == err {
+			if txt, err := ioutil.ReadFile(postName); /* #nosec G304 */ nil == err {
 				aList.IDparse(id[:len(id)-3], txt) // strip name extension
 			}
 		}
 	}
 
-	aList.Store()
+	_, _ = aList.Store()
 	go goCacheCleanup()
 } // goInitHashlist()
 
@@ -128,7 +128,7 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 		} else {
 			url = "/ml/" + item.Tag[1:]
 		}
-		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) + ` ">` + item.Tag + `</a> `)
+		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) + ` ">` + item.Tag + `</a> `) // #nosec G203
 	}
 
 	return tl

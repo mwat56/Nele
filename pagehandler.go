@@ -179,7 +179,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("Robots", "index,follow").
 		Set("Taglist", markupCloud(ph.hl)).
 		Set("Title", ph.realm+": "+date).
-		Set("weekURL", "/w/"+date)
+		Set("weekURL", "/w/"+date) // #nosec G203
 
 	return pageData
 } // basicPageData()
@@ -201,7 +201,7 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	//TODO implement other status codes
 
 	default:
-		pageData = pageData.Set("Error", template.HTML(aData))
+		pageData = pageData.Set("Error", template.HTML(aData)) // #nosec G203
 		if page, err := ph.viewList.RenderedPage("error", pageData); nil == err {
 			return page
 		}
@@ -220,7 +220,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		ph.viewList.Render("ap", aWriter, pageData)
+		_ = ph.viewList.Render("ap", aWriter, pageData)
 
 	case "certs": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -243,8 +243,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("Manuscript", template.HTML(txt)).
 				Set("NOW", now).
 				Set("Robots", "noindex,nofollow").
-				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d))
-			ph.viewList.Render("dc", aWriter, pageData)
+				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)) // #nosec G203
+			_ = ph.viewList.Render("dc", aWriter, pageData)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -260,15 +260,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("Manuscript", template.HTML(txt)).
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
-					Set("weekURL", "/w/"+date)
-				ph.viewList.Render("ed", aWriter, pageData)
+					Set("weekURL", "/w/"+date) // #nosec G203
+				_ = ph.viewList.Render("ed", aWriter, pageData)
 				return
 			}
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "faq", "faq.html":
-		ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
+		_ = ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
 
 	case "favicon.ico":
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
@@ -287,7 +287,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
-		ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
+		_ = ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
 		ph.handleRoot("20", pageData, aWriter, aRequest)
@@ -298,7 +298,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		*/
 
 	case "licence", "license", "lizenz":
-		ph.viewList.Render("licence", aWriter, pageData)
+		_ = ph.viewList.Render("licence", aWriter, pageData)
 
 	case "m", "mm": // handle a given month
 		var y, d int
@@ -319,7 +319,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Postings", pl.Sort()).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
-		ph.viewList.Render("searchresult", aWriter, pageData)
+		_ = ph.viewList.Render("searchresult", aWriter, pageData)
 
 	case "ml": // @mention list
 		if 0 < len(tail) {
@@ -340,7 +340,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("Posting", p).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date)
-				ph.viewList.Render("article", aWriter, pageData)
+				_ = ph.viewList.Render("article", aWriter, pageData)
 				return
 			}
 		}
@@ -350,7 +350,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "privacy", "datenschutz":
-		ph.viewList.Render("privacy", aWriter, check4lang(pageData, aRequest))
+		_ = ph.viewList.Render("privacy", aWriter, check4lang(pageData, aRequest))
 
 	case "q":
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
@@ -366,8 +366,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("ID", p.ID()).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date).
-					Set("Robots", "noindex,nofollow")
-				ph.viewList.Render("rp", aWriter, pageData)
+					Set("Robots", "noindex,nofollow") // #nosec G203
+				_ = ph.viewList.Render("rp", aWriter, pageData)
 				return
 			}
 		}
@@ -394,12 +394,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "si": // store images
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		ph.viewList.Render("si", aWriter, pageData)
+		_ = ph.viewList.Render("si", aWriter, pageData)
 
 	case "ss": // store static
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		ph.viewList.Render("ss", aWriter, pageData)
+		_ = ph.viewList.Render("ss", aWriter, pageData)
 
 	case "static":
 		ph.fh.ServeHTTP(aWriter, aRequest)
@@ -426,7 +426,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Postings", pl.Sort()).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
-		ph.viewList.Render("searchresult", aWriter, pageData)
+		_ = ph.viewList.Render("searchresult", aWriter, pageData)
 
 	case "":
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
@@ -489,7 +489,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 		Set("Robots", "index,follow").
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
-	ph.viewList.Render("searchresult", aWriter, aData)
+	_ = ph.viewList.Render("searchresult", aWriter, aData)
 } // handleTagMentions()
 
 // `handleUpload()` processes a file upload.
@@ -597,7 +597,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			if bw, err := p.Store(); nil != err {
 				if bw < int64(len(m)) {
 					// let's hope for the best …
-					p.Set(old).Store()
+					_, _ = p.Set(old).Store()
 				}
 			}
 			go goUpdateID(ph.hl, tail, m)
@@ -662,14 +662,14 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 		num = 20
 	}
 	pl := NewPostList()
-	pl.Newest(num, start) // ignore fs errors here
+	_ = pl.Newest(num, start) // ignore fs errors here
 	aData = check4lang(aData, aRequest).
 		Set("Postings", pl.Sort()).
 		Set("Robots", "noindex,follow")
 	if pl.Len() >= num {
 		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", num, num+start+1))
 	}
-	ph.viewList.Render("index", aWriter, aData)
+	_ = ph.viewList.Render("index", aWriter, aData)
 } // handleRoot()
 
 // `handleSearch()` serves the search results.
@@ -679,7 +679,7 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter htt
 		Set("Robots", "noindex,follow").
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
-	ph.viewList.Render("searchresult", aWriter, aData)
+	_ = ph.viewList.Render("searchresult", aWriter, aData)
 } // handleSearch()
 
 // Len returns the length of the internal view list.

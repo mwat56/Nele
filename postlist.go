@@ -85,7 +85,7 @@ var (
 func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 	// We ignore all possible errors since we can't do anything about
 	// them anyway and simply exclude those files from our list.
-	filepath.Walk(aActDir,
+	_ = filepath.Walk(aActDir,
 		func(aPath string, aInfo os.FileInfo, aErr error) error {
 			if (nil != aErr) || (0 == aInfo.Size()) || (aInfo.IsDir()) {
 				return aErr

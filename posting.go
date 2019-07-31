@@ -226,7 +226,7 @@ func (p *TPosting) Load() error {
 	}
 
 	var bs []byte
-	if bs, err = ioutil.ReadFile(filepathname); nil != err {
+	if bs, err = ioutil.ReadFile(filepathname); /* #nosec G304 */ nil != err {
 		return err
 	}
 	p.markdown = []byte(strings.TrimSpace(string(bs)))
@@ -275,7 +275,7 @@ func (p *TPosting) Markdown() []byte {
 	}
 
 	var bs []byte
-	if bs, err = ioutil.ReadFile(fName); nil != err {
+	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
 		return p.markdown // return empty slice
 	}
 	p.markdown = []byte(strings.TrimSpace(string(bs)))
@@ -302,7 +302,7 @@ func (p *TPosting) PathFileName() string {
 
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
-	return template.HTML(markupTags(cachedHTML(p)))
+	return template.HTML(markupTags(cachedHTML(p))) // #nosec G203
 	/*
 		// make sure we have the most recent version:
 		p.Markdown()
@@ -318,7 +318,7 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
 		p.markdown = []byte(strings.TrimSpace(string(aMarkdown)))
 	} else {
-		p.Load()
+		_ = p.Load()
 	}
 
 	return p
@@ -337,7 +337,7 @@ func (p *TPosting) Store() (int64, error) {
 		return result, err
 	}
 	if 0 == len(p.markdown) {
-		p.Load()
+		_ = p.Load()
 		if 0 == len(p.markdown) {
 			return result, fmt.Errorf("Markdown '%s' is empty", p.id)
 		}

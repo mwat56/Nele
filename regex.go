@@ -322,7 +322,7 @@ func SearchPostings(aText string) *TPostList {
 		}
 
 		for _, fName := range files {
-			fTxt, err := ioutil.ReadFile(fName)
+			fTxt, err := ioutil.ReadFile(fName) // #nosec G304
 			if (nil != err) || (!pattern.Match(fTxt)) {
 				// We 'eat' possible errors here, indirectly
 				// assuming them to be a no-match.

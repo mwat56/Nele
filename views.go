@@ -73,7 +73,7 @@ func newChange() *tChange {
 
 // `htmlSafe()` returns `aText` as template.HTML.
 func htmlSafe(aText string) template.HTML {
-	return template.HTML(aText)
+	return template.HTML(aText) // #nosec G203
 } // htmlSafe()
 
 var (
