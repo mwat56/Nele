@@ -684,7 +684,7 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter htt
 
 // Len returns the length of the internal view list.
 func (ph *TPageHandler) Len() int {
-	return len(*((*ph).viewList))
+	return len(*(ph.viewList))
 } // Len()
 
 // NeedAuthentication returns `true` if authentication is needed,
