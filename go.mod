@@ -5,8 +5,8 @@ go 1.12
 require (
 	github.com/mwat56/apachelogger v1.2.3
 	github.com/mwat56/errorhandler v1.0.3
-	github.com/mwat56/hashtags v0.4.5
-	github.com/mwat56/ini v1.3.2
+	github.com/mwat56/hashtags v0.4.6
+	github.com/mwat56/ini v1.3.3
 	github.com/mwat56/passlist v1.1.1
 	github.com/mwat56/uploadhandler v1.0.2
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
