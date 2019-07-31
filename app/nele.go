@@ -82,6 +82,32 @@ func setupSinals(aServer *http.Server) {
 	}()
 } // setupSinals()
 
+// `userCmdline()` checks for and executes user file commandline actions.
+func userCmdline() {
+	var (
+		err   error
+		fn, s string
+	)
+	if fn, err = nele.AppArguments.Get("uf"); (nil != err) || (0 == len(fn)) {
+		return // without file no user handling
+	}
+	if s, err = nele.AppArguments.Get("ua"); (nil == err) && (0 < len(s)) {
+		nele.AddUser(s, fn)
+	}
+	if s, err = nele.AppArguments.Get("uc"); (nil == err) && (0 < len(s)) {
+		nele.CheckUser(s, fn)
+	}
+	if s, err = nele.AppArguments.Get("ud"); (nil == err) && (0 < len(s)) {
+		nele.DeleteUser(s, fn)
+	}
+	if s, err = nele.AppArguments.Get("ul"); (nil == err) && (0 < len(s)) {
+		nele.ListUser(fn)
+	}
+	if s, err = nele.AppArguments.Get("uu"); (nil == err) && (0 < len(s)) {
+		nele.UpdateUser(s, fn)
+	}
+} // userCmdline()
+
 // Actually run the program …
 func main() {
 	var (
@@ -98,24 +124,8 @@ func main() {
 	// Read in a file:
 	doFile(Me)
 
-	if s, err = nele.AppArguments.Get("uf"); (nil == err) && (0 < len(s)) {
-		fn := s
-		if s, err = nele.AppArguments.Get("ua"); (nil == err) && (0 < len(s)) {
-			nele.AddUser(s, fn)
-		}
-		if s, err = nele.AppArguments.Get("uc"); (nil == err) && (0 < len(s)) {
-			nele.CheckUser(s, fn)
-		}
-		if s, err = nele.AppArguments.Get("ud"); (nil == err) && (0 < len(s)) {
-			nele.DeleteUser(s, fn)
-		}
-		if s, err = nele.AppArguments.Get("ul"); (nil == err) && (0 < len(s)) {
-			nele.ListUser(fn)
-		}
-		if s, err = nele.AppArguments.Get("uu"); (nil == err) && (0 < len(s)) {
-			nele.UpdateUser(s, fn)
-		}
-	}
+	// Handle user file maintenance:
+	userCmdline()
 
 	if ph, err = nele.NewPageHandler(); nil != err {
 		nele.ShowHelp()
