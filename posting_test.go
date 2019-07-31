@@ -348,7 +348,7 @@ func TestTPosting_Exists(t *testing.T) {
 	id2 := newID(time.Date(2019, 1, 1, 0, 0, 0, 2, time.Local))
 	p2 := newPosting(id2)
 	id3 := newID(time.Date(2019, 1, 1, 0, 0, 0, 3, time.Local))
-	p3 := newPosting(id3).Set([]byte("Hello Worls"))
+	p3 := newPosting(id3).Set([]byte("Hello World"))
 	p3.Store()
 	type fields struct {
 		id       string
