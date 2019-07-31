@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 /*
  * This file provides article/posting related functions and methods.
  */

@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 import (
 	"flag"
 	"fmt"
@@ -52,6 +54,7 @@ func (al *tAguments) Get(aKey string) (string, error) {
 		return result, nil
 	}
 
+	//lint:ignore ST1005 - capitalisation wanted
 	return "", fmt.Errorf("Missing config value: %s", aKey)
 } // Get()
 
@@ -357,6 +360,7 @@ func initArguments() {
 	// fmt.Printf("initArguments(): %s\n", AppArguments.String()) //FIXME REMOVE
 } // initArguments()
 
+/*
 // `iniWalker()` is an internal helper used to set all INI file
 // key-value pairs to the global `AppArguments` list.
 func iniWalker(aSect, aKey, aVal string) {
@@ -364,6 +368,7 @@ func iniWalker(aSect, aKey, aVal string) {
 	// ignore the `aSect` argument here.
 	AppArguments.set(aKey, aVal)
 } // iniWalker()
+*/
 
 var (
 	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)

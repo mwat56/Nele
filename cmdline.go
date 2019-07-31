@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 /*
  * This file provides functions to add postings from the commandline
  * and maintain the user/password list.
