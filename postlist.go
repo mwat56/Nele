@@ -159,7 +159,7 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 		y = tLo.Year()
 	}
 	if (0 < aMonth) && (13 > aMonth) {
-		m = time.Month(aMonth)
+		m = aMonth
 	} else {
 		m = tLo.Month()
 	}

@@ -103,7 +103,7 @@ And yet another sentence for testing.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := cachedHTML(tt.args.aPost); !reflect.DeepEqual(got, tt.want) {
+			if got := template.HTML(cachedHTML(tt.args.aPost)); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("cachedHTML() = %v,\nwant %v", got, tt.want)
 			}
 		})

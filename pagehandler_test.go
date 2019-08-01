@@ -1,3 +1,9 @@
+/*
+   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+              EMail : <support@mwat.de>
+*/
+
 package nele
 
 import (
@@ -18,8 +24,8 @@ func TestNewPageHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewPageHandler()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewPageHandler() error = %v, wantErr %v", err, tt.wantErr)
+			if (nil != err) != tt.wantErr {
+				t.Errorf("NewPageHandler() error = %v,\nwantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.want != got.Len() {

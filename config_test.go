@@ -56,6 +56,8 @@ func Test_iniData(t *testing.T) {
 	}
 }
 
+/*
+// to run this function the `init()` function must be commented out
 func Test_initArgs(t *testing.T) {
 	tests := []struct {
 		name string
@@ -69,6 +71,7 @@ func Test_initArgs(t *testing.T) {
 		})
 	}
 } // Test_initArgs()
+*/
 
 func Test_kmg2Num(t *testing.T) {
 	type args struct {
