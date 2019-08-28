@@ -340,7 +340,7 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 
 But why, you may ask, would we need an username/password file anyway?
 Well, you remember me mentioning that you can add, edit and delete articles?
-You wouldn't want anyone on the net beeing able to do that, now, would you?
+You wouldn't want anyone on the net being able to do that, now, would you?
 For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_.
 (Better safe than sorry, right?)
 

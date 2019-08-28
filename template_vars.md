@@ -51,7 +51,7 @@
 * `faq.gohtml`: called for the URL `"/faq"` to to show some FAQs
   + `Lang` == the page's language
 
-* `imprint.gohtml`: called fo ther URLs `"/imprint"` and `"/impressum"` to show the site's imprint.
+* `imprint.gohtml`: called fo the URLs `"/imprint"` and `"/impressum"` to show the site's imprint.
   + `Lang` == the page's language
   + Please be aware that the actual contents of this file is subject to your own country's laws and legislation.
 
@@ -69,7 +69,7 @@
   + `Lang` == the page's language
   + Please be aware that the actual contents of this file is subject to your own country's laws and legislation.
 
-* `rp.gohtml`: called for the URL `"/r/…"` to remove an article's alltogether.
+* `rp.gohtml`: called for the URL `"/r/…"` to remove an article's altogether.
   + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
