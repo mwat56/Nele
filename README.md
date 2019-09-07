@@ -15,8 +15,8 @@
 	- [Installation](#installation)
 	- [Usage](#usage)
 		- [Commandline postings](#commandline-postings)
-		- [User/password file & handling](#userpassword-file--handling)
 		- [Authentication](#authentication)
+		- [User/password file & handling](#userpassword-file--handling)
 	- [Configuration](#configuration)
 	- [URLs](#urls)
 	- [Files](#files)
@@ -71,7 +71,7 @@ After downloading this package you go to its directory and compile
     go build app/nele.go
 
 which should produce an executable binary.
-On my system it looks (at a certain point in time) like this:
+On my system it looked (at a certain point in time) like this:
 
     $ ls -l
 	total 11420
@@ -254,6 +254,8 @@ But let's look at some of the commandline options more closely.
 
 ### Commandline postings
 
+You can post an article directly from the commandline.
+
 `./nele -pa` allows you to write an article/posting directly on the commandline.
 
     $ ./nele -pa
@@ -273,10 +275,22 @@ But let's look at some of the commandline options more closely.
 
 These two options (`-pa` and `-pf`) are only usable from the commandline.
 
+### Authentication
+
+Why, you may ask, would you need an username/password file anyway?
+Well, you remember me mentioning that you can add, edit and delete articles?
+You wouldn't want _anyone_ on the net being able to do that, now, would you?
+For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_.
+(Better safe than sorry, right?)
+
+_Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both are different.
+
 ### User/password file & handling
 
-Only usable from the commandline as well are the `-uXX` options, most of which need a username and the name of the password file to use.
+Only usable from the commandline are the `-uXX` options, most of which need a username and the name of the password file to use. –
 _Note_ that whenever you're prompted to input a password this will _not_ be echoed to the console.
+
+The `-ua` option allows you to add an user/password pair:
 
     $ ./nele -ua testuser1 -uf pwaccess.db
 
@@ -285,9 +299,9 @@ _Note_ that whenever you're prompted to input a password this will _not_ be echo
         added 'testuser1' to list
     $ _
 
-The password input is not echoed to the console, therefor you don't see it.
+Again: The password input is not echoed to the console, therefor you don't see it.
 
-Since we have the `passfile` setting already in our INI file we can forget the `-uf` option for the next options.
+Since we have the `passfile` setting already in our INI file (see above) we can forget the `-uf` option for the next options.
 
 With `-uc` you can check a user's password:
 
@@ -299,7 +313,7 @@ With `-uc` you can check a user's password:
 
 This `-uc` you'll probably never actually use, it was just easy to implement.
 
-If you want to remove a user the `-ud` will do the trick:
+If you want to remove an user account the `-ud` will do the trick (i.e. delete a user):
 
     $ ./nele -ud testuser1
         removed 'testuser1' from list
@@ -336,22 +350,13 @@ That only leaves `-uu` to update (change) a user's password.
 
 First we added (`-ua`) a new user, then we updated the password (`-uu`), and finally we asked for the list of users (`-ul`).
 
-### Authentication
-
-But why, you may ask, would we need an username/password file anyway?
-Well, you remember me mentioning that you can add, edit and delete articles?
-You wouldn't want anyone on the net being able to do that, now, would you?
-For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_.
-(Better safe than sorry, right?)
-
-_Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both are different.
-
 ## Configuration
 
 The system's configuration takes two steps:
 
 1. Prepare the required files and directories.
 2. Customise the INI file and/or prepare a script with all needed commandline arguments.
+3. You most probably want to customise the files [./views/imprint.gohtml](https://github.com/mwat56/Nele/blob/master/views/imprint.gohtml#L17), [./views/licence.gohtml](https://github.com/mwat56/Nele/blob/master/views/licence.gohtml#L20), and [./views/privacy.gohtml](https://github.com/mwat56/Nele/blob/master/views/privacy.gohtml#L17) according to your personal reqirements.
 
 ## URLs
 
