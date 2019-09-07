@@ -101,10 +101,8 @@ func NewPageHandler() (*TPageHandler, error) {
 		result.lang = s
 	}
 
-	if s, err = AppArguments.Get("listen"); nil != err {
-		return nil, err
-	}
-	result.addr = s
+	result.addr, _ = AppArguments.Get("listen")
+	// an empty value means: listen on all interfaces
 
 	if s, err = AppArguments.Get("mfs"); nil != err {
 		return nil, err
