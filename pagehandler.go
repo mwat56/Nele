@@ -101,12 +101,10 @@ func NewPageHandler() (*TPageHandler, error) {
 		result.lang = s
 	}
 
+	// an empty value means: listen on all interfaces:
 	result.addr, _ = AppArguments.Get("listen")
-	// an empty value means: listen on all interfaces
 
-	if s, err = AppArguments.Get("mfs"); nil != err {
-		return nil, err
-	}
+	s, _ = AppArguments.Get("mfs")
 	if mfs, _ := strconv.Atoi(s); 0 < mfs {
 		result.mfs = int64(mfs)
 	} else {
