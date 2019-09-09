@@ -112,6 +112,7 @@ func userCmdline() {
 
 // Actually run the program …
 func main() {
+	nele.InitConfig()
 	var (
 		err       error
 		handler   http.Handler

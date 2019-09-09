@@ -12,11 +12,6 @@ import (
 
 func Test_absolute(t *testing.T) {
 	bd := "/var/tmp"
-	d1, w1 := "", ""
-	d2, w2 := "/opt/", "/opt"
-	d3, w3 := "./dir/", "/var/tmp/dir"
-	d4, w4 := "../opt/file.txt", "/var/opt/file.txt"
-	d5, w5 := "./bla.doc", "/var/tmp/bla.doc"
 	type args struct {
 		aBaseDir string
 		aDir     string
@@ -27,11 +22,14 @@ func Test_absolute(t *testing.T) {
 		want string
 	}{
 		// TODO: Add test cases.
-		{" 1", args{bd, d1}, w1},
-		{" 2", args{bd, d2}, w2},
-		{" 3", args{bd, d3}, w3},
-		{" 4", args{bd, d4}, w4},
-		{" 5", args{bd, d5}, w5},
+		{" 1", args{bd, ""}, ""},
+		{" 2", args{bd, "/opt/"}, "/opt"},
+		{" 3", args{bd, "./dir/"}, "/var/tmp/dir"},
+		{" 4", args{bd, "../opt/file.txt"}, "/var/opt/file.txt"},
+		{" 5", args{bd, "./bla.doc"}, "/var/tmp/bla.doc"},
+		{" 6", args{"", "dir"}, "/home/matthias/devel/Go/src/github.com/mwat56/Nele/dir"},
+		{" 7", args{"", "../../../dir"}, "/home/matthias/devel/Go/src/dir"},
+		{" 8", args{"/", "../../../dir"}, "/dir"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -51,7 +49,7 @@ func Test_iniData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			iniData()
+			readIniData()
 		})
 	}
 }

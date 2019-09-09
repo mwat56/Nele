@@ -37,7 +37,7 @@ var (
 
 // `set()` adds/sets another key-value pair.
 //
-// If `aValue` is empty gthen `aKey` gets removed.
+// If `aValue` is empty then `aKey` gets removed.
 func (al *tAguments) set(aKey, aValue string) {
 	if 0 < len(aValue) {
 		al.AddKey(aKey, aValue)
@@ -48,6 +48,8 @@ func (al *tAguments) set(aKey, aValue string) {
 
 // Get returns the value associated with `aKey` and `nil` if found,
 // or an empty string and an error.
+//
+//	`aKey` The key to lookup in the list.
 func (al *tAguments) Get(aKey string) (string, error) {
 	if result, ok := al.AsString(aKey); ok {
 		return result, nil
@@ -69,17 +71,19 @@ func absolute(aBaseDir, aDir string) string {
 		return s
 	}
 
-	return filepath.Join(aBaseDir, aDir)
+	s, _ := filepath.Abs(filepath.Join(aBaseDir, aDir))
+	return s
 } // absolute()
 
-// `iniData()` returns the config values read from INI file(s).
-// The steps here are:
-// (1) read the local `./.nele.ini`,
-// (2) read the global `/etc/nele.ini`,
-// (3) read the user-local `~/.nele.ini`,
-// (4) read the user-local `~/.config/nele.ini`,
-// (5) read the `-ini` commandline argument.
-func iniData() {
+// `readIniData()` returns the config values read from INI file(s).
+//
+//	The steps here are:
+//	(1) read the local `./.nele.ini`,
+//	(2) read the global `/etc/nele.ini`,
+//	(3) read the user-local `~/.nele.ini`,
+//	(4) read the user-local `~/.config/nele.ini`,
+//	(5) read the `-ini` commandline argument.
+func readIniData() {
 	// (1) ./
 	fName, _ := filepath.Abs("./nele.ini")
 	ini1, err := ini.New(fName)
@@ -117,6 +121,9 @@ func iniData() {
 	aLen := len(os.Args)
 	for i := 1; i < aLen; i++ {
 		if `-ini` == os.Args[i] {
+			//XXX Note that this works only if `-ini` and
+			// filename are two separate arguments. It will
+			// fail if it's given in the form `-ini=filename`.
 			i++
 			if i < aLen {
 				fName, _ = filepath.Abs(os.Args[i])
@@ -130,23 +137,27 @@ func iniData() {
 	}
 
 	AppArguments = tAguments{*ini1.GetSection("")}
-} // iniData()
+} // readIniData()
 
+/*
 func init() {
 	// // see: https://github.com/microsoft/vscode-go/issues/2734
 	// testing.Init() // workaround for Go 1.13
-	initArguments()
+	InitConfig()
 } // init()
+*/
 
-// `initArguments()` reads the commandline arguments into a list
-// structure merging it with key-value pairs read from an INI file.
+// InitConfig reads the commandline arguments into a list
+// structure merging it with key-value pairs read from INI file(s).
 //
 // The steps here are:
 // (1) read the INI file(s),
 // (2) merge the commandline arguments the INI values
 // into the global `AppArguments` variable.
-func initArguments() {
-	iniData()
+//
+// This function is meant to be called first thing in the program's `main()`.
+func InitConfig() {
+	readIniData()
 
 	bnStr, _ := AppArguments.Get("blogname")
 	flag.StringVar(&bnStr, "blogname", bnStr,
@@ -348,9 +359,10 @@ func initArguments() {
 	}
 	AppArguments.set("ul", s)
 	AppArguments.set("uu", uuStr)
-} // initArguments()
+} // InitConfig()
 
 var (
+	// RegEx to match a size value (xxx)
 	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
 )
 
