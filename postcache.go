@@ -96,7 +96,7 @@ func goCacheCleanup() {
 		fi                  os.FileInfo
 		mdTime              time.Time
 	)
-	if dirnames, err = filepath.Glob(postingBaseDirectory + "/*"); nil != err {
+	if dirnames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
 		return
 	}
 	for _, dirname := range dirnames {

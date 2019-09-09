@@ -27,27 +27,27 @@ import (
 
 var (
 	// RegEx to HREF= tag attributes
-	hrefRE = regexp.MustCompile(` (href="http)`)
+	reHrefRE = regexp.MustCompile(` (href="http)`)
 )
 
 const (
 	// replacement text for `hrefRE`
-	hrefReplace = ` target="_extern" $1`
+	reHrefReplace = ` target="_extern" $1`
 )
 
 // `addExternURLtagets()` adds a TARGET attribute to HREFs.
 func addExternURLtagets(aPage []byte) []byte {
-	return hrefRE.ReplaceAll(aPage, []byte(hrefReplace))
+	return reHrefRE.ReplaceAll(aPage, []byte(reHrefReplace))
 } // addExternURLtagets()
 
 var (
 	// RegEx to match hh:mm:ss
-	hmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])[^0-9]([0-5]?[0-9]))?[^0-9]?|$`)
+	reHmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])[^0-9]([0-5]?[0-9]))?[^0-9]?|$`)
 )
 
 // `getHMS()` splits up `aTime` into `rHour`, `rMinute`, and `rSecond`.
 func getHMS(aTime string) (rHour, rMinute, rSecond int) {
-	matches := hmsRE.FindStringSubmatch(aTime)
+	matches := reHmsRE.FindStringSubmatch(aTime)
 	if 1 < len(matches) {
 		// The RegEx only matches digits so we can
 		// safely ignore all Atoi() errors.
@@ -67,8 +67,8 @@ var (
 	// RegEx to match YYYY(MM)(DD)
 	// Invalid values for month or day result in a `0` result.
 	// This is just a pattern test, it doesn't check whether the date is valid.
-	// ymdRE = regexp.MustCompile("^([0-9]{4})[^0-9]?(((0?[0-9])|(1[0-2]))[^0-9]?((0?[0-9])?|([12][0-9])?|(3[01])?)?)?$")
-	ymdRE = regexp.MustCompile(`^([0-9]{4})([^0-9]?(0[1-9]|1[012])([^0-9]?(0[1-9]|[12][0-9]|3[01])?)?)?[^0-9]?`)
+	// reYmdRE = regexp.MustCompile("^([0-9]{4})[^0-9]?(((0?[0-9])|(1[0-2]))[^0-9]?((0?[0-9])?|([12][0-9])?|(3[01])?)?)?$")
+	reYmdRE = regexp.MustCompile(`^([0-9]{4})([^0-9]?(0[1-9]|1[012])([^0-9]?(0[1-9]|[12][0-9]|3[01])?)?)?[^0-9]?`)
 )
 
 // `getYMD()` splits up `aDate` into `rYear`, `rMonth`, and `rDay`.
@@ -76,7 +76,7 @@ var (
 // This is just a pattern test: the function doesn't check whether
 // the date as such is a valid date.
 func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
-	matches := ymdRE.FindStringSubmatch(aDate)
+	matches := reYmdRE.FindStringSubmatch(aDate)
 	if 1 < len(matches) {
 		// The RegEx only matches digits so we can
 		// safely ignore all Atoi() errors.
@@ -100,8 +100,8 @@ func init() {
 // Initialise the `whitespaceREs` list.
 func initWSre() int {
 	result := 0
-	for idx, re := range whitespaceREs {
-		whitespaceREs[idx].regEx = regexp.MustCompile(re.search)
+	for idx, re := range reWhitespaceREs {
+		reWhitespaceREs[idx].regEx = regexp.MustCompile(re.search)
 		result++
 	}
 	result++
@@ -166,12 +166,12 @@ func MDtoHTML(aMarkdown []byte) []byte {
 
 var (
 	// RegEx to extract number and start of articles shown
-	numStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
+	reNumStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
 )
 
 // `numStart()` extracts two numbers from `aString`.
 func numStart(aString string) (rNum, rStart int) {
-	matches := numStartRE.FindStringSubmatch(aString)
+	matches := reNumStartRE.FindStringSubmatch(aString)
 	if 3 < len(matches) {
 		if 0 < len(matches[1]) {
 			rNum, _ = strconv.Atoi(matches[1])
@@ -206,10 +206,10 @@ type (
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
-	preRE = regexp.MustCompile(`(?si)\s*<pre[^>]*>.*?</pre>\s*`)
+	rePreRE = regexp.MustCompile(`(?si)\s*<pre[^>]*>.*?</pre>\s*`)
 
 	// List of regular expressions matching different sets of HTML whitespace.
-	whitespaceREs = tReList{
+	reWhitespaceREs = tReList{
 		// comments
 		{`(?s)<!--.*?-->`, ``, nil},
 		// HTML and HEAD elements:
@@ -246,10 +246,10 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 
 	// fmt.Println("Page0:", string(aPage))
 	// (0) Check whether there are PREformatted parts:
-	preMatches := preRE.FindAll(aPage, -1)
+	preMatches := rePreRE.FindAll(aPage, -1)
 	if (nil == preMatches) || (0 >= len(preMatches)) {
 		// no PRE hence only the other REs to perform
-		for _, reEntry := range whitespaceREs {
+		for _, reEntry := range reWhitespaceREs {
 			aPage = reEntry.regEx.ReplaceAll(aPage, []byte(reEntry.replace))
 		}
 		return aPage
@@ -268,7 +268,7 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 	// fmt.Println("Page1:", string(aPage))
 
 	// (2) traverse through all the whitespace REs:
-	for _, re := range whitespaceREs {
+	for _, re := range reWhitespaceREs {
 		aPage = re.regEx.ReplaceAll(aPage, []byte(re.replace))
 	}
 	// fmt.Println("Page2:", string(aPage))
@@ -287,12 +287,12 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 
 var (
 	// RegEx to replace CR/LF by LF
-	crlfRE = regexp.MustCompile("\r\n")
+	reCrLfRE = regexp.MustCompile("\r\n")
 )
 
 // `replCRLF()` replaces all CR/LF pairs by a single LF.
 func replCRLF(aText []byte) []byte {
-	return crlfRE.ReplaceAllLiteral(aText, []byte("\n"))
+	return reCrLfRE.ReplaceAllLiteral(aText, []byte("\n"))
 } // replCRLF()
 
 // SearchPostings traverses the sub-directories of `aBaseDir` looking
@@ -311,7 +311,7 @@ func SearchPostings(aText string) *TPostList {
 		return pl // empty list
 	}
 
-	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return pl
 	}
@@ -358,7 +358,7 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 
 var (
 	// RegEx to find path and possible added path components
-	urlPartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?=:;/,_@-]*)?`)
+	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?=:;/,_@-]*)?`)
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
@@ -370,7 +370,7 @@ func URLparts(aURL string) (rDir, rPath string) {
 	if result, err := url.QueryUnescape(aURL); nil == err {
 		aURL = result
 	}
-	matches := urlPartsRE.FindStringSubmatch(aURL)
+	matches := reURLpartsRE.FindStringSubmatch(aURL)
 	if 2 < len(matches) {
 		return matches[1], matches[2]
 	}

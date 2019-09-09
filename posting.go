@@ -63,27 +63,26 @@ func timeID(aID string) (rTime time.Time) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
-	// `postingBaseDirectory` is the base directory for storing the articles.
+	// `poPostingBaseDirectory` is the base directory for storing the articles.
 	//
 	// This variable's value _must_ be set initially before creating any
 	// `TPosting` or `TPostList` instances.
 	// After that it should be considered `read/only`.
-	postingBaseDirectory = "./postings"
+	poPostingBaseDirectory = "./postings"
 )
 
 // PostingBaseDirectory returns the base directory used for
 // storing articles/postings.
 func PostingBaseDirectory() string {
-	return postingBaseDirectory
+	return poPostingBaseDirectory
 } // PostingBaseDirectory()
 
-// SetPostingBaseDirectory set the base directory used for
+// SetPostingBaseDirectory sets the base directory used for
 // storing articles/postings.
 //
-// `aBaseDir` is the base directory to use for storing articles/postings.
-func SetPostingBaseDirectory(aBaseDir string) (rErr error) {
-	postingBaseDirectory, rErr = filepath.Abs(aBaseDir)
-	return
+// `aBaseDir` The base directory to use for storing articles/postings.
+func SetPostingBaseDirectory(aBaseDir string) {
+	poPostingBaseDirectory, _ = filepath.Abs(aBaseDir)
 } // SetPostingBaseDirectory()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -248,7 +247,7 @@ func (p *TPosting) makeDir() (string, error) {
 	// Using the aID's first three characters leads to
 	// directories worth about 52 days of data.
 	dir := fmt.Sprintf("%04d%s", y, p.id[:3])
-	dirname := path.Join(postingBaseDirectory, dir)
+	dirname := path.Join(poPostingBaseDirectory, dir)
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fmode); nil != err {
 		return "", err
 	}
@@ -294,7 +293,7 @@ func pathname(aID string) string {
 	// directories worth about 52 days of data.
 	dir := fmt.Sprintf("%04d%s", y, aID[:3])
 
-	return path.Join(postingBaseDirectory, dir, aID+".md")
+	return path.Join(poPostingBaseDirectory, dir, aID+".md")
 } // pathname()
 
 // PathFileName returns the article's complete path-/filename.

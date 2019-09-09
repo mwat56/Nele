@@ -73,7 +73,7 @@ func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
 
 var (
 	// RegEx to check a posting's filename
-	filenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
+	plFilenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
 )
 
 // doWalk() traverses `aBaseDir` adding every valid posting
@@ -92,7 +92,7 @@ func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 			if (nil != aErr) || (0 == aInfo.Size()) || (aInfo.IsDir()) {
 				return aErr
 			}
-			if filenameRE.Match([]byte(aInfo.Name())) {
+			if plFilenameRE.Match([]byte(aInfo.Name())) {
 				fName := aInfo.Name()
 				fName = fName[:len(fName)-3] // w/o file extension
 				fID := timeID(fName)
@@ -179,7 +179,7 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 //
 // `aStart` is the start number to use.
 func (pl *TPostList) Newest(aNumber, aStart int) error {
-	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return err
 	}

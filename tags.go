@@ -63,10 +63,10 @@ func goCheckHashes(aList *hashtags.THashList) {
 func goInitHashlist(aList *hashtags.THashList) {
 	if _, err := aList.Load(); (nil == err) && (0 < aList.Len()) {
 		go goCheckHashes(aList)
-		return // assume everything is uptodate
+		return // assume everything is up-to-date
 	}
 
-	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
 	}
@@ -138,13 +138,13 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
-	aHrefRE = regexp.MustCompile(`(?si)(<a[^>]*>.*?</a>)`)
+	htAHrefRE = regexp.MustCompile(`(?si)(<a[^>]*>.*?</a>)`)
 
 	// RegEx to identify a numeric HTML entity.
-	entityRE = regexp.MustCompile(`(#[0-9]+;)`)
+	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
 
 	// match: #hashtag|@mention
-	hashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
+	htHashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
 )
 
 // `markupTags()` returns `aPage` with all #hashtags/@mentions marked
@@ -152,7 +152,7 @@ var (
 func markupTags(aPage []byte) []byte {
 	var repl, search string
 	// (0) Check whether there are any links present:
-	linkMatches := aHrefRE.FindAll(aPage, -1)
+	linkMatches := htAHrefRE.FindAll(aPage, -1)
 	if (nil != linkMatches) || (0 < len(linkMatches)) {
 		// (1) replace the links with a dummy text:
 		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
@@ -165,9 +165,9 @@ func markupTags(aPage []byte) []byte {
 	}
 
 	// (2) markup the #hashtags/@mentions:
-	result := hashMentionRE.ReplaceAllStringFunc(string(aPage),
+	result := htHashMentionRE.ReplaceAllStringFunc(string(aPage),
 		func(aString string) string {
-			sub := hashMentionRE.FindSubmatch([]byte(aString))
+			sub := htHashMentionRE.FindSubmatch([]byte(aString))
 			if (nil == sub) || (0 >= len(sub)) || (0 >= len(sub[1])) {
 				return aString
 			}
@@ -188,7 +188,7 @@ func markupTags(aPage []byte) []byte {
 						// probably an URL#fragment, hence leave it as is
 						return aString
 					}
-					if (';' == sub[2][0]) && entityRE.MatchString(aString) {
+					if (';' == sub[2][0]) && htEntityRE.MatchString(aString) {
 						// leave HTML entities as is
 						return aString
 					}

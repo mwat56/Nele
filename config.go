@@ -275,7 +275,7 @@ func InitConfig() {
 	AppArguments.set("datadir", dataStr)
 
 	// `postingBaseDirectory` defined in `posting.go`:
-	postingBaseDirectory = filepath.Join(dataStr, "./postings")
+	SetPostingBaseDirectory(filepath.Join(dataStr, "./postings"))
 
 	if 0 < len(ckStr) {
 		ckStr = absolute(dataStr, ckStr)
@@ -363,12 +363,12 @@ func InitConfig() {
 
 var (
 	// RegEx to match a size value (xxx)
-	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
+	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
 )
 
 // `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
 func kmg2Num(aString string) (rInt int) {
-	matches := kmgRE.FindStringSubmatch(aString)
+	matches := cfKmgRE.FindStringSubmatch(aString)
 	if 2 < len(matches) {
 		// The RegEx only matches digits so we can
 		// safely ignore all Atoi() errors.
