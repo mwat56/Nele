@@ -1,5 +1,5 @@
 [Unit]
-Description=Nele blogging server
+Description=Nele Blogging Server
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 User=matthias
 Group=matthias
 WorkingDirectory=/home/matthias/devel/Go/src/github.com/mwat56/Nele/
-ExecStart=/home/matthias/devel/Go/src/github.com/mwat56/Nele/nele-linux-amd64 -ini=blog.ini -certKey="" -certPem="" -hashfile=hashfile.db -listen="192.168.192.234" -port=8181 -log=access.bla.mwat.de -uf=pwaccess.db
+ExecStart=/home/matthias/devel/Go/src/github.com/mwat56/Nele/nele-linux-amd64 -ini=blog.ini -certKey="" -certPem="" -hashfile=hashfile.db -listen=0 -port=8181 -log=access.bla.mwat.de -uf=pwaccess.db
 Restart=on-failure
 
 [Install]
