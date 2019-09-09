@@ -75,9 +75,11 @@ func absolute(aBaseDir, aDir string) string {
 
 // `iniData()` returns the config values read from INI file(s).
 // The steps here are:
-// (1) read the global `/etc/nele.ini`,
-// (2) read the user-local `~/.nele.ini`,
-// (3) read the `-ini` commandline argument.
+// (1) read the local `./.nele.ini`,
+// (2) read the global `/etc/nele.ini`,
+// (3) read the user-local `~/.nele.ini`,
+// (4) read the user-local `~/.config/nele.ini`,
+// (5) read the `-ini` commandline argument.
 func iniData() {
 	// (1) ./
 	fName, _ := filepath.Abs("./nele.ini")
@@ -107,7 +109,16 @@ func iniData() {
 		}
 	}
 
-	// (4) cmdline
+	// (4) ~/.config/
+	if confDir, err := os.UserConfigDir(); nil == err {
+		fName, _ = filepath.Abs(filepath.Join(confDir, "nele.ini"))
+		if ini2, err := ini.New(fName); nil == err {
+			ini1.Merge(ini2)
+			ini1.AddSectionKey("", "inifile", fName)
+		}
+	}
+
+	// (5) cmdline
 	aLen := len(os.Args)
 	for i := 1; i < aLen; i++ {
 		if `-ini` == os.Args[i] {
@@ -124,10 +135,11 @@ func iniData() {
 	}
 
 	AppArguments = tAguments{*ini1.GetSection("")}
-	// fmt.Printf("iniData(): %s\n", AppArguments.String()) //FIXME REMOVE
 } // iniData()
 
 func init() {
+	// // see: https://github.com/microsoft/vscode-go/issues/2734
+	// testing.Init() // workaround for Go 1.13
 	initArguments()
 } // init()
 
@@ -192,12 +204,6 @@ func initArguments() {
 	mfsStr, _ := AppArguments.Get("maxfilesize")
 	flag.StringVar(&mfsStr, "maxfilesize", mfsStr,
 		"max. accepted size of uploaded files")
-
-	/*
-		ndBool := false
-		flag.BoolVar(&ndBool, "nd", ndBool,
-			"(optional) no daemon: whether to not daemonise the program")
-	*/
 
 	portInt, _ := AppArguments.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
@@ -316,15 +322,6 @@ func initArguments() {
 	}
 	AppArguments.set("mfs", mfsStr)
 
-	/*
-		if ndBool {
-			s = "true"
-		} else {
-			s = ""
-		}
-		AppArguments.set("nd", s)
-	*/
-
 	AppArguments.set("port", fmt.Sprintf("%d", portInt))
 
 	if paBool {
@@ -356,19 +353,7 @@ func initArguments() {
 	}
 	AppArguments.set("ul", s)
 	AppArguments.set("uu", uuStr)
-
-	// fmt.Printf("initArguments(): %s\n", AppArguments.String()) //FIXME REMOVE
 } // initArguments()
-
-/*
-// `iniWalker()` is an internal helper used to set all INI file
-// key-value pairs to the global `AppArguments` list.
-func iniWalker(aSect, aKey, aVal string) {
-	// Since we're only using the `Default` section we can
-	// ignore the `aSect` argument here.
-	AppArguments.set(aKey, aVal)
-} // iniWalker()
-*/
 
 var (
 	kmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
