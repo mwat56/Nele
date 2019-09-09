@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -96,11 +95,7 @@ func iniData() {
 	}
 
 	// (3) ~user/
-	if usr, err := user.Current(); nil != err {
-		fName = os.Getenv("HOME")
-	} else {
-		fName = usr.HomeDir
-	}
+	fName, _ = os.UserHomeDir()
 	if 0 < len(fName) {
 		fName, _ = filepath.Abs(filepath.Join(fName, ".nele.ini"))
 		if ini2, err := ini.New(fName); nil == err {
