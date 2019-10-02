@@ -1,6 +1,30 @@
 /* fonts (keep at bottom) */
 
 @font-face {
+	font-family: "Noto Sans";
+	font-weight: normal;
+	font-style: normal;
+	src: url(/fonts/NotoSans-Regular.ttf);
+}
+@font-face {
+	font-family: "Noto Sans Bold";
+	font-style: normal;
+	font-weight: bold;
+	src: url(/fonts/NotoSans-Bold.ttf);
+}
+@font-face {
+	font-family: "Noto Sans BoldItal";
+	font-weight: bold;
+	font-style: italic;
+	src: url(/fonts/NotoSans-BoldItalic.ttf);
+}
+@font-face {
+	font-family: "Noto Sans Ital";
+	font-weight: normal;
+	font-style: italic;
+	src: url(/fonts/NotoSans-Italic.ttf);
+}
+@font-face {
 	font-family: "Noto Serif";
 	font-weight: normal;
 	font-style: normal;
@@ -85,16 +109,16 @@ pre b, pre.bold, pre strong, pre.strong {
 	font-family: "Hack Mono Bold", monospace;
 }
 .tc5, .tc25, .tc50, .tc99 {
-	font-family: "Hack Mono", monospace;
+	font-family: "Noto Sans", monospace;
 }
 .tc25 {
-	font-family: "Hack Mono Ital", monospace;
+	font-family: "Noto Sans Ital", monospace;
 }
 .tc50 {
-	font-family: "Hack Mono Bold", monospace;
+	font-family: "Noto Sans Bold", monospace;
 }
 .tc99 {
-	font-family: "Hack Mono BoldItal", monospace;
+	font-family: "Noto Sans BoldItal", monospace;
 }
 
 /* _EoF_ */
