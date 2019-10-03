@@ -3,6 +3,9 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
+{{- $lang := "de" -}}
+{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+{{- $title:= "" -}}
 <dl class="posting">
 	{{- $lastDate := change -}}
 	{{- range $i, $post := $.Postings -}}
@@ -10,12 +13,22 @@
 		{{if $lastDate.Changed $date -}}
 			<dt>{{$date}}</dt>
 		{{- end -}}
-		{{$ID := $post.ID -}}
-		<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}">[*]</a>
+		{{- $ID := $post.ID -}}
+		{{- if eq $lang "de" -}}
+			{{- $title = "zum Artikel springen" -}}
+		{{- else -}}
+			{{- $title = "jump to article" -}}}
+		{{- end -}}
+		<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}" title=" {{$title}} ">[*]</a>
 		{{- $post.Post -}}</dd>
 	{{- end -}}
 </dl>
 {{- if .nextLink -}}
-<p id="next"><a href="{{.nextLink}}">&raquo;&raquo;</a></p>
+	{{- if eq $lang "de" -}}
+		{{- $title = "nächste Seite" -}}
+	{{- else -}}
+		{{- $title = "next page" -}}}
+	{{- end -}}
+<p id="next"><a href="{{.nextLink}}" title=" {{$title}} ">&raquo;&raquo;</a></p>
 {{- end -}}
 {{- end -}}
