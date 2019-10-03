@@ -44,7 +44,7 @@ func doConsole(aMe string) {
 		log.Printf("\n\t%s wrote %d bytes in a new posting", aMe, i64)
 		os.Exit(0)
 	}
-} // doAdd()
+} // doConsole()
 
 // `doFile()` checks for the `filename` commandline argument, adds the
 // text from the file as a new post, and terminates the program.
@@ -84,7 +84,7 @@ func setupSinals(aServer *http.Server) {
 	}()
 } // setupSinals()
 
-// `userCmdline()` checks for and executes user file commandline actions.
+// `userCmdline()` checks for and executes password file commandline actions.
 func userCmdline() {
 	var (
 		err   error
@@ -93,6 +93,8 @@ func userCmdline() {
 	if fn, err = nele.AppArguments.Get("uf"); (nil != err) || (0 == len(fn)) {
 		return // without file no user handling
 	}
+	// All the following `nele.*` function calls will
+	// terminate the program.
 	if s, err = nele.AppArguments.Get("ua"); (nil == err) && (0 < len(s)) {
 		nele.AddUser(s, fn)
 	}
@@ -103,7 +105,7 @@ func userCmdline() {
 		nele.DeleteUser(s, fn)
 	}
 	if s, err = nele.AppArguments.Get("ul"); (nil == err) && (0 < len(s)) {
-		nele.ListUser(fn)
+		nele.ListUsers(fn)
 	}
 	if s, err = nele.AppArguments.Get("uu"); (nil == err) && (0 < len(s)) {
 		nele.UpdateUser(s, fn)
@@ -112,7 +114,6 @@ func userCmdline() {
 
 // Actually run the program …
 func main() {
-	nele.InitConfig()
 	var (
 		err       error
 		handler   http.Handler
@@ -121,13 +122,16 @@ func main() {
 	)
 	Me, _ := filepath.Abs(os.Args[0])
 
+	// Read INI files and commandline options
+	nele.InitConfig()
+
 	// Add a new posting via command line:
 	doConsole(Me)
 
-	// Read in a file:
+	// Read in a file as a new posting:
 	doFile(Me)
 
-	// Handle user file maintenance:
+	// Handle password file maintenance:
 	userCmdline()
 
 	if ph, err = nele.NewPageHandler(); nil != err {
@@ -141,7 +145,7 @@ func main() {
 		// we assume, an error means: no logfile
 		handler = apachelogger.Wrap(handler, s)
 	}
-	// We need a `server` reference to use it in `setupSinals()` below
+	// We need a `server` reference to use it in `setupSinals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{
 		Addr:              ph.Address(),
