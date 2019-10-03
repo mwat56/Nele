@@ -51,7 +51,7 @@ func NewID() string {
 
 // `timeID()` returns a posting's date/time represented by `aID`.
 //
-// `aID` is a posting's ID as returned by `newID()`.
+//	`aID` is a posting's ID as returned by `newID()`.
 func timeID(aID string) (rTime time.Time) {
 	if i64, err := strconv.ParseInt(aID, 16, 64); nil == err {
 		return time.Unix(0, i64)
@@ -80,7 +80,7 @@ func PostingBaseDirectory() string {
 // SetPostingBaseDirectory sets the base directory used for
 // storing articles/postings.
 //
-// `aBaseDir` The base directory to use for storing articles/postings.
+//	`aBaseDir` The base directory to use for storing articles/postings.
 func SetPostingBaseDirectory(aBaseDir string) {
 	poPostingBaseDirectory, _ = filepath.Abs(aBaseDir)
 } // SetPostingBaseDirectory()
@@ -102,7 +102,7 @@ func NewPosting() *TPosting {
 
 // newPosting() is the core function of `NewPost()` (for testing purposes).
 //
-// `aID` if an empty string the `NewID()` function is called
+//	`aID` if an empty string the `NewID()` function is called
 // to provide a new article ID.
 func newPosting(aID string) *TPosting {
 	if 0 == len(aID) {
@@ -116,7 +116,7 @@ func newPosting(aID string) *TPosting {
 // After reports whether this posting is younger than the one
 // identified by `aID`.
 //
-// `aID` is the ID of another posting to compare.
+//	`aID` is the ID of another posting to compare.
 func (p *TPosting) After(aID string) bool {
 	return (p.id > aID)
 } // After()
@@ -124,7 +124,7 @@ func (p *TPosting) After(aID string) bool {
 // Before reports whether this posting is older than the one
 // identified by `aID`.
 //
-// `aID` is the ID of another posting to compare.
+//	`aID` is the ID of another posting to compare.
 func (p *TPosting) Before(aID string) bool {
 	return (p.id < aID)
 } // Before()
@@ -161,7 +161,7 @@ func (p *TPosting) Date() string {
 //
 // A non-existing file is not considered an error here.
 //
-// `aFileName` is the name of the file to delFile.
+//	`aFileName` is the name of the file to delFile.
 func delFile(aFileName *string) error {
 	err := os.Remove(*aFileName)
 	if nil != err {
@@ -303,18 +303,17 @@ func (p *TPosting) PathFileName() string {
 
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
-	return template.HTML(markupTags(cachedHTML(p))) // #nosec G203
-	/*
-		// make sure we have the most recent version:
-		p.Markdown()
+	// return template.HTML(markupTags(cachedHTML(p))) // #nosec G203
 
-		return template.HTML(markupTags(MDtoHTML(p.markdown)))
-	*/
+	// make sure we have the most recent version:
+	p.Markdown()
+
+	return template.HTML(markupTags(MDtoHTML(p.markdown))) // #nosec G203
 } // Post()
 
 // Set assigns the article's Markdown text.
 //
-// `aMarkdown` is the actual Markdown text of the article to assign.
+//	`aMarkdown` is the actual Markdown text of the article to assign.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
 		p.markdown = []byte(strings.TrimSpace(string(aMarkdown)))
