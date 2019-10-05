@@ -130,119 +130,124 @@ Let's start with the command line:
 
     $ ./nele -h
 
-	Usage: ./nele [OPTIONS]
+    Usage: ./nele [OPTIONS]
 
-	-blogname string
-		Name of this Blog (shown on every page)
-		(default "Meine Güte, was für'n Blah!")
-	-certKey string
-		<fileName> the name of the TLS certificate key
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
-	-certPem string
-		<fileName> the name of the TLS certificate PEM
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
-	-datadir string
-		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
-	-hashfile string
-		<fileName> (optional) the name of a file storing #hashtags and @mentions
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
-	-ini string
-		<fileName> the path/filename of the INI file
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/blog.ini")
-	-lang string
-		(optional) the default language to use  (default "de")
-	-listen string
-		the host's IP to listen at  (default "127.0.0.1")
-	-log string
-		(optional) name of the logfile to write to
-		(default "/dev/stdout")
-	-maxfilesize string
-		max. accepted size of uploaded files (default "10MB")
-	-pa
-		(optional) posting add: write a posting from the commandline
-	-pf string
-		<fileName> (optional) post file: name of a file to add as new posting
-	-port int
-		<portNumber> the IP port to listen to  (default 8181)
-	-realm string
-		(optional) <hostName> name of host/domain to secure by BasicAuth
-		(default "This Host")
-	-theme string
-		<name> the display theme to use ('light' or 'dark')
-		(default "light")
-	-ua string
-		<userName> (optional) user add: add a username to the password file
-	-uc string
-		<userName> (optional) user check: check a username in the password file
-	-ud string
-		<userName> (optional) user delete: remove a username from the password file
-	-uf string
-		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
-	-ul
-		(optional) user list: show all users in the password file
-	-uu string
-		<userName> (optional) user update: update a username in the password file
+    -blogname string
+        Name of this Blog (shown on every page)
+        (default "Meine Güte, was für'n Blah!")
+    -certKey string
+        <fileName> the name of the TLS certificate's private key
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
+    -certPem string
+        <fileName> the name of the TLS certificate PEM
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
+    -datadir string
+        <dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
+    -gzip
+        (optional) use gzip compression for server responses (default true)
+    -hashfile string
+        <fileName> (optional) the name of a file storing #hashtags and @mentions
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
+    -ini string
+        <fileName> the path/filename of the INI file
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/blog.ini")
+    -lang string
+        (optional) the default language to use  (default "de")
+    -listen string
+        the host's IP to listen at  (default "127.0.0.1")
+    -log string
+        (optional) name of the logfile to write to
+        (default "/dev/stdout")
+    -maxfilesize string
+        max. accepted size of uploaded files (default "10MB")
+    -pa
+        (optional) posting add: write a posting from the commandline
+    -pf string
+        <fileName> (optional) post file: name of a file to add as new posting
+    -port int
+        <portNumber> the IP port to listen to  (default 8181)
+    -realm string
+        (optional) <hostName> name of host/domain to secure by BasicAuth
+        (default "This Host")
+    -theme string
+        <name> the display theme to use ('light' or 'dark')
+        (default "light")
+    -ua string
+        <userName> (optional) user add: add a username to the password file
+    -uc string
+        <userName> (optional) user check: check a username in the password file
+    -ud string
+        <userName> (optional) user delete: remove a username from the password file
+    -uf string
+        <fileName> (optional) user passwords file storing user/passwords for BasicAuth
+        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
+    -ul
+        (optional) user list: show all users in the password file
+    -uu string
+        <userName> (optional) user update: update a username in the password file
 
-	Most options can be set in an INI file to keep the command-line short ;-)
+    Most options can be set in an INI file to keep the command-line short ;-)
 
     $ _
 
 However, to just run the program you'll usually don't need any of those options to input on the commandline.
-There is an INI file called `blog.ini` coming with the package, where you can store the most common settings:
+There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
 
-    $ cat blog.ini
+    $ cat nele.ini
     # Default configuration file
 
     [Default]
 
-        # Name of this Blog (shown on every page)
+        # Name of this Blog (shown on every page).
         blogname = "Meine Güte, was für'n Blah!"
 
-        # path-/filename of TLS certificate's private key to enable TLS/HTTPS
-        # (if empty standard HTTP is used)
-        # NOTE: a relative path/name will be combined with `datadir` (below).
+        # path-/filename of the TLS certificate's private key to enable
+        # TLS/HTTPS (if empty standard HTTP is used).
+        # NOTE: A relative path/name will be combined with `datadir` (below).
         certKey = ./certs/server.key
 
         # path-/filename of TLS (server) certificate to enable TLS/HTTPS
-        # (if empty standard HTTP is used)
-        # NOTE: a relative path/name will be combined with `datadir` (below).
+        # (if empty standard HTTP is used).
+        # NOTE: A relative path/name will be combined with `datadir` (below).
         certPem = ./certs/server.pem
 
-        # The directory root for CSS, FONTS, IMG, JS, POSTINGS, STATIC,
-        # and VIEWS sub-directories.
-        # NOTE: this should be an absolute path name.
+        # The directory root for the "css", "fonts", "img", "postings",
+        # "static", and "views" sub-directories.
+        # NOTE: This should be an _absolute_ path name.
         datadir = ./
 
+        # Use gzip compression for server responses.
+        gzip = true
+
         # The file to store #hashtags and @mentions.
-        # NOTE: a relative path/name will be combined with `dadadir` (above).
+        # NOTE: A relative path/name will be combined with `datadir` (above).
         hashfile = ./hashfile.db
 
-        # The default language to use:
+        # The default UI language to use ("de" or "en").
         lang = de
 
-        # The host's IP to listen at:
+        # The host's IP number to listen at.
         listen = 127.0.0.1
 
-        # The IP port to listen to:
+        # The IP port to listen to.
         port = 8181
 
         # Name of the optional logfile to write to.
-        # NOTE: a relative path/name will be combined with `datadir` (above).
+        # NOTE: A relative path/name will be combined with `datadir` (above).
         logfile = /dev/stdout
 
-        # Accepted size of uploaded files
+        # Accepted size of uploaded files.
         maxfilesize = 10MB
 
         # Password file for HTTP Basic Authentication.
         # NOTE: a relative path/name will be combined with `datadir` (above).
         passfile = ./pwaccess.db
 
-        # Name of host/domain to secure by BasicAuth:
+        # Name of host/domain to secure by BasicAuth.
         realm = "This Host"
 
-        # Web/display theme: `dark` or `light':
+        # Web/display theme ("dark" or "light").
         theme = light
 
     # _EoF_
@@ -480,6 +485,7 @@ The following external libraries were used building `Nele`:
 * [BlackFriday](https://gopkg.in/russross/blackfriday.v2)
 * [Crypto](https://golang.org/x/crypto)
 * [ErrorHandler](https://github.com/mwat56/errorhandler)
+* [GzipHandler](https://github.com/NYTimes/gziphandler)
 * [Hashtags](https://github.com/mwat56/hashtags)
 * [INI](https://github.com/mwat56/ini)
 * [PassList](https://github.com/mwat56/passlist)

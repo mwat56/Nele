@@ -20,6 +20,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	nele "github.com/mwat56/Nele"
 	"github.com/mwat56/apachelogger"
 	"github.com/mwat56/errorhandler"
@@ -138,13 +139,20 @@ func main() {
 		nele.ShowHelp()
 		log.Fatalf("%s: %v", Me, err)
 	}
+	// Setup the errorpage handler:
 	handler = errorhandler.Wrap(ph, ph)
 
-	// inspect `logfile` commandline argument and setup the `ApacheLogger`
+	// Inspect `logfile` commandline argument and setup the `ApacheLogger`
 	if s, err = nele.AppArguments.Get("logfile"); (nil == err) && (0 < len(s)) {
 		// we assume, an error means: no logfile
 		handler = apachelogger.Wrap(handler, s)
 	}
+
+	// Setup the Gzip handler:
+	if s, err = nele.AppArguments.Get("gzip"); "true" == s {
+		handler = gziphandler.GzipHandler(handler)
+	}
+
 	// We need a `server` reference to use it in `setupSinals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{

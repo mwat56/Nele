@@ -171,12 +171,16 @@ func InitConfig() {
 	s, _ = AppArguments.Get("certKey")
 	ckStr := absolute(dataStr, s)
 	flag.StringVar(&ckStr, "certKey", ckStr,
-		"<fileName> the name of the TLS certificate key\n")
+		"<fileName> the name of the TLS certificate's private key\n")
 
 	s, _ = AppArguments.Get("certPem")
 	cpStr := absolute(dataStr, s)
 	flag.StringVar(&cpStr, "certPem", cpStr,
 		"<fileName> the name of the TLS certificate PEM\n")
+
+	gzipBool := true
+	flag.BoolVar(&gzipBool, "gzip", gzipBool,
+		"(optional) use gzip compression for server responses")
 
 	s, _ = AppArguments.Get("hashfile")
 	hashStr := absolute(dataStr, s)
@@ -292,6 +296,13 @@ func InitConfig() {
 		}
 	}
 	AppArguments.set("certPem", cpStr)
+
+	if gzipBool {
+		s = "true"
+	} else {
+		s = ""
+	}
+	AppArguments.set("gzip", s)
 
 	if 0 < len(hashStr) {
 		hashStr = absolute(dataStr, hashStr)
