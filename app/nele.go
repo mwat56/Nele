@@ -142,15 +142,15 @@ func main() {
 	// Setup the errorpage handler:
 	handler = errorhandler.Wrap(ph, ph)
 
+	// Inspect `gzip` commandline argument and setup the Gzip handler:
+	if s, err = nele.AppArguments.Get("gzip"); "true" == s {
+		handler = gziphandler.GzipHandler(handler)
+	}
+
 	// Inspect `logfile` commandline argument and setup the `ApacheLogger`
 	if s, err = nele.AppArguments.Get("logfile"); (nil == err) && (0 < len(s)) {
 		// we assume, an error means: no logfile
 		handler = apachelogger.Wrap(handler, s)
-	}
-
-	// Setup the Gzip handler:
-	if s, err = nele.AppArguments.Get("gzip"); "true" == s {
-		handler = gziphandler.GzipHandler(handler)
 	}
 
 	// We need a `server` reference to use it in `setupSinals()`
