@@ -68,6 +68,13 @@ func doFile(aMe string) {
 	}
 } // doFile()
 
+// `fatal()`
+func fatal(aMessage string) {
+	apachelogger.Log("Nele/main", aMessage)
+	runtime.Gosched() // let the logger write
+	log.Fatalln(aMessage)
+} // fatal()
+
 // `setupSinals()` configures the capture of the interrupts `SIGINT`,
 // `SIGKILL`, and `SIGTERM` to terminate the program gracefully.
 func setupSinals(aServer *http.Server) {
@@ -137,13 +144,13 @@ func main() {
 
 	if ph, err = nele.NewPageHandler(); nil != err {
 		nele.ShowHelp()
-		log.Fatalf("%s: %v", Me, err)
+		fatal(fmt.Sprintf("%s: %v", Me, err))
 	}
 	// Setup the errorpage handler:
 	handler = errorhandler.Wrap(ph, ph)
 
 	// Inspect `gzip` commandline argument and setup the Gzip handler:
-	if s, err = nele.AppArguments.Get("gzip"); "true" == s {
+	if s, err = nele.AppArguments.Get("gzip"); (nil == err) && ("true" == s) {
 		handler = gziphandler.GzipHandler(handler)
 	}
 
@@ -166,16 +173,12 @@ func main() {
 
 	ck, _ = nele.AppArguments.Get("certKey")
 	cp, _ = nele.AppArguments.Get("certPem")
-
 	if 0 < len(ck) && (0 < len(cp)) {
 		s = fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
 		if err = server.ListenAndServeTLS(cp, ck); nil != err {
-			s = fmt.Sprintf("%s: %v", Me, err)
-			apachelogger.Log("Nele/main", s)
-			runtime.Gosched() // let the logger write
-			log.Fatalln(s)
+			fatal(fmt.Sprintf("%s: %v", Me, err))
 		}
 		return
 	}
@@ -184,10 +187,7 @@ func main() {
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
 	if err = server.ListenAndServe(); nil != err {
-		s = fmt.Sprintf("%s: %v", Me, err)
-		apachelogger.Log("Nele/main", s)
-		runtime.Gosched() // let the logger write
-		log.Fatalln(s)
+		fatal(fmt.Sprintf("%s: %v", Me, err))
 	}
 } // main()
 
