@@ -68,7 +68,7 @@ func doFile(aMe string) {
 	}
 } // doFile()
 
-// `fatal()`
+// `fatal()` logs `aMessage` and terminates the program.
 func fatal(aMessage string) {
 	apachelogger.Log("Nele/main", aMessage)
 	runtime.Gosched() // let the logger write

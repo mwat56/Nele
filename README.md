@@ -488,6 +488,7 @@ The following external libraries were used building `Nele`:
 * [GzipHandler](https://github.com/NYTimes/gziphandler)
 * [Hashtags](https://github.com/mwat56/hashtags)
 * [INI](https://github.com/mwat56/ini)
+* [Jffs](https://github.com/mwat56/jffs)
 * [PassList](https://github.com/mwat56/passlist)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
 

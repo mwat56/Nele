@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/mwat56/hashtags"
+	"github.com/mwat56/jffs"
 	"github.com/mwat56/passlist"
 	"github.com/mwat56/uploadhandler"
 )
@@ -86,7 +87,7 @@ func NewPageHandler() (*TPageHandler, error) {
 		return nil, err
 	}
 	result.dd = s
-	result.fh = http.FileServer(http.Dir(result.dd + "/"))
+	result.fh = jffs.FileServer(http.Dir(result.dd + `/`))
 	if result.viewList, err = newViewList(filepath.Join(result.dd, "views")); nil != err {
 		return nil, err
 	}
@@ -213,7 +214,6 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	pageData := ph.basicPageData()
 	path, tail := URLparts(aRequest.URL.Path)
-	// log.Printf("head: `%s`: tail: `%s`", path, tail) //FIXME REMOVE
 	switch path {
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
