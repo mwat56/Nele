@@ -8,10 +8,12 @@ require (
 	github.com/mwat56/errorhandler v1.1.1
 	github.com/mwat56/hashtags v0.4.9
 	github.com/mwat56/ini v1.3.6
+	github.com/mwat56/jffs v0.0.3
 	github.com/mwat56/passlist v1.2.0
 	github.com/mwat56/uploadhandler v1.0.5
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	golang.org/x/sys v0.0.0-20191007154456-ef33b2fb2c41 // indirect
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
+	golang.org/x/sys v0.0.0-20191018095205-727590c5006e // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.1
 )
 
