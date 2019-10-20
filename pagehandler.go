@@ -715,7 +715,7 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 } // NeedAuthentication()
 
 // ServeHTTP handles the incoming HTTP requests.
-func (ph TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
 	if ph.NeedAuthentication(aRequest) {
 		if nil == ph.ul {
 			passlist.Deny(ph.realm, aWriter)
@@ -727,6 +727,7 @@ func (ph TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Req
 		}
 	}
 
+	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	switch aRequest.Method {
 	case "GET":
 		ph.handleGET(aWriter, aRequest)
