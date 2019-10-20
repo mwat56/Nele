@@ -11,6 +11,7 @@ import (
 )
 
 func TestNewPageHandler(t *testing.T) {
+	InitConfig()
 	SetPostingBaseDirectory("/tmp/postings/")
 	prepareTestFiles()
 	tests := []struct {
