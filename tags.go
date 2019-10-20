@@ -56,7 +56,7 @@ func doCheckPost(aHash, aID string) bool {
 // `goCheckHashes()` walks all postings referenced by `aList`.
 func goCheckHashes(aList *hashtags.THashList) {
 	aList.Walk(doCheckPost)
-	go goCacheCleanup()
+	// go goCacheCleanup()
 } // goCheckHashes()
 
 // `goInitHashlist()` initialises the hash list.
@@ -87,19 +87,19 @@ func goInitHashlist(aList *hashtags.THashList) {
 	}
 
 	_, _ = aList.Store()
-	go goCacheCleanup()
+	// go goCacheCleanup()
 } // goInitHashlist()
 
-// `goRemoveID()` removes `aID` from `aList`s items.
+// `goRemoveID()` removes `aID` from `aList's` items.
 func goRemoveID(aList *hashtags.THashList, aID string) {
 	aList.IDremove(aID)
-	go goCacheCleanup()
+	// go goCacheCleanup()
 } // goRemoveID()
 
 // `goRenameID()` renames all references of `aOldID` to `aNewID`.
 func goRenameID(aList *hashtags.THashList, aOldID, aNewID string) {
 	aList.IDrename(aOldID, aNewID)
-	go goCacheCleanup()
+	// go goCacheCleanup()
 } // goRenameID()
 
 // `goUpdateID()` updates the #hashtag/@mention references of `aID`.
