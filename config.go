@@ -178,7 +178,7 @@ func InitConfig() {
 	flag.StringVar(&cpStr, "certPem", cpStr,
 		"<fileName> the name of the TLS certificate PEM\n")
 
-	gzipBool := true
+	gzipBool, _ := AppArguments.AsBool("gzip")
 	flag.BoolVar(&gzipBool, "gzip", gzipBool,
 		"(optional) use gzip compression for server responses")
 
@@ -210,6 +210,10 @@ func InitConfig() {
 	logStr := absolute(dataStr, s)
 	flag.StringVar(&logStr, "log", logStr,
 		"(optional) name of the logfile to write to\n")
+
+	logStack, _ := AppArguments.AsBool("logStack")
+	flag.BoolVar(&logStack, "logStack", logStack,
+		"<boolean> Log a stack trace for recovered runtime errors ")
 
 	mfsStr, _ := AppArguments.Get("maxfilesize")
 	flag.StringVar(&mfsStr, "maxfilesize", mfsStr,
@@ -330,6 +334,13 @@ func InitConfig() {
 		logStr = absolute(dataStr, logStr)
 	}
 	AppArguments.set("logfile", logStr)
+
+	if logStack {
+		s = "true"
+	} else {
+		s = ""
+	}
+	AppArguments.set("logStack", s)
 
 	if 0 == len(mfsStr) {
 		mfsStr = "10485760" // 10 MB

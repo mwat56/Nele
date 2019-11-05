@@ -20,10 +20,12 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mwat56/apachelogger"
 	"github.com/mwat56/hashtags"
 	"github.com/mwat56/jffs"
 	"github.com/mwat56/passlist"
@@ -40,6 +42,7 @@ type (
 		hl       *hashtags.THashList           // #hashtags/@mentions list
 		iup      *uploadhandler.TUploadHandler // `img` upload handler
 		lang     string                        // default language
+		logStack bool                          // log stack trace
 		mfs      int64                         // max. size of uploaded files
 		realm    string                        // host/domain to secure by BasicAuth
 		sup      *uploadhandler.TUploadHandler // `static` upload handler
@@ -104,6 +107,10 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	// an empty value means: listen on all interfaces:
 	result.addr, _ = AppArguments.Get("listen")
+
+	if s, err = AppArguments.Get("logStack"); nil == err {
+		result.logStack = ("true" == s)
+	}
 
 	s, _ = AppArguments.Get("mfs")
 	if mfs, _ := strconv.Atoi(s); 0 < mfs {
@@ -716,6 +723,20 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 
 // ServeHTTP handles the incoming HTTP requests.
 func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
+	defer func() {
+		// make sure a `panic` won't kill the program
+		if err := recover(); err != nil {
+			var msg string
+			if ph.logStack {
+				msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
+			} else {
+				msg = fmt.Sprintf("caught panic: %v", err)
+			}
+			apachelogger.Log("TPageHandler.ServeHTTP()", msg)
+		}
+	}()
+
+	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	if ph.NeedAuthentication(aRequest) {
 		if nil == ph.ul {
 			passlist.Deny(ph.realm, aWriter)
@@ -727,7 +748,6 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 	}
 
-	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	switch aRequest.Method {
 	case "GET":
 		ph.handleGET(aWriter, aRequest)

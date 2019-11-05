@@ -128,133 +128,147 @@ As you can see the binary lost about 3MB of its weight.
 
 Let's start with the command line:
 
-    $ ./nele -h
+	$ ./nele -h
 
-    Usage: ./nele [OPTIONS]
+	Usage: bin/nele-linux-amd64 [OPTIONS]
 
-    -blogname string
-        Name of this Blog (shown on every page)
-        (default "Meine Güte, was für'n Blah!")
-    -certKey string
-        <fileName> the name of the TLS certificate's private key
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
-    -certPem string
-        <fileName> the name of the TLS certificate PEM
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
-    -datadir string
-        <dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
-    -gzip
-        (optional) use gzip compression for server responses (default true)
-    -hashfile string
-        <fileName> (optional) the name of a file storing #hashtags and @mentions
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
-    -ini string
-        <fileName> the path/filename of the INI file
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/blog.ini")
-    -lang string
-        (optional) the default language to use  (default "de")
-    -listen string
-        the host's IP to listen at  (default "127.0.0.1")
-    -log string
-        (optional) name of the logfile to write to
-        (default "/dev/stdout")
-    -maxfilesize string
-        max. accepted size of uploaded files (default "10MB")
-    -pa
-        (optional) posting add: write a posting from the commandline
-    -pf string
-        <fileName> (optional) post file: name of a file to add as new posting
-    -port int
-        <portNumber> the IP port to listen to  (default 8181)
-    -realm string
-        (optional) <hostName> name of host/domain to secure by BasicAuth
-        (default "This Host")
-    -theme string
-        <name> the display theme to use ('light' or 'dark')
-        (default "light")
-    -ua string
-        <userName> (optional) user add: add a username to the password file
-    -uc string
-        <userName> (optional) user check: check a username in the password file
-    -ud string
-        <userName> (optional) user delete: remove a username from the password file
-    -uf string
-        <fileName> (optional) user passwords file storing user/passwords for BasicAuth
-        (default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
-    -ul
-        (optional) user list: show all users in the password file
-    -uu string
-        <userName> (optional) user update: update a username in the password file
+	-blogname string
+		Name of this Blog (shown on every page)
+		(default "Meine Güte, was für'n Blah!")
+	-certKey string
+		<fileName> the name of the TLS certificate's private key
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
+	-certPem string
+		<fileName> the name of the TLS certificate PEM
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
+	-datadir string
+		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
+	-gzip
+		(optional) use gzip compression for server responses (default true)
+	-hashfile string
+		<fileName> (optional) the name of a file storing #hashtags and @mentions
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
+	-ini string
+		<fileName> the path/filename of the INI file to use
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/nele.ini")
+	-lang string
+		(optional) the default language to use  (default "de")
+	-listen string
+		the host's IP to listen at  (default "127.0.0.1")
+	-log string
+		(optional) name of the logfile to write to
+		(default "/dev/stdout")
+	-logStack
+		<boolean> Log a stack trace for recovered runtime errors  (default true)
+	-maxfilesize string
+		max. accepted size of uploaded files (default "10MB")
+	-pa
+		(optional) posting add: write a posting from the commandline
+	-pf string
+		<fileName> (optional) post file: name of a file to add as new posting
+	-port int
+		<portNumber> the IP port to listen to  (default 8181)
+	-realm string
+		(optional) <hostName> name of host/domain to secure by BasicAuth
+		(default "This Host")
+	-theme string
+		<name> the display theme to use ('light' or 'dark')
+		(default "dark")
+	-ua string
+		<userName> (optional) user add: add a username to the password file
+	-uc string
+		<userName> (optional) user check: check a username in the password file
+	-ud string
+		<userName> (optional) user delete: remove a username from the password file
+	-uf string
+		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
+	-ul
+		(optional) user list: show all users in the password file
+	-uu string
+		<userName> (optional) user update: update a username in the password file
 
-    Most options can be set in an INI file to keep the command-line short ;-)
+	Most options can be set in an INI file to keep the command-line short ;-)
 
-    $ _
+	$ _
 
 However, to just run the program you'll usually don't need any of those options to input on the commandline.
 There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
 
-    $ cat nele.ini
-    # Default configuration file
+	$ cat nele.ini
+	# Default configuration file
 
-    [Default]
+	[Default]
 
-        # Name of this Blog (shown on every page).
-        blogname = "Meine Güte, was für'n Blah!"
+	# Name of this Blog (shown on every page).
+	blogname = "Meine Güte, was für'n Blah!"
 
-        # path-/filename of the TLS certificate's private key to enable
-        # TLS/HTTPS (if empty standard HTTP is used).
-        # NOTE: A relative path/name will be combined with `datadir` (below).
-        certKey = ./certs/server.key
+	# path-/filename of the TLS certificate's private key to enable
+	# TLS/HTTPS (if empty standard HTTP is used).
+	# NOTE: A relative path/name will be combined with `datadir` (below).
+	certKey = ./certs/server.key
 
-        # path-/filename of TLS (server) certificate to enable TLS/HTTPS
-        # (if empty standard HTTP is used).
-        # NOTE: A relative path/name will be combined with `datadir` (below).
-        certPem = ./certs/server.pem
+	# path-/filename of TLS (server) certificate to enable TLS/HTTPS
+	# (if empty standard HTTP is used).
+	# NOTE: A relative path/name will be combined with `datadir` (below).
+	certPem = ./certs/server.pem
 
-        # The directory root for the "css", "fonts", "img", "postings",
-        # "static", and "views" sub-directories.
-        # NOTE: This should be an _absolute_ path name.
-        datadir = ./
+	# The directory root for the "css", "fonts", "img", "postings",
+	# "static", and "views" sub-directories.
+	# NOTE: This should be an _absolute_ path name.
+	datadir = ./
 
-        # Use gzip compression for server responses.
-        gzip = true
+	# Use gzip compression for server responses.
+	gzip = true
 
-        # The file to store #hashtags and @mentions.
-        # NOTE: A relative path/name will be combined with `datadir` (above).
-        hashfile = ./hashfile.db
+	# The file to store #hashtags and @mentions.
+	# NOTE: A relative path/name will be combined with `datadir` (above).
+	hashfile = ./hashfile.db
 
-        # The default UI language to use ("de" or "en").
-        lang = de
+	# The default UI language to use ("de" or "en").
+	lang = de
 
-        # The host's IP number to listen at.
-        listen = 127.0.0.1
+	# The host's IP number to listen at.
+	listen = 127.0.0.1
 
-        # The IP port to listen to.
-        port = 8181
+	# Whether or not log a stack trace for recovered runtime errors.
+	# NOTE: This is merely a debugging aid and should normally be `false`.
+	logStack = true
 
-        # Name of the optional logfile to write to.
-        # NOTE: A relative path/name will be combined with `datadir` (above).
-        logfile = /dev/stdout
+	# The IP port to listen to.
+	port = 8181
 
-        # Accepted size of uploaded files.
-        maxfilesize = 10MB
+	# Name of the optional logfile to write to.
+	# NOTE: A relative path/name will be combined with `datadir` (above).
+	logfile = /dev/stdout
 
-        # Password file for HTTP Basic Authentication.
-        # NOTE: a relative path/name will be combined with `datadir` (above).
-        passfile = ./pwaccess.db
+	# Accepted size of uploaded files.
+	maxfilesize = 10MB
 
-        # Name of host/domain to secure by BasicAuth.
-        realm = "This Host"
+	# Password file for HTTP Basic Authentication.
+	# NOTE: a relative path/name will be combined with `datadir` (above).
+	passfile = ./pwaccess.db
 
-        # Web/display theme ("dark" or "light").
-        theme = light
+	# Name of host/domain to secure by BasicAuth.
+	realm = "This Host"
 
-    # _EoF_
-    $ _
+	# Web/display theme ("dark" or "light").
+	theme = dark
 
-The program, when started, will first look for the INI file in the current directory and only then parse the commandline arguments; in other words: commandline arguments take precedence over INI entries.
-The meaning of the different configuration options should be self-explanatory.
+	# _EoF_
+	$ _
+
+The program, when started, will first look for the INI file in five different places:
+
+1. in your (i.e. the current user's) directory (`./nele.ini`),
+2. in the computer's main config directory (`/etc/nele.ini"`),
+3. in the current user's home directory (e.g. `$HOME/.nele.ini`),
+4. in the current user's configuration directory (e.g. `$HOME/.config/nele.ini`),
+5. in the `-ini <filename>` commandline option (if given).
+
+All these files (_if they exist_) are read in the given order at startup before finally parsing the commandline options shown earlier.
+So each step overwrites the previous one, the commandline options having the highest priority. –
 But let's look at some of the commandline options more closely.
 
 ### Commandline postings
