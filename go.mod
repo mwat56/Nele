@@ -12,8 +12,8 @@ require (
 	github.com/mwat56/passlist v1.2.0
 	github.com/mwat56/uploadhandler v1.0.5
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
-	golang.org/x/sys v0.0.0-20191018095205-727590c5006e // indirect
+	golang.org/x/crypto v0.0.0-20191105034135-c7e5f84aec59 // indirect
+	golang.org/x/sys v0.0.0-20191104094858-e8c54fb511f6 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.1
 )
 
