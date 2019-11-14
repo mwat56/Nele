@@ -2,14 +2,13 @@
 access.*
 addTest.md
 *.bak
+bin/
 bla.mwat.de.*
 blog.*
 blog_local.sh
 certs/*
 *.db
-_demo/
 .git/
-go-build-executable.sh
 img/*
 *.ini
 *.log
