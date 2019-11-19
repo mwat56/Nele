@@ -13,6 +13,7 @@ package nele
  */
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -46,17 +47,14 @@ func doCheckPost(aHash, aID string) bool {
 	if err := p.Load(); nil != err {
 		return false
 	}
-	if txt := strings.ToLower(string(p.Markdown())); 0 > strings.Index(txt, aHash) {
-		return false
-	}
+	txt := bytes.ToLower(p.Markdown())
 
-	return true
+	return (0 >= bytes.Index(txt, []byte(aHash)))
 } // doCheckPost()
 
 // `goCheckHashes()` walks all postings referenced by `aList`.
 func goCheckHashes(aList *hashtags.THashList) {
 	aList.Walk(doCheckPost)
-	// go goCacheCleanup()
 } // goCheckHashes()
 
 // `goInitHashlist()` initialises the hash list.
@@ -87,19 +85,16 @@ func goInitHashlist(aList *hashtags.THashList) {
 	}
 
 	_, _ = aList.Store()
-	// go goCacheCleanup()
 } // goInitHashlist()
 
 // `goRemoveID()` removes `aID` from `aList's` items.
 func goRemoveID(aList *hashtags.THashList, aID string) {
 	aList.IDremove(aID)
-	// go goCacheCleanup()
 } // goRemoveID()
 
 // `goRenameID()` renames all references of `aOldID` to `aNewID`.
 func goRenameID(aList *hashtags.THashList, aOldID, aNewID string) {
 	aList.IDrename(aOldID, aNewID)
-	// go goCacheCleanup()
 } // goRenameID()
 
 // `goUpdateID()` updates the #hashtag/@mention references of `aID`.

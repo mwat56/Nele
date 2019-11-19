@@ -13,6 +13,7 @@ package nele
  */
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -192,14 +193,11 @@ func (p *TPosting) Equal(aID string) bool {
 // Exists returns whether there is a file with more than zero bytes.
 func (p *TPosting) Exists() bool {
 	fi, err := os.Stat(pathname(p.id))
-	if nil != err {
-		return false
-	}
-	if (0 == fi.Size()) || fi.IsDir() {
+	if (nil != err) || fi.IsDir() {
 		return false
 	}
 
-	return true
+	return (0 < fi.Size())
 } // Exists()
 
 // ID returns the article's identifier.
@@ -220,17 +218,16 @@ func (p *TPosting) Len() int {
 
 // Load reads the Markdown from disk, returning a possible I/O error.
 func (p *TPosting) Load() error {
-	var err error
 	filepathname := p.PathFileName()
-	if _, err = os.Stat(filepathname); nil != err {
+	if _, err := os.Stat(filepathname); nil != err {
 		return err // probably ENOENT
 	}
 
-	var bs []byte
-	if bs, err = ioutil.ReadFile(filepathname); /* #nosec G304 */ nil != err {
+	bs, err := ioutil.ReadFile(filepathname) // #nosec G304
+	if nil != err {
 		return err
 	}
-	p.markdown = []byte(strings.TrimSpace(string(bs)))
+	p.markdown = bytes.TrimSpace(bs)
 
 	return nil
 } // Load()
@@ -279,7 +276,11 @@ func (p *TPosting) Markdown() []byte {
 	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
 		return p.markdown // return empty slice
 	}
-	p.markdown = []byte(strings.TrimSpace(string(bs)))
+	p.markdown = bytes.TrimSpace(bs)
+	if nil == p.markdown {
+		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
+		return []byte("")
+	}
 
 	return p.markdown
 } // Markdown()
@@ -303,8 +304,6 @@ func (p *TPosting) PathFileName() string {
 
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
-	// return template.HTML(markupTags(cachedHTML(p))) // #nosec G203
-
 	// make sure we have the most recent version:
 	p.Markdown()
 
@@ -316,7 +315,7 @@ func (p *TPosting) Post() template.HTML {
 //	`aMarkdown` is the actual Markdown text of the article to assign.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
-		p.markdown = []byte(strings.TrimSpace(string(aMarkdown)))
+		p.markdown = bytes.TrimSpace(aMarkdown)
 	} else {
 		_ = p.Load()
 	}
@@ -329,29 +328,27 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 //
 // The file is created on disk with mode `0644` (`-rw-r--r--`).
 func (p *TPosting) Store() (int64, error) {
-	var result int64
-	var err error
-
-	if _, err = p.makeDir(); nil != err {
+	if _, err := p.makeDir(); nil != err {
 		// without an appropriate directory we can't save anything ...
-		return result, err
+		return 0, err
 	}
 	if 0 == len(p.markdown) {
 		_ = p.Load()
 		if 0 == len(p.markdown) {
-			return result, fmt.Errorf("Markdown '%s' is empty", p.id)
+			return 0, fmt.Errorf("Markdown '%s' is empty", p.id)
 		}
 	}
 	fName := p.PathFileName()
-	if err = ioutil.WriteFile(fName, p.markdown, 0644); nil != err {
-		return result, err
+	if err := ioutil.WriteFile(fName, p.markdown, 0644); nil != err {
+		return 0, err
 	}
 
-	if fi, err := os.Stat(fName); nil == err {
-		result = fi.Size()
+	fi, err := os.Stat(fName)
+	if nil != err {
+		return 0, err
 	}
 
-	return result, err
+	return fi.Size(), nil
 } // Store()
 
 // Time returns the posting's date/time.
