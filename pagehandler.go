@@ -66,8 +66,8 @@ func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Requ
 	p := NewPosting()
 	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
-		log.Printf("handleShare('%s'): %v", aShare, err)
-		//TODO better error handling
+		apachelogger.Err("handleShare()",
+			fmt.Sprintf("TPosting.Store(%s): %v", aShare, err))
 	}
 	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
 } // handleShare()
@@ -225,7 +225,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		_ = ph.viewList.Render("ap", aWriter, pageData)
+		ph.handleReply("ap", aWriter, pageData)
 
 	case "certs": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -249,7 +249,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("NOW", now).
 				Set("Robots", "noindex,nofollow").
 				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)) // #nosec G203
-			_ = ph.viewList.Render("dc", aWriter, pageData)
+			ph.handleReply("dc", aWriter, pageData)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -266,14 +266,14 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
 					Set("weekURL", "/w/"+date) // #nosec G203
-				_ = ph.viewList.Render("ed", aWriter, pageData)
+				ph.handleReply("ed", aWriter, pageData)
 				return
 			}
 		}
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case "faq", "faq.html":
-		_ = ph.viewList.Render("faq", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply("faq", aWriter, check4lang(pageData, aRequest))
 
 	case "favicon.ico":
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
@@ -292,7 +292,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
-		_ = ph.viewList.Render("imprint", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
 		ph.handleRoot("20", pageData, aWriter, aRequest)
@@ -303,7 +303,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		*/
 
 	case "licence", "license", "lizenz":
-		_ = ph.viewList.Render("licence", aWriter, pageData)
+		ph.handleReply("licence", aWriter, check4lang(pageData, aRequest))
 
 	case "m", "mm": // handle a given month
 		var y, d int
@@ -324,7 +324,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Postings", pl.Sort()).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
-		_ = ph.viewList.Render("searchresult", aWriter, pageData)
+		ph.handleReply("searchresult", aWriter, pageData)
 
 	case "ml": // @mention list
 		if 0 < len(tail) {
@@ -345,7 +345,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("Posting", p).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date)
-				_ = ph.viewList.Render("article", aWriter, pageData)
+				ph.handleReply("article", aWriter, pageData)
 				return
 			}
 		}
@@ -355,7 +355,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "privacy", "datenschutz":
-		_ = ph.viewList.Render("privacy", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply("privacy", aWriter, check4lang(pageData, aRequest))
 
 	case "q":
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
@@ -372,7 +372,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date).
 					Set("Robots", "noindex,nofollow") // #nosec G203
-				_ = ph.viewList.Render("rp", aWriter, pageData)
+				ph.handleReply("rp", aWriter, pageData)
 				return
 			}
 		}
@@ -399,12 +399,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "si": // store images
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		_ = ph.viewList.Render("si", aWriter, pageData)
+		ph.handleReply("si", aWriter, pageData)
 
 	case "ss": // store static
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
-		_ = ph.viewList.Render("ss", aWriter, pageData)
+		ph.handleReply("ss", aWriter, pageData)
 
 	case "static":
 		ph.fh.ServeHTTP(aWriter, aRequest)
@@ -431,7 +431,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Postings", pl.Sort()).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
-		_ = ph.viewList.Render("searchresult", aWriter, pageData)
+		ph.handleReply("searchresult", aWriter, pageData)
 
 	case "":
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
@@ -469,6 +469,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 func (ph *TPageHandler) handleHashtag(aTag string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
 	tagList := ph.hl.HashList("#" + aTag)
+
 	ph.handleTagMentions(tagList, aData, aWriter, aRequest)
 } // handleHashtag()
 
@@ -478,13 +479,20 @@ func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter
 	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
 } // handleMention()
 
+// `handleReply()` sends `aPage` with `aData` to `aWriter`.
+func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TDataList) {
+	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
+		apachelogger.Err("TPageHandler.handleReply()",
+			fmt.Sprintf("viewList.Render(%s): %v", aPage, err))
+	}
+} // handleReply()
+
 func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := NewPostList()
 	if 0 < len(aList) {
 		for _, id := range aList {
 			p := newPosting(id)
-			err := p.Load()
-			if nil == err {
+			if err := p.Load(); nil == err {
 				pl.Add(p)
 			}
 		}
@@ -494,7 +502,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 		Set("Robots", "index,follow").
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
-	_ = ph.viewList.Render("searchresult", aWriter, aData)
+	ph.handleReply("searchresult", aWriter, aData)
 } // handleTagMentions()
 
 // `handleUpload()` processes a file upload.
@@ -515,8 +523,8 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 		p := NewPosting()
 		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
 		if _, err := p.Store(); nil != err {
-			log.Printf("handlePOST(): %v", err)
-			//TODO better error handling
+			apachelogger.Err("TPageHandler.handleUpload()",
+				fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 		}
 		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
 	} else {
@@ -537,8 +545,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			p := NewPosting()
 			p.Set(m)
 			if _, err := p.Store(); nil != err {
-				log.Printf("handlePOST(a): %v\n", err)
-				//TODO better error handling
+				apachelogger.Err("TPageHandler.handlePOST()",
+					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
 			go goAddID(ph.hl, p.ID(), p.Markdown())
 
@@ -572,12 +580,12 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			npn := np.PathFileName()
 			// ensure existence of directory:
 			if _, err := np.makeDir(); nil != err {
-				log.Printf("handlePOST(d1): %v\n", err)
-				//TODO better error handling
+				apachelogger.Err("TPageHandler.handlePOST()",
+					fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
 			}
 			if err := os.Rename(opn, npn); nil != err {
-				log.Printf("handlePOST(d2): %v\n", err)
-				//TODO better error handling
+				apachelogger.Err("TPageHandler.handlePOST()",
+					fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 			}
 			go goRenameID(ph.hl, tail, np.ID())
 
@@ -621,8 +629,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			if err := p.Delete(); nil != err {
-				log.Printf("handlePOST(r): %v\n", err)
-				//TODO better error handling
+				apachelogger.Err("TPageHandler.handlePOST()",
+					fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
 			}
 			go goRemoveID(ph.hl, tail)
 
@@ -674,7 +682,7 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 	if pl.Len() >= num {
 		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", num, num+start+1))
 	}
-	_ = ph.viewList.Render("index", aWriter, aData)
+	ph.handleReply("index", aWriter, aData)
 } // handleRoot()
 
 // `handleSearch()` serves the search results.
@@ -684,10 +692,10 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter htt
 		Set("Robots", "noindex,follow").
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
-	_ = ph.viewList.Render("searchresult", aWriter, aData)
+	ph.handleReply("searchresult", aWriter, aData)
 } // handleSearch()
 
-// Len returns the length of the internal view list.
+// Len returns the length of the internal views list.
 func (ph *TPageHandler) Len() int {
 	return len(*(ph.viewList))
 } // Len()
@@ -695,7 +703,7 @@ func (ph *TPageHandler) Len() int {
 // NeedAuthentication returns `true` if authentication is needed,
 // or `false` otherwise.
 //
-// `aRequest` is the request to check.
+//	`aRequest` is the request to check.
 func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	path, _ := URLparts(aRequest.URL.Path)
 	switch path {
@@ -732,7 +740,7 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 			} else {
 				msg = fmt.Sprintf("caught panic: %v", err)
 			}
-			apachelogger.Log("TPageHandler.ServeHTTP()", msg)
+			apachelogger.Err("TPageHandler.ServeHTTP()", msg)
 		}
 	}()
 

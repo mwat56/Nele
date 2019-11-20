@@ -154,10 +154,17 @@ func main() {
 		handler = gziphandler.GzipHandler(handler)
 	}
 
-	// Inspect `logfile` commandline argument and setup the `ApacheLogger`
-	if s, err = nele.AppArguments.Get("logfile"); (nil == err) && (0 < len(s)) {
+	// Inspect logging commandline arguments and setup the `ApacheLogger`:
+	if s, err = nele.AppArguments.Get("accessLog"); (nil == err) && (0 < len(s)) {
 		// we assume, an error means: no logfile
-		handler = apachelogger.Wrap(handler, s)
+		if s2, err := nele.AppArguments.Get("errorLog"); (nil == err) && (0 < len(s2)) {
+			handler = apachelogger.Wrap(handler, s, s2)
+		} else {
+			handler = apachelogger.Wrap(handler, s, "")
+		}
+		err = nil // for use by test for `apachelogger.SetErrLog()` (below)
+	} else if s, err = nele.AppArguments.Get("errorLog"); (nil == err) && (0 < len(s)) {
+		handler = apachelogger.Wrap(handler, "", s)
 	}
 
 	// We need a `server` reference to use it in `setupSinals()`
@@ -170,10 +177,10 @@ func main() {
 		ReadTimeout:       1 * time.Minute,
 		WriteTimeout:      5 * time.Minute,
 	}
-	if (nil == err) && (0 < len(s)) { // values from "logfile" test
+	setupSinals(server)
+	if (nil == err) && (0 < len(s)) { // values from logfile test
 		apachelogger.SetErrLog(server)
 	}
-	setupSinals(server)
 
 	ck, _ = nele.AppArguments.Get("certKey")
 	cp, _ = nele.AppArguments.Get("certPem")
@@ -181,14 +188,20 @@ func main() {
 		s = fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
-		fatal(fmt.Sprintf("%s: %v", Me, server.ListenAndServeTLS(cp, ck)))
+		if err = server.ListenAndServeTLS(cp, ck); nil != err {
+			apachelogger.Close()
+			fatal(fmt.Sprintf("%s: %v", Me, err))
+		}
 		return
 	}
 
 	s = fmt.Sprintf("%s listening HTTP at: %s", Me, ph.Address())
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
-	fatal(fmt.Sprintf("%s: %v", Me, server.ListenAndServe()))
+	if err = server.ListenAndServe(); nil != err {
+		apachelogger.Close()
+		fatal(fmt.Sprintf("%s: %v", Me, err))
+	}
 } // main()
 
 /* _EoF_ */

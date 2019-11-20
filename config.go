@@ -164,35 +164,38 @@ func InitConfig() {
 		"Name of this Blog (shown on every page)\n")
 
 	s, _ := AppArguments.Get("datadir")
-	dataStr, _ := filepath.Abs(s)
-	flag.StringVar(&dataStr, "datadir", dataStr,
+	dataDir, _ := filepath.Abs(s)
+	flag.StringVar(&dataDir, "datadir", dataDir,
 		"<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories\n")
 
+	s, _ = AppArguments.Get("accessLog")
+	accessLog := absolute(dataDir, s)
+	flag.StringVar(&accessLog, "accesslog", accessLog,
+		"<filename> Name of the access logfile to write to\n")
+
 	s, _ = AppArguments.Get("certKey")
-	ckStr := absolute(dataStr, s)
-	flag.StringVar(&ckStr, "certKey", ckStr,
+	ckStr := absolute(dataDir, s)
+	flag.StringVar(&ckStr, "certkey", ckStr,
 		"<fileName> the name of the TLS certificate's private key\n")
 
 	s, _ = AppArguments.Get("certPem")
-	cpStr := absolute(dataStr, s)
-	flag.StringVar(&cpStr, "certPem", cpStr,
+	cpStr := absolute(dataDir, s)
+	flag.StringVar(&cpStr, "certpem", cpStr,
 		"<fileName> the name of the TLS certificate PEM\n")
+
+	s, _ = AppArguments.Get("errorLog")
+	errorLog := absolute(dataDir, s)
+	flag.StringVar(&errorLog, "errorlog", errorLog,
+		"<filename> Name of the error logfile to write to\n")
 
 	gzipBool, _ := AppArguments.AsBool("gzip")
 	flag.BoolVar(&gzipBool, "gzip", gzipBool,
 		"(optional) use gzip compression for server responses")
 
 	s, _ = AppArguments.Get("hashfile")
-	hashStr := absolute(dataStr, s)
+	hashStr := absolute(dataDir, s)
 	flag.StringVar(&hashStr, "hashfile", hashStr,
 		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
-
-	/*
-		s, _ = AppArguments.Get("intl")
-		intlStr := absolute(dataStr, s)
-		flag.StringVar(&intlStr, "intl", intlStr,
-			"<fileName> the path/filename of the localisation file\n")
-	*/
 
 	iniStr, _ := AppArguments.Get("inifile")
 	flag.StringVar(&iniStr, "ini", iniStr,
@@ -205,11 +208,6 @@ func InitConfig() {
 	listenStr, _ := AppArguments.Get("listen")
 	flag.StringVar(&listenStr, "listen", listenStr,
 		"the host's IP to listen at ")
-
-	s, _ = AppArguments.Get("logfile")
-	logStr := absolute(dataStr, s)
-	flag.StringVar(&logStr, "log", logStr,
-		"(optional) name of the logfile to write to\n")
 
 	logStack, _ := AppArguments.AsBool("logStack")
 	flag.BoolVar(&logStack, "logStack", logStack,
@@ -252,7 +250,7 @@ func InitConfig() {
 		"<userName> (optional) user delete: remove a username from the password file")
 
 	s, _ = AppArguments.Get("passfile")
-	ufStr := absolute(dataStr, s)
+	ufStr := absolute(dataDir, s)
 	flag.StringVar(&ufStr, "uf", ufStr,
 		"<fileName> (optional) user passwords file storing user/passwords for BasicAuth\n")
 
@@ -272,21 +270,26 @@ func InitConfig() {
 	}
 	AppArguments.set("blogname", bnStr)
 
-	if 0 < len(dataStr) {
-		dataStr, _ = filepath.Abs(dataStr)
+	if 0 < len(dataDir) {
+		dataDir, _ = filepath.Abs(dataDir)
 	}
-	if f, err := os.Stat(dataStr); nil != err {
-		log.Fatalf("datadir == %s` problem: %v", dataStr, err)
+	if f, err := os.Stat(dataDir); nil != err {
+		log.Fatalf("datadir == %s` problem: %v", dataDir, err)
 	} else if !f.IsDir() {
-		log.Fatalf("Error: Not a directory `%s`", dataStr)
+		log.Fatalf("Error: Not a directory `%s`", dataDir)
 	}
-	AppArguments.set("datadir", dataStr)
+	AppArguments.set("datadir", dataDir)
 
 	// `postingBaseDirectory` defined in `posting.go`:
-	SetPostingBaseDirectory(filepath.Join(dataStr, "./postings"))
+	SetPostingBaseDirectory(filepath.Join(dataDir, "./postings"))
+
+	if 0 < len(accessLog) {
+		accessLog = absolute(dataDir, accessLog)
+	}
+	AppArguments.set("accessLog", accessLog)
 
 	if 0 < len(ckStr) {
-		ckStr = absolute(dataStr, ckStr)
+		ckStr = absolute(dataDir, ckStr)
 		if fi, err := os.Stat(ckStr); (nil != err) || (0 >= fi.Size()) {
 			ckStr = ""
 		}
@@ -294,12 +297,17 @@ func InitConfig() {
 	AppArguments.set("certKey", ckStr)
 
 	if 0 < len(cpStr) {
-		cpStr = absolute(dataStr, cpStr)
+		cpStr = absolute(dataDir, cpStr)
 		if fi, err := os.Stat(cpStr); (nil != err) || (0 >= fi.Size()) {
 			cpStr = ""
 		}
 	}
 	AppArguments.set("certPem", cpStr)
+
+	if 0 < len(errorLog) {
+		errorLog = absolute(dataDir, errorLog)
+	}
+	AppArguments.set("errorLog", errorLog)
 
 	if gzipBool {
 		s = "true"
@@ -309,16 +317,9 @@ func InitConfig() {
 	AppArguments.set("gzip", s)
 
 	if 0 < len(hashStr) {
-		hashStr = absolute(dataStr, hashStr)
+		hashStr = absolute(dataDir, hashStr)
 	}
 	AppArguments.set("hashfile", hashStr)
-
-	/*
-		if 0 <len(intlStr) {
-			intlStr = absolute(dataStr, intlStr)
-		}
-		AppArguments.set("intl", intlStr)
-	*/
 
 	if 0 == len(langStr) {
 		langStr = "en"
@@ -329,11 +330,6 @@ func InitConfig() {
 		listenStr = ""
 	}
 	AppArguments.set("listen", listenStr)
-
-	if 0 < len(logStr) {
-		logStr = absolute(dataStr, logStr)
-	}
-	AppArguments.set("logfile", logStr)
 
 	if logStack {
 		s = "true"
@@ -360,7 +356,7 @@ func InitConfig() {
 	AppArguments.set("pa", s)
 
 	if 0 < len(pfStr) {
-		pfStr = absolute(dataStr, pfStr)
+		pfStr = absolute(dataDir, pfStr)
 	}
 	AppArguments.set("pf", pfStr)
 	AppArguments.set("realm", realStr)
@@ -370,7 +366,7 @@ func InitConfig() {
 	AppArguments.set("ud", udStr)
 
 	if 0 < len(ufStr) {
-		ufStr = absolute(dataStr, ufStr)
+		ufStr = absolute(dataDir, ufStr)
 	}
 	AppArguments.set("uf", ufStr)
 
