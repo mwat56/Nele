@@ -101,7 +101,7 @@ func NewPosting() *TPosting {
 	return newPosting("")
 } // NewPosting()
 
-// newPosting() is the core function of `NewPost()` (for testing purposes).
+// `newPosting()` is the core function of `NewPost()` (for testing purposes).
 //
 //	`aID` if an empty string the `NewID()` function is called
 // to provide a new article ID.
@@ -109,9 +109,8 @@ func newPosting(aID string) *TPosting {
 	if 0 == len(aID) {
 		aID = NewID()
 	}
-	result := TPosting{id: aID}
 
-	return &result
+	return &TPosting{id: aID}
 } // newPosting()
 
 // After reports whether this posting is younger than the one
@@ -276,8 +275,7 @@ func (p *TPosting) Markdown() []byte {
 	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
 		return p.markdown // return empty slice
 	}
-	p.markdown = bytes.TrimSpace(bs)
-	if nil == p.markdown {
+	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
 		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
 		return []byte("")
 	}
@@ -315,7 +313,9 @@ func (p *TPosting) Post() template.HTML {
 //	`aMarkdown` is the actual Markdown text of the article to assign.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
-		p.markdown = bytes.TrimSpace(aMarkdown)
+		if p.markdown = bytes.TrimSpace(aMarkdown); nil == p.markdown {
+			p.markdown = []byte("")
+		}
 	} else {
 		_ = p.Load()
 	}
