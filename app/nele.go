@@ -72,21 +72,25 @@ func doFile(aMe string) {
 func fatal(aMessage string) {
 	apachelogger.Log("Nele/main", aMessage)
 	runtime.Gosched() // let the logger write
+	apachelogger.Close()
 	log.Fatalln(aMessage)
 } // fatal()
 
 // `setupSinals()` configures the capture of the interrupts `SIGINT`,
 // `SIGKILL`, and `SIGTERM` to terminate the program gracefully.
 func setupSinals(aServer *http.Server) {
-	// handle `CTRL-C` and `kill(9)` and `kill(15)`.
+	// handle `CTRL-C` and `kill(15)`.
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		for signal := range c {
-			log.Printf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
+			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
+			apachelogger.Log(`Nele/catchSignals`, msg)
+			log.Println(msg)
+			runtime.Gosched() // let the logger write
 			if err := aServer.Shutdown(context.Background()); nil != err {
-				log.Fatalf("%s: %v", os.Args[0], err)
+				fatal(fmt.Sprintf("%s: %v", os.Args[0], err))
 			}
 		}
 	}()
@@ -189,7 +193,6 @@ func main() {
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
 		if err = server.ListenAndServeTLS(cp, ck); nil != err {
-			apachelogger.Close()
 			fatal(fmt.Sprintf("%s: %v", Me, err))
 		}
 		return
@@ -199,7 +202,6 @@ func main() {
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
 	if err = server.ListenAndServe(); nil != err {
-		apachelogger.Close()
 		fatal(fmt.Sprintf("%s: %v", Me, err))
 	}
 } // main()
