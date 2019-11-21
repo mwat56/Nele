@@ -49,7 +49,7 @@ func doCheckPost(aHash, aID string) bool {
 	}
 	txt := bytes.ToLower(p.Markdown())
 
-	return (0 >= bytes.Index(txt, []byte(aHash)))
+	return (0 <= bytes.Index(txt, []byte(aHash)))
 } // doCheckPost()
 
 // `goCheckHashes()` walks all postings referenced by `aList`.
