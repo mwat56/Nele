@@ -5,10 +5,10 @@ go 1.13
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/mwat56/apachelogger v1.4.0
-	github.com/mwat56/errorhandler v1.1.1
-	github.com/mwat56/hashtags v0.4.9
+	github.com/mwat56/errorhandler v1.1.2
+	github.com/mwat56/hashtags v0.4.10
 	github.com/mwat56/ini v1.3.6
-	github.com/mwat56/jffs v0.0.3
+	github.com/mwat56/jffs v0.0.4
 	github.com/mwat56/passlist v1.2.0
 	github.com/mwat56/uploadhandler v1.0.6
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
