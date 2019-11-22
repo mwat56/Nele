@@ -16,10 +16,10 @@
 		<input type="reset" name="reset" title="" value=" Reset "> &nbsp;
 		<input type="submit" name="submit" title="" value=" Save ">
 	{{- end -}}
-	</p><textarea id="manuscript" name="manuscript" autofocus required>
+	</p><textarea id="manuscript" name="manuscript" autofocus="true" required>
 
 {{.Manuscript}}
 
-</textarea>
+</textarea><p class="right small italic">{{.YMD}} &nbsp; {{.HMS}}</p>
 </form>
 {{- end -}}

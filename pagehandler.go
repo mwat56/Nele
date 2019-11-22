@@ -259,13 +259,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			p := newPosting(tail)
 			txt := p.Markdown()
 			if 0 < len(txt) {
+				t := p.Time()
 				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
+					Set("HMS",
+						fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
 					Set("ID", p.ID()).
 					Set("Manuscript", template.HTML(txt)).
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
-					Set("weekURL", "/w/"+date) // #nosec G203
+					Set("weekURL", "/w/"+date).
+					Set("YMD", date) // #nosec G203
 				ph.handleReply("ep", aWriter, pageData)
 				return
 			}
