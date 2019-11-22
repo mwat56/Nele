@@ -42,7 +42,7 @@ func addExternURLtagets(aPage []byte) []byte {
 
 var (
 	// RegEx to match hh:mm:ss
-	reHmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])[^0-9]([0-5]?[0-9]))?[^0-9]?|$`)
+	reHmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])([^0-9]([0-5]?[0-9]))?)?[^0-9]?|$`)
 )
 
 // `getHMS()` splits up `aTime` into `rHour`, `rMinute`, and `rSecond`.
@@ -54,8 +54,8 @@ func getHMS(aTime string) (rHour, rMinute, rSecond int) {
 		rHour, _ = strconv.Atoi(matches[1])
 		if 0 < len(matches[5]) {
 			rMinute, _ = strconv.Atoi(matches[5])
-			if 0 < len(matches[6]) {
-				rSecond, _ = strconv.Atoi(matches[6])
+			if 0 < len(matches[7]) {
+				rSecond, _ = strconv.Atoi(matches[7])
 			}
 		}
 	}
