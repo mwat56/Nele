@@ -67,8 +67,9 @@ func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Requ
 	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
 		apachelogger.Err("handleShare()",
-			fmt.Sprintf("TPosting.Store(%s): %v", aShare, err))
+			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
+
 	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
 } // handleShare()
 
@@ -234,25 +235,24 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
-		if 0 < len(tail) {
-			y, mo, d := time.Now().Date()
-			now := fmt.Sprintf("%d-%02d-%02d", y, mo, d)
-			p := newPosting(tail)
-			txt := p.Markdown()
-			t := p.Time()
-			y, mo, d = t.Date()
-			pageData = check4lang(pageData, aRequest).
-				Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
-					t.Hour(), t.Minute(), t.Second())).
-				Set("ID", p.ID()).
-				Set("Manuscript", template.HTML(txt)).
-				Set("NOW", now).
-				Set("Robots", "noindex,nofollow").
-				Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)) // #nosec G203
-			ph.handleReply("dc", aWriter, pageData)
-		} else {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		y, mo, d := time.Now().Date()
+		now := fmt.Sprintf("%d-%02d-%02d", y, mo, d)
+		p := newPosting(tail)
+		txt := p.Markdown()
+		t := p.Time()
+		y, mo, d = t.Date()
+		pageData = check4lang(pageData, aRequest).
+			Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
+				t.Hour(), t.Minute(), t.Second())).
+			Set("ID", p.ID()).
+			Set("Manuscript", template.HTML(txt)).
+			Set("NOW", now).
+			Set("Robots", "noindex,nofollow").
+			Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)) // #nosec G203
+		ph.handleReply("dp", aWriter, pageData)
 
 	case "e", "ep": // edit a single posting
 		if 0 < len(tail) {
@@ -266,7 +266,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
 					Set("weekURL", "/w/"+date) // #nosec G203
-				ph.handleReply("ed", aWriter, pageData)
+				ph.handleReply("ep", aWriter, pageData)
 				return
 			}
 		}
@@ -360,7 +360,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "q":
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
 
-	case "r", "rp": // remove posting
+	case "r", "rp": // posting's removal
 		if 0 < len(tail) {
 			p := newPosting(tail)
 			txt := p.Markdown()
@@ -386,15 +386,14 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case "share":
-		if 0 < len(tail) {
-			if 0 < len(aRequest.URL.RawQuery) {
-				// we need this for e.g. YouTube URLs
-				tail += "?" + aRequest.URL.RawQuery
-			}
-			handleShare(tail, aWriter, aRequest)
-		} else {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		if 0 < len(aRequest.URL.RawQuery) {
+			// we need this for e.g. YouTube URLs
+			tail += "?" + aRequest.URL.RawQuery
+		}
+		handleShare(tail, aWriter, aRequest)
 
 	case "si": // store images
 		pageData = check4lang(pageData, aRequest).
@@ -483,7 +482,7 @@ func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter
 func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TDataList) {
 	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
 		apachelogger.Err("TPageHandler.handleReply()",
-			fmt.Sprintf("viewList.Render(%s): %v", aPage, err))
+			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
 	}
 } // handleReply()
 
@@ -555,89 +554,83 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "d": // change date
+	case "d": // change date of posting
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
-		if 0 < len(tail) {
-			op := newPosting(tail)
-			t := op.Time()
-			y, mo, d := t.Date()
-			if ymd := aRequest.FormValue("ymd"); 0 < len(ymd) {
-				y, mo, d = getYMD(ymd)
-			}
-			h := t.Hour()
-			mi := t.Minute()
-			s := t.Second()
-			n := t.Nanosecond()
-			if hms := aRequest.FormValue("hms"); 0 < len(hms) {
-				h, mi, s = getHMS(hms)
-			}
-			opn := op.PathFileName()
-			t = time.Date(y, mo, d, h, mi, s, n, time.Local)
-			np := newPosting(newID(t))
-			npn := np.PathFileName()
-			// ensure existence of directory:
-			if _, err := np.makeDir(); nil != err {
-				apachelogger.Err("TPageHandler.handlePOST()",
-					fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
-			}
-			if err := os.Rename(opn, npn); nil != err {
-				apachelogger.Err("TPageHandler.handlePOST()",
-					fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
-			}
-			go goRenameID(ph.hl, tail, np.ID())
-
-			http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
-		} else {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		op := newPosting(tail)
+		t := op.Time()
+		y, mo, d := t.Date()
+		if ymd := aRequest.FormValue("ymd"); 0 < len(ymd) {
+			y, mo, d = getYMD(ymd)
+		}
+		h, mi, s, n := t.Hour(), t.Minute(), t.Second(), t.Nanosecond()
+		if hms := aRequest.FormValue("hms"); 0 < len(hms) {
+			h, mi, s = getHMS(hms)
+		}
+		opn := op.PathFileName()
+		t = time.Date(y, mo, d, h, mi, s, n, time.Local)
+		np := newPosting(newID(t))
+		npn := np.PathFileName()
+		// ensure existence of directory:
+		if _, err := np.makeDir(); nil != err {
+			apachelogger.Err("TPageHandler.handlePOST()",
+				fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
+		}
+		if err := os.Rename(opn, npn); nil != err {
+			apachelogger.Err("TPageHandler.handlePOST()",
+				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
+		}
+		go goRenameID(ph.hl, tail, np.ID())
+
+		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 
 	case "e": // edit posting
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
-		if 0 < len(tail) {
-			var old []byte
-			m := replCRLF([]byte(aRequest.FormValue("manuscript")))
-			p := newPosting(tail)
-			if err := p.Load(); nil == err {
-				old = p.Markdown()
-			}
-			p.Set(m)
-			if bw, err := p.Store(); nil != err {
-				if bw < int64(len(m)) {
-					// let's hope for the best …
-					_, _ = p.Set(old).Store()
-				}
-			}
-			go goUpdateID(ph.hl, tail, m)
-
-			tail += "?z=" + p.ID() // kick the browser cache
-			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
-		} else {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		var old []byte
+		m := replCRLF([]byte(aRequest.FormValue("manuscript")))
+		p := newPosting(tail)
+		if err := p.Load(); nil == err {
+			old = p.Markdown()
+		}
+		p.Set(m)
+		if bw, err := p.Store(); nil != err {
+			if bw < int64(len(m)) {
+				// let's hope for the best …
+				_, _ = p.Set(old).Store()
+			}
+		}
+		go goUpdateID(ph.hl, tail, m)
 
-	case "r": // remove posting
+		tail += "?z=" + p.ID() // kick the browser cache
+		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+
+	case "r": // posting removal
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
-		if 0 < len(tail) {
-			p := newPosting(tail)
-			if err := p.Delete(); nil != err {
-				apachelogger.Err("TPageHandler.handlePOST()",
-					fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
-			}
-			go goRemoveID(ph.hl, tail)
-
-			http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
-		} else {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+		p := newPosting(tail)
+		if err := p.Delete(); nil != err {
+			apachelogger.Err("TPageHandler.handlePOST()",
+				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
+		}
+		go goRemoveID(ph.hl, tail)
+
+		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
 	case "si": // store image
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
@@ -710,7 +703,7 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	case "a", "ap", // add new post
 		"d", "dp", // change post's date
 		"e", "ep", // edit post
-		"r", "rp", // remove post
+		"r", "rp", // posting's removal
 		"share",    // share another URL
 		"si", "ss": // store images, store static data
 		return true
