@@ -37,22 +37,22 @@ type (
 	TPageHandler struct {
 		addr     string                        // listen address ("1.2.3.4:5678")
 		bn       string                        // the blog's name
-		dataDir  string                        // datadir: base dir for data
-		hashList *hashtags.THashList           // #hashtags/@mentions list
+		dd       string                        // datadir: base dir for data
+		fh       http.Handler                  // static file handler
+		hl       *hashtags.THashList           // #hashtags/@mentions list
 		iup      *uploadhandler.TUploadHandler // `img` upload handler
 		lang     string                        // default language
 		logStack bool                          // log stack trace
 		mfs      int64                         // max. size of uploaded files
 		realm    string                        // host/domain to secure by BasicAuth
-		sfh      http.Handler                  // `static` file handler
 		sup      *uploadhandler.TUploadHandler // `static` upload handler
 		theme    string                        // `dark` or `light` display theme
-		userList *passlist.TPassList           // user/password list
+		ul       *passlist.TPassList           // user/password list
 		viewList *TViewList                    // list of template/views
 	}
 )
 
-// `check4lang()` looks for a CGI value of `lang` and adds it to `aData` if found.
+// `check4lang()` looks for a CGI value of `lang` and adds it to `aPD` if found.
 func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
 	if l := aRequest.FormValue("lang"); 0 < len(l) {
 		return aData.Set("Lang", l)
@@ -60,6 +60,18 @@ func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
 
 	return aData
 } // check4lang()
+
+// `handleShare()` serves the edit page for a shared URL.
+func handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
+	p := NewPosting()
+	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
+	if _, err := p.Store(); nil != err {
+		apachelogger.Err("handleShare()",
+			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
+	}
+
+	http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
+} // handleShare()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,16 +90,16 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("datadir"); nil != err {
 		return nil, err
 	}
-	result.dataDir = s
-	result.sfh = jffs.FileServer(http.Dir(result.dataDir + `/`))
-	if result.viewList, err = newViewList(filepath.Join(result.dataDir, "views")); nil != err {
+	result.dd = s
+	result.fh = jffs.FileServer(http.Dir(result.dd + `/`))
+	if result.viewList, err = newViewList(filepath.Join(result.dd, "views")); nil != err {
 		return nil, err
 	}
 
 	if s, err = AppArguments.Get("hashfile"); nil == err {
-		result.hashList, _ = hashtags.New("")
-		result.hashList.SetFilename(s)
-		go goInitHashlist(result.hashList)
+		result.hl, _ = hashtags.New("")
+		result.hl.SetFilename(s)
+		go goInitHashlist(result.hl)
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -115,19 +127,19 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	if s, err = AppArguments.Get("uf"); nil != err {
 		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-	} else if result.userList, err = passlist.LoadPasswords(s); nil != err {
+	} else if result.ul, err = passlist.LoadPasswords(s); nil != err {
 		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-		result.userList = nil
+		result.ul = nil
 	}
 
 	if s, err = AppArguments.Get("realm"); nil == err {
 		result.realm = s
 	}
 
-	if s, err = AppArguments.Get("theme"); (nil == err) && (0 < len(s)) {
-		result.theme = s
-	} else {
+	if s, err = AppArguments.Get("theme"); nil != err {
 		result.theme = "dark"
+	} else {
+		result.theme = s
 	}
 
 	return result, nil
@@ -172,7 +184,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("Lang", ph.lang).
 		Set("monthURL", "/m/"+date).
 		Set("Robots", "index,follow").
-		Set("Taglist", markupCloud(ph.hashList)).
+		Set("Taglist", markupCloud(ph.hl)).
 		Set("Title", ph.realm+": "+date).
 		Set("weekURL", "/w/"+date) // #nosec G203
 
@@ -220,7 +232,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "css":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 == len(tail) {
@@ -271,7 +283,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
 
 	case "fonts":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
@@ -281,7 +293,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case "img":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
 		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
@@ -291,7 +303,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 		/*
 			case "js":
-				ph.sfh.ServeHTTP(aWriter, aRequest)
+				ph.fh.ServeHTTP(aWriter, aRequest)
 		*/
 
 	case "licence", "license", "lizenz":
@@ -385,7 +397,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			// we need this for e.g. YouTube URLs
 			tail += "?" + aRequest.URL.RawQuery
 		}
-		ph.handleShare(tail, aWriter, aRequest)
+		handleShare(tail, aWriter, aRequest)
 
 	case "si": // store images
 		pageData = check4lang(pageData, aRequest).
@@ -398,7 +410,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("ss", aWriter, pageData)
 
 	case "static":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.fh.ServeHTTP(aWriter, aRequest)
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -428,13 +440,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
 			ph.handleHashtag(ht, pageData, aWriter, aRequest)
 		} else if m := aRequest.FormValue("m"); 0 < len(m) {
-			ph.reDir(aWriter, aRequest, "/m/"+m)
+			http.Redirect(aWriter, aRequest, "/m/"+m, http.StatusSeeOther)
 		} else if mt := aRequest.FormValue("mt"); 0 < len(mt) {
 			ph.handleMention(mt, pageData, aWriter, aRequest)
 		} else if n := aRequest.FormValue("n"); 0 < len(n) {
-			ph.reDir(aWriter, aRequest, "/n/"+n)
+			http.Redirect(aWriter, aRequest, "/n/"+n, http.StatusSeeOther)
 		} else if p := aRequest.FormValue("p"); 0 < len(p) {
-			ph.reDir(aWriter, aRequest, "/p/"+p)
+			http.Redirect(aWriter, aRequest, "/p/"+p, http.StatusSeeOther)
 		} else if q := aRequest.FormValue("q"); 0 < len(q) {
 			ph.handleSearch(q, pageData, aWriter, aRequest)
 		} else if s := aRequest.FormValue("s"); 0 < len(s) {
@@ -444,9 +456,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				// we need this for e.g. YouTube URLs
 				s += "?" + aRequest.URL.RawQuery
 			}
-			ph.handleShare(s, aWriter, aRequest)
+			handleShare(s, aWriter, aRequest)
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
-			ph.reDir(aWriter, aRequest, "/w/"+w)
+			http.Redirect(aWriter, aRequest, "/w/"+w, http.StatusSeeOther)
 		} else {
 			ph.handleRoot("20", pageData, aWriter, aRequest)
 		}
@@ -459,13 +471,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 } // handleGET()
 
 func (ph *TPageHandler) handleHashtag(aTag string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
-	tagList := ph.hashList.HashList("#" + aTag)
+	tagList := ph.hl.HashList("#" + aTag)
 
 	ph.handleTagMentions(tagList, aData, aWriter, aRequest)
 } // handleHashtag()
 
 func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
-	mentionList := ph.hashList.MentionList("@" + aMention)
+	mentionList := ph.hl.MentionList("@" + aMention)
 
 	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
 } // handleMention()
@@ -478,30 +490,14 @@ func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, a
 	}
 } // handleReply()
 
-// `handleShare()` serves the edit page for a shared URL.
-func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
-	p := NewPosting()
-	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
-	if _, err := p.Store(); nil != err {
-		apachelogger.Err("TPageHandler.handleShare()",
-			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
-	}
-
-	// http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
-	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
-} // handleShare()
-
 func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := NewPostList()
 	if 0 < len(aList) {
 		for _, id := range aList {
 			p := newPosting(id)
-			if err := p.Load(); nil != err {
-				apachelogger.Err("TPageHandler.handleTagMentions()",
-					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
-				continue
+			if err := p.Load(); nil == err {
+				pl.Add(p)
 			}
-			pl.Add(p)
 		}
 	}
 
@@ -526,7 +522,7 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 	}
 
 	if 200 == status {
-		fName = strings.TrimPrefix(txt, ph.dataDir)
+		fName = strings.TrimPrefix(txt, ph.dd)
 		p := NewPosting()
 		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
 		if _, err := p.Store(); nil != err {
@@ -541,10 +537,6 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 
 // `handlePOST()` process the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
-	// Here we can't use
-	//	ph.reDir(aWriter, aRequest, "/somethingelse/")
-	// because we change the POST '/something/` URL to
-	// GET `/somethingelse/` which would confuse the browser.
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
 	case "a": // add a new post
@@ -559,7 +551,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				apachelogger.Err("TPageHandler.handlePOST()",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
-			go goAddID(ph.hashList, p.ID(), p.Markdown())
+			go goAddID(ph.hl, p.ID(), p.Markdown())
 
 			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
 		} else {
@@ -597,7 +589,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
-		go goRenameID(ph.hashList, tail, np.ID())
+		go goRenameID(ph.hl, tail, np.ID())
 
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 
@@ -622,7 +614,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				_, _ = p.Set(old).Store()
 			}
 		}
-		go goUpdateID(ph.hashList, tail, m)
+		go goUpdateID(ph.hl, tail, m)
 
 		tail += "?z=" + p.ID() // kick the browser cache
 		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
@@ -640,7 +632,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
 		}
-		go goRemoveID(ph.hashList, tail)
+		go goRemoveID(ph.hl, tail)
 
 		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
@@ -650,7 +642,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if nil == ph.iup { // lazy initialisation
-			ph.iup = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/img/"),
+			ph.iup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/img/"),
 				"imgFile", ph.mfs)
 		}
 		ph.handleUpload(aWriter, aRequest, true)
@@ -661,7 +653,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if nil == ph.sup { // lazy initialisation
-			ph.sup = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/static/"),
+			ph.sup = uploadhandler.NewHandler(filepath.Join(ph.dd, "/static/"),
 				"statFile", ph.mfs)
 		}
 		ph.handleUpload(aWriter, aRequest, false)
@@ -734,13 +726,6 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	return false
 } // NeedAuthentication()
 
-// `reDir()` continues handling the current `aRequest` by changing
-// the requested URL to `aURL`.
-func (ph *TPageHandler) reDir(aWriter http.ResponseWriter, aRequest *http.Request, aURL string) {
-	aRequest.URL.Path = aURL
-	ph.handleGET(aWriter, aRequest)
-} // reDir()
-
 // ServeHTTP handles the incoming HTTP requests.
 func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
 	defer func() {
@@ -758,11 +743,11 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 
 	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	if ph.NeedAuthentication(aRequest) {
-		if nil == ph.userList {
+		if nil == ph.ul {
 			passlist.Deny(ph.realm, aWriter)
 			return
 		}
-		if !ph.userList.IsAuthenticated(aRequest) {
+		if !ph.ul.IsAuthenticated(aRequest) {
 			passlist.Deny(ph.realm, aWriter)
 			return
 		}
