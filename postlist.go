@@ -21,6 +21,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/mwat56/apachelogger"
 )
 
 type (
@@ -31,7 +33,7 @@ type (
 
 // Add appends `aPosting` to the list.
 //
-// `aPosting` contains the actual posting's text.
+//	`aPosting` contains the actual posting's text.
 func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 	*pl = append(*pl, *aPosting)
 
@@ -39,6 +41,8 @@ func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 } // Add()
 
 // Article adds the posting identified by `aID` to the list.
+//
+//	`aID` is the ID of the posting to add to this list.
 func (pl *TPostList) Article(aID string) *TPostList {
 	bgAddPosting(pl, aID)
 
@@ -56,7 +60,9 @@ func (pl *TPostList) Day() *TPostList {
 } // Day()
 
 // Delete removes `aPosting` from the list, returning the (possibly
-// modified) list and whether the opration war successful.
+// modified) list and whether the operation war successful.
+//
+//	`aPosting` is the posting o remove from this list.
 func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
 	// we ignore the very first list entry (hold the base directory)
 	if idx := pl.Index(aPosting); 0 < idx {
@@ -76,14 +82,14 @@ var (
 	plFilenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
 )
 
-// doWalk() traverses `aBaseDir` adding every valid posting
+// `doWalk()` traverses `aActDir` adding every valid posting
 // to the list.
 //
-// `aActDir` the root directory for the traversal.
+//	`aActDir` the root directory for the traversal.
 //
-// `aLo` is the earliest ID time to use.
+//	`aLo` is the earliest ID time to use.
 //
-// `aHi` is the latest ID time to use.
+//	`aHi` is the latest ID time to use.
 func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 	// We ignore all possible errors since we can't do anything about
 	// them anyway and simply exclude those files from our list.
@@ -94,7 +100,7 @@ func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 			}
 			if plFilenameRE.Match([]byte(aInfo.Name())) {
 				fName := aInfo.Name()
-				fName = fName[:len(fName)-3] // w/o file extension
+				fName = fName[:len(fName)-3] // w/o dot/file extension
 				fID := timeID(fName)
 				if fID.After(aLo) && fID.Before(aHi) {
 					bgAddPosting(pl, fName)
@@ -115,6 +121,8 @@ func (pl *TPostList) in() *TPostList {
 // Index returns the 0-based list index of `aPosting`.
 // In case `aPosting` was not found in list the return value
 // will be `-1`.
+//
+//	`aPosting` is the posting to lookup in this list.
 func (pl *TPostList) Index(aPosting *TPosting) int {
 	for idx, p := range *pl {
 		if p.id == aPosting.id {
@@ -125,8 +133,8 @@ func (pl *TPostList) Index(aPosting *TPosting) int {
 	return -1
 } // Index()
 
-// IsSorted returns `true` if the list is sorted, or
-// `false` otherwise.
+// IsSorted returns `true` if the list is sorted (in descending order),
+// or `false` otherwise.
 func (pl *TPostList) IsSorted() bool {
 	return sort.SliceIsSorted(*pl, func(i, j int) bool {
 		// return ((*pl)[i].id < (*pl)[j].id) // ascending
@@ -139,12 +147,12 @@ func (pl *TPostList) Len() int {
 	return len(*pl)
 } // Len()
 
-// Month adds all postings of a month to the list.
+// Month adds all postings of `aMonth` to the list.
 //
-// `aYear` the year to lookup; if `0` (zero) the current year
+//	`aYear` the year to lookup; if `0` (zero) the current year
 // is used.
 //
-// `aMonth` the year's month to lookup; if `0` (zero) the
+//	`aMonth` the year's month to lookup; if `0` (zero) the
 // current month is used.
 func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 	var (
@@ -170,23 +178,24 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 	return pl.prepareWalk(tLo, tHi)
 } // Month()
 
-// Newest adds the last `aNumber` postings to the list.
+// Newest adds the last `aNumber` of postings to the list.
 //
 // The resulting list is sorted in descending order (newest first)
 // with at most `aNumber` posts.
 //
-// `aNumber` is the number of articles to show.
+//	`aNumber` The number of articles to show.
 //
-// `aStart` is the start number to use.
+//	`aStart` The start number to use.
 func (pl *TPostList) Newest(aNumber, aStart int) error {
 	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return err
 	}
 	// Sort the directory names to have the youngest entry first:
-	sort.Slice(dirnames, func(i, j int) bool {
-		return (dirnames[i] > dirnames[j]) // descending
-	})
+	sort.Slice(dirnames,
+		func(i, j int) bool {
+			return (dirnames[i] > dirnames[j]) // descending
+		})
 	counter := 0
 	for _, dirname := range dirnames {
 		filesnames, err := filepath.Glob(dirname + "/*.md")
@@ -197,9 +206,10 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 			continue // skip empty directory
 		}
 		// Sort the file names to have the youngest post first:
-		sort.Slice(filesnames, func(i, j int) bool {
-			return (filesnames[i] > filesnames[j]) // descending
-		})
+		sort.Slice(filesnames,
+			func(i, j int) bool {
+				return (filesnames[i] > filesnames[j]) // descending
+			})
 		for _, postname := range filesnames {
 			counter++
 			if counter <= aStart {
@@ -207,7 +217,7 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 			}
 			postname = strings.TrimPrefix(postname, dirname+"/")
 			bgAddPosting(pl, postname[:len(postname)-3]) // strip name extension
-			if pl.Len() >= aNumber {
+			if len(*pl) >= aNumber {
 				return nil
 			}
 		}
@@ -220,9 +230,9 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 
 // prepareWalk() computes the first and last directory to process.
 //
-// `aLo` is the earliest ID time to use.
+//	`aLo` is the earliest ID time to use.
 //
-// `aHi` is the latest ID time to use.
+//	`aHi` is the latest ID time to use.
 func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
 	tn := time.Now()
 	if tn.Before(aHi) {
@@ -243,7 +253,8 @@ func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
 	return pl
 } // prepareWalk()
 
-// Sort returns the list sorted by posting IDs in descending order.
+// Sort returns the list sorted by posting IDs (i.e. date/time)
+// in descending order.
 func (pl *TPostList) Sort() *TPostList {
 	sort.Slice(*pl, func(i, j int) bool {
 		// return ((*pl)[i].id < (*pl)[j].id) // ascending
@@ -255,13 +266,13 @@ func (pl *TPostList) Sort() *TPostList {
 
 // Week adds all postings of the current week to the list.
 //
-// `aYear` the year to lookup; if `0` (zero) the current year
+//	`aYear` the year to lookup; if `0` (zero) the current year
 // is used.
 //
-// `aMonth` the year's month to lookup; if `0` (zero) the current
+//	`aMonth` the year's month to lookup; if `0` (zero) the current
 // month is used.
 //
-// `aDay` the month's day to lookup; if `0` (zero) the current day is used.
+//	`aDay` the month's day to lookup; if `0` (zero) the current day is used.
 func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	var y, d int
 	var m time.Month
@@ -299,21 +310,24 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 
 // `bgAddPosting()` is a function adding a new posting to `aPostList`.
 //
-// `aPostList` is the `TPostList` instance to add to.
+//	`aPostList` is the `TPostList` instance to add to.
 //
-// `aID` is the identifier of the new posting to add;
+//	`aID` is the identifier of the new posting to add;
 // the associated file's contents are loaded from storage.
 func bgAddPosting(aPostList *TPostList, aID string) {
 	p := newPosting(aID)
-	if err := p.Load(); nil == err {
+	if err := p.Load(); nil != er
+		apachelogger.Err("TPostList.bgAddPosting()",
+			fmt.Sprintf("TPosting.Load(%s): %v", aID, err))r {
+	} else {
 		aPostList.Add(p)
 	}
 	// `Load()` errors are ignored since we can't do anything about it here.
 } // bgAddPosting()
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // NewPostList returns a new (empty) TPostList instance.
-//
-// `aBaseDir` is a directory storing the postings.
 func NewPostList() *TPostList {
 	result := make(TPostList, 0, 32)
 
