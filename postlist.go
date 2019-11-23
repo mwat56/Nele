@@ -316,9 +316,9 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 // the associated file's contents are loaded from storage.
 func bgAddPosting(aPostList *TPostList, aID string) {
 	p := newPosting(aID)
-	if err := p.Load(); nil != er
+	if err := p.Load(); nil != err {
 		apachelogger.Err("TPostList.bgAddPosting()",
-			fmt.Sprintf("TPosting.Load(%s): %v", aID, err))r {
+			fmt.Sprintf("TPosting.Load(%s): %v", aID, err))
 	} else {
 		aPostList.Add(p)
 	}
