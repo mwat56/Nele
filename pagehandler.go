@@ -210,7 +210,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	pageData := ph.basicPageData()
 	path, tail := URLparts(aRequest.URL.Path)
-	switch path {
+	switch strings.ToLower(path) { // handle URLs case-insensitive
+
 	case "a", "ap": // add a new post
 		pageData = check4lang(pageData, aRequest).
 			Set("Robots", "noindex,nofollow")
