@@ -24,13 +24,15 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/mwat56/apachelogger"
 )
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // `newID()` returns an article ID based on `aTime` in hexadecimal notation.
 //
-// `aTime` is the time to be returned in hexadecimal notation.
+//	`aTime` is the time to be returned in hexadecimal notation.
 //
 // Internal function to allow for unit testing.
 // The `timeID()` function reverses this computation.
@@ -45,7 +47,7 @@ func newID(aTime time.Time) string {
 
 // NewID returns a new article ID.
 // It is based on the current date/time and given in hexadecimal notation.
-// It's assumend that no more than one ID per nanosecond is needed.
+// It's assumend that no more than one ID per nanosecond is required.
 func NewID() string {
 	return newID(time.Now())
 } // NewID()
@@ -89,7 +91,7 @@ func SetPostingBaseDirectory(aBaseDir string) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
-	// TPosting is a single /article/posting to be injected into a template.
+	// TPosting is a single article/posting to be injected into a template.
 	TPosting struct {
 		id       string // hex. representation of date/time
 		markdown []byte // (article-/file-)contents in Markdown markup
@@ -176,7 +178,7 @@ func delFile(aFileName *string) error {
 // Delete removes the posting/article from the filesystem
 // returning a possible I/O error.
 //
-// This method does NOT empty the internal fields of the object;
+// This method does NOT empty the markdown text of the object;
 // for that call the `Clear()` method.
 func (p *TPosting) Delete() error {
 	filepathname := p.PathFileName()
@@ -185,6 +187,8 @@ func (p *TPosting) Delete() error {
 } // Delete()
 
 // Equal reports whether this posting is of the same time as `aID`.
+//
+//	`aID` The ID of the posting to compare with this one.
 func (p *TPosting) Equal(aID string) bool {
 	return timeID(p.id).Equal(timeID(aID))
 } // Equal()
@@ -226,7 +230,10 @@ func (p *TPosting) Load() error {
 	if nil != err {
 		return err
 	}
-	p.markdown = bytes.TrimSpace(bs)
+	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
+		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
+		p.markdown = []byte("")
+	}
 
 	return nil
 } // Load()
@@ -254,13 +261,13 @@ func (p *TPosting) makeDir() (string, error) {
 // Markdown returns the Markdown of this article.
 //
 // If the markup is not already in memory this methods tries
-// to read the required data from the filesystem.
+// to read the text data from the filesystem.
 //
 // In case of I/O errors while accessing the file an empty
 // byte slice is returned.
 func (p *TPosting) Markdown() []byte {
 	if 0 < len(p.markdown) {
-		// that's the easy path ...
+		// that's the easy path …
 		return p.markdown
 	}
 	var err error
@@ -273,6 +280,9 @@ func (p *TPosting) Markdown() []byte {
 
 	var bs []byte
 	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
+		apachelogger.Err("TPosting.Markdown()",
+			fmt.Sprintf("ioutil.ReadFile(%s): %v", fName, err))
+	} else {
 		return p.markdown // return empty slice
 	}
 	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
