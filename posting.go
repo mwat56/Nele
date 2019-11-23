@@ -282,12 +282,10 @@ func (p *TPosting) Markdown() []byte {
 	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
 		apachelogger.Err("TPosting.Markdown()",
 			fmt.Sprintf("ioutil.ReadFile(%s): %v", fName, err))
-	} else {
-		return p.markdown // return empty slice
 	}
 	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
 		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
-		return []byte("")
+		p.markdown = []byte("")
 	}
 
 	return p.markdown
