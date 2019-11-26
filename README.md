@@ -30,6 +30,8 @@
 	- [Libraries](#libraries)
 	- [Licence](#licence)
 
+----
+
 ## Purpose
 
 The purpose of this package was twofold initially. On one hand I needed a project to learn the (then to me new) `Go` language, and on the other hand I wanted a project, that lead me into different domains, like user authentication, configuration, data formats, error handling, filesystem access, data logging, os, network, regex, templating etc. –
@@ -503,6 +505,7 @@ The following external libraries were used building `Nele`:
 * [Hashtags](https://github.com/mwat56/hashtags)
 * [INI](https://github.com/mwat56/ini)
 * [Jffs](https://github.com/mwat56/jffs)
+* [PageView](https://github.com/mwat56/pageview)
 * [PassList](https://github.com/mwat56/passlist)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
 
@@ -517,3 +520,5 @@ The following external libraries were used building `Nele`:
 > This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 >
 > You should have received a copy of the GNU General Public License along with this program.  If not, see the [GNU General Public License](http://www.gnu.org/licenses/gpl.html) for details.
+
+----
