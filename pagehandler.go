@@ -87,7 +87,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("hashfile"); nil == err {
 		result.hashList, _ = hashtags.New("")
 		result.hashList.SetFilename(s)
-		go goInitHashlist(result.hashList)
+		InitHashlist(result.hashList)
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -106,6 +106,12 @@ func NewPageHandler() (*TPageHandler, error) {
 		result.mfs = int64(mfs)
 	} else {
 		result.mfs = 10485760 // 10 MB
+	}
+
+	if s, err = AppArguments.Get("pageview"); nil == err {
+		if pageview := ("true" == s); pageview {
+			InitPageImages(PostingBaseDirectory(), "./img/")
+		}
 	}
 
 	if s, err = AppArguments.Get("port"); nil != err {
@@ -172,7 +178,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("Lang", ph.lang).
 		Set("monthURL", "/m/"+date).
 		Set("Robots", "index,follow").
-		Set("Taglist", markupCloud(ph.hashList)).
+		Set("Taglist", MarkupCloud(ph.hashList)).
 		Set("Title", ph.realm+": "+date).
 		Set("weekURL", "/w/"+date) // #nosec G203
 
@@ -388,6 +394,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		if 0 < len(aRequest.URL.RawQuery) {
 			// we need this for e.g. YouTube URLs
 			tail += "?" + aRequest.URL.RawQuery
+		}
+		if 0 < len(aRequest.URL.Fragment) {
+			tail += "#" + aRequest.URL.Fragment
 		}
 		ph.handleShare(tail, aWriter, aRequest)
 
@@ -683,7 +692,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
 	num, start := numStart(aNumStr)
 	if 0 == num {
-		num = 20
+		num = 30
 	}
 	pl := NewPostList()
 	_ = pl.Newest(num, start) // ignore fs errors here
