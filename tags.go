@@ -83,7 +83,6 @@ func goInitHashlist(aList *hashtags.THashList) {
 			}
 		}
 	}
-
 	_, _ = aList.Store()
 } // goInitHashlist()
 
@@ -102,9 +101,31 @@ func goUpdateID(aList *hashtags.THashList, aID string, aText []byte) {
 	aList.IDupdate(aID, aText)
 } // goUpdateID()
 
-// `markupCloud()` returns a list with the markup of all existing
+var (
+	// RegEx to find PREformatted parts in an HTML page.
+	htAHrefRE = regexp.MustCompile(`(?si)(<a[^>]*>.*?</a>)`)
+
+	// RegEx to identify a numeric HTML entity.
+	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
+
+	// match: #hashtag|@mention
+	htHashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
+)
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// InitHashlist initialises the hash list.
+//
+//	`aList` The list of #hashtags/@mentions to update.
+func InitHashlist(aList *hashtags.THashList) {
+	go goInitHashlist(aList)
+} // InitHashlist()
+
+// MarkupCloud returns a list with the markup of all existing
 // #hashtags/@mentions.
-func markupCloud(aList *hashtags.THashList) []template.HTML {
+//
+//	`aList` The list of #hashtags/@mentions to use.
+func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 	var (
 		class, url string
 	)
@@ -129,22 +150,13 @@ func markupCloud(aList *hashtags.THashList) []template.HTML {
 	}
 
 	return tl
-} // markupCloud()
+} // MarkupCloud()
 
-var (
-	// RegEx to find PREformatted parts in an HTML page.
-	htAHrefRE = regexp.MustCompile(`(?si)(<a[^>]*>.*?</a>)`)
-
-	// RegEx to identify a numeric HTML entity.
-	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
-
-	// match: #hashtag|@mention
-	htHashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
-)
-
-// `markupTags()` returns `aPage` with all #hashtags/@mentions marked
-// up as a HREF links.
-func markupTags(aPage []byte) []byte {
+// MarkupTags returns `aPage` with all #hashtags/@mentions marked up
+// as a HREF links.
+//
+//	`aPage` The HTML page to process.
+func MarkupTags(aPage []byte) []byte {
 	var repl, search string
 	// (0) Check whether there are any links present:
 	linkMatches := htAHrefRE.FindAll(aPage, -1)
@@ -208,6 +220,6 @@ func markupTags(aPage []byte) []byte {
 	}
 
 	return []byte(result)
-} // markupTags()
+} // MarkupTags()
 
 /* _EoF_ */
