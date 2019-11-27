@@ -105,24 +105,17 @@ type (
 	}
 )
 
-//TODO combine `NewPosting()` and `newPosting()`
-
 // NewPosting returns a new posting structure with an empty article text.
-func NewPosting() *TPosting {
-	return newPosting("")
-} // NewPosting()
-
-// `newPosting()` is the core function of `NewPost()` (for testing purposes).
 //
 //	`aID` if an empty string the `NewID()` function is called
 // to provide a new article ID.
-func newPosting(aID string) *TPosting {
+func NewPosting(aID string) *TPosting {
 	if 0 == len(aID) {
 		aID = NewID()
 	}
 
 	return &TPosting{id: aID}
-} // newPosting()
+} // NewPosting()
 
 // After reports whether this posting is younger than the one
 // identified by `aID`.

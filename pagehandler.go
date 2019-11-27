@@ -235,7 +235,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		y, mo, d := time.Now().Date()
 		now := fmt.Sprintf("%d-%02d-%02d", y, mo, d)
-		p := newPosting(tail)
+		p := NewPosting(tail)
 		txt := p.Markdown()
 		t := p.Time()
 		y, mo, d = t.Date()
@@ -251,7 +251,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "e", "ep": // edit a single posting
 		if 0 < len(tail) {
-			p := newPosting(tail)
+			p := NewPosting(tail)
 			txt := p.Markdown()
 			if 0 < len(txt) {
 				t := p.Time()
@@ -337,7 +337,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "p", "pp": // handle a single posting
 		if 0 < len(tail) {
-			p := newPosting(tail)
+			p := NewPosting(tail)
 			if err := p.Load(); nil != err {
 				apachelogger.Err("TPageHandler.handleGET()",
 					fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
@@ -364,7 +364,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "r", "rp": // posting's removal
 		if 0 < len(tail) {
-			p := newPosting(tail)
+			p := NewPosting(tail)
 			txt := p.Markdown()
 			date := p.Date()
 			if 0 < len(txt) {
@@ -493,7 +493,7 @@ func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, a
 
 // `handleShare()` serves the edit page for a shared URL.
 func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
-	p := NewPosting()
+	p := NewPosting("")
 	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
 		apachelogger.Err("TPageHandler.handleShare()",
@@ -507,7 +507,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWri
 	pl := NewPostList()
 	if 0 < len(aList) {
 		for _, id := range aList {
-			p := newPosting(id)
+			p := NewPosting(id)
 			if err := p.Load(); nil != err {
 				apachelogger.Err("TPageHandler.handleTagMentions()",
 					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
@@ -539,7 +539,7 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 
 	if 200 == status {
 		fName = strings.TrimPrefix(txt, ph.dataDir)
-		p := NewPosting()
+		p := NewPosting("")
 		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
 		if _, err := p.Store(); nil != err {
 			apachelogger.Err("TPageHandler.handleUpload()",
@@ -565,7 +565,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
-			p := NewPosting()
+			p := NewPosting("")
 			p.Set(m)
 			if _, err := p.Store(); nil != err {
 				apachelogger.Err("TPageHandler.handlePOST()",
@@ -586,7 +586,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		op := newPosting(tail)
+		op := NewPosting(tail)
 		t := op.Time()
 		y, mo, d := t.Date()
 		if ymd := aRequest.FormValue("ymd"); 0 < len(ymd) {
@@ -598,7 +598,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		opn := op.PathFileName()
 		t = time.Date(y, mo, d, h, mi, s, n, time.Local)
-		np := newPosting(newID(t))
+		np := NewPosting(newID(t))
 		npn := np.PathFileName()
 		// ensure existence of directory:
 		if _, err := np.makeDir(); nil != err {
@@ -623,7 +623,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		var old []byte
 		m := replCRLF([]byte(aRequest.FormValue("manuscript")))
-		p := newPosting(tail)
+		p := NewPosting(tail)
 		if err := p.Load(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
@@ -650,7 +650,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		p := newPosting(tail)
+		p := NewPosting(tail)
 		if err := p.Delete(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))

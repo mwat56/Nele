@@ -40,7 +40,7 @@ func goAddID(aList *hashtags.THashList, aID string, aText []byte) {
 // `aID` doesnt't exist, or (2) if the file can't be read, or (3)
 // the given `aHash` can't be found in the posting's text.
 func doCheckPost(aHash, aID string) bool {
-	p := newPosting(aID)
+	p := NewPosting(aID)
 	if !p.Exists() {
 		return false
 	}

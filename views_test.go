@@ -92,15 +92,15 @@ func TestTView_render(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(id1).
+	p1 := NewPosting(id1).
 		Set([]byte("View_render: Oh dear! This is a first posting."))
 
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(id2).
+	p2 := NewPosting(id2).
 		Set([]byte("View_render: Hi there! This is another posting."))
 
 	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := newPosting(id3).
+	p3 := NewPosting(id3).
 		Set([]byte("View_render: Oh dear! This is a single posting."))
 
 	v1, _ := NewView("./views/", "index")
@@ -205,15 +205,15 @@ func TestTViewList_render(t *testing.T) {
 		Add(vw2)
 
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := newPosting(id1).
+	p1 := NewPosting(id1).
 		Set([]byte("ViewList_render: Oh dear! This is a first posting."))
 
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := newPosting(id2).
+	p2 := NewPosting(id2).
 		Set([]byte("ViewList_render: Hi there! This is another posting."))
 
 	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := newPosting(id3).
+	p3 := NewPosting(id3).
 		Set([]byte("ViewList_render: Oh dear! This is a single posting."))
 
 	pl1 := NewPostList().

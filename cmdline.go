@@ -27,7 +27,7 @@ import (
 // `addMarkdown()` saves `aMarkdown` as a new posting,
 // returning the number of bytes written and a possible I/O error.
 func addMarkdown(aMarkdown []byte) (int64, error) {
-	return NewPosting().Set(aMarkdown).Store()
+	return NewPosting("").Set(aMarkdown).Store()
 } // addMarkdown()
 
 // AddConsolePost reads data from `StdIn` and saves it as a new posting,

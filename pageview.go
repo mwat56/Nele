@@ -39,7 +39,7 @@ func goSetPostingLinkViews(aPostName, aImageDirectory string) {
 	}
 	fName := filepath.Base(aPostName)
 	id := fName[:len(fName)-3] // strip name extension
-	p := newPosting(id)
+	p := NewPosting(id)
 	txt := p.Markdown()
 	if 0 == len(txt) {
 		return
@@ -47,6 +47,9 @@ func goSetPostingLinkViews(aPostName, aImageDirectory string) {
 
 	linkMatches := pvLinksRE.FindAll(txt, -1)
 	if (nil == linkMatches) || (0 == len(linkMatches)) {
+
+		//TODO check for image URL constructs and make sure
+		// the referenced file does in fact exist.
 		return
 	}
 	for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {

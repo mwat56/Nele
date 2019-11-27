@@ -329,7 +329,7 @@ func SearchPostings(aText string) *TPostList {
 				continue
 			}
 			id := path.Base(fName)
-			p := newPosting(id[:len(id)-3]) // exclude file extension
+			p := NewPosting(id[:len(id)-3]) // exclude file extension
 			pl.Add(p.Set(fTxt))
 		}
 	}

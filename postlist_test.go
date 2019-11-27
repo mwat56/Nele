@@ -35,7 +35,7 @@ func TestNewPostList(t *testing.T) {
 
 func TestTPostList_Add(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting()
+	p1 := NewPosting("")
 	pl1 := NewPostList()
 	wl1 := &TPostList{
 		*p1,
@@ -89,9 +89,9 @@ func TestTPostList_Article(t *testing.T) {
 
 func TestTPostList_in(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting().Set([]byte("# Hello World!"))
-	p2 := NewPosting().Set([]byte("I trust you're feeling good."))
-	p3 := NewPosting().Set([]byte("Goodbye!"))
+	p1 := NewPosting("").Set([]byte("# Hello World!"))
+	p2 := NewPosting("").Set([]byte("I trust you're feeling good."))
+	p3 := NewPosting("").Set([]byte("Goodbye!"))
 	pl1 := NewPostList().Add(p1).Add(p2).Add(p3)
 	wl1 := &TPostList{
 		*p1,
@@ -117,10 +117,10 @@ func TestTPostList_in(t *testing.T) {
 
 func TestTPostList_Len(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting().Set([]byte("11"))
-	p2 := NewPosting().Set([]byte("22"))
-	p3 := NewPosting().Set([]byte("33"))
-	p4 := NewPosting().Set([]byte("44"))
+	p1 := NewPosting("").Set([]byte("11"))
+	p2 := NewPosting("").Set([]byte("22"))
+	p3 := NewPosting("").Set([]byte("33"))
+	p4 := NewPosting("").Set([]byte("44"))
 	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
 	pl2 := NewPostList().Add(p1).Add(p2).Add(p3).Add(p4)
 	tests := []struct {
@@ -143,9 +143,9 @@ func TestTPostList_Len(t *testing.T) {
 
 func TestTPostList_Sort(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := newPosting("11").Set([]byte("11"))
-	p2 := newPosting("22").Set([]byte("22"))
-	p3 := newPosting("33").Set([]byte("33"))
+	p1 := NewPosting("11").Set([]byte("11"))
+	p2 := NewPosting("22").Set([]byte("22"))
+	p3 := NewPosting("33").Set([]byte("33"))
 	pl1 := NewPostList().Add(p2).Add(p3).Add(p1)
 	wl1 := NewPostList().Add(p3).Add(p2).Add(p1)
 	tests := []struct {
@@ -167,9 +167,9 @@ func TestTPostList_Sort(t *testing.T) {
 
 func TestTPostList_IsSorted(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := newPosting("11").Set([]byte("11"))
-	p2 := newPosting("22").Set([]byte("22"))
-	p3 := newPosting("33").Set([]byte("33"))
+	p1 := NewPosting("11").Set([]byte("11"))
+	p2 := NewPosting("22").Set([]byte("22"))
+	p3 := NewPosting("33").Set([]byte("33"))
 	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
 	pl2 := NewPostList().Add(p3).Add(p2).Add(p1)
 	pl3 := NewPostList().Add(p2).Add(p3).Add(p1).Sort()
@@ -194,12 +194,12 @@ func TestTPostList_IsSorted(t *testing.T) {
 
 func storeNewPost(aBaseDir string, aDay, aHour int) {
 	t := time.Date(1970, 1, aDay, aHour, aHour, aHour, 0, time.Local)
-	p := newPosting(newID(t))
+	p := NewPosting(newID(t))
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	p.Store()
 
 	t = time.Date(2018, 12, aDay, aHour, aHour, aHour, 0, time.Local)
-	p = newPosting(newID(t))
+	p = NewPosting(newID(t))
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	p.Store()
 } // storeNewPost()
