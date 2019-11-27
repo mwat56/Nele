@@ -16,7 +16,7 @@ import (
 
 func Test_goSetPostingLinkViews(t *testing.T) {
 	p1 := ``
-	p2 := `/home/matthias/devel/Go/src/github.com/mwat56/Nele/postings/201915d/15da6104b009723d.md`
+	p2 := `/home/matthias/devel/Go/src/github.com/mwat56/Nele/postings/201915d/15d9c2334fce3991.md`
 	imgDir := "./img/"
 	pageview.SetCacheDirectory(imgDir)
 	pageview.SetMaxAge(1)

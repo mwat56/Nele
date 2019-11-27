@@ -91,14 +91,14 @@ func goUpdateAllLinkViews(aPostingBaseDir, aImageDirectory string) {
 		return // we can't recover from this :-(
 	}
 	for _, mdName := range dirnames {
-		filesnames, err := filepath.Glob(mdName + "/*.md")
+		filenames, err := filepath.Glob(mdName + "/*.md")
 		if nil != err {
 			continue // it might be a file (not a directory) …
 		}
-		if 0 >= len(filesnames) {
+		if 0 >= len(filenames) {
 			continue // skip empty directory
 		}
-		for _, postName := range filesnames {
+		for _, postName := range filenames {
 			go goSetPostingLinkViews(postName, aImageDirectory)
 		}
 	}
