@@ -183,9 +183,12 @@ func delFile(aFileName *string) error {
 // This method does NOT empty the markdown text of the object;
 // for that call the `Clear()` method.
 func (p *TPosting) Delete() error {
-	filepathname := p.PathFileName()
+	fName := p.PathFileName()
+	if 0 == len(fName) {
+		return nil
+	}
 
-	return delFile(&filepathname)
+	return delFile(&fName)
 } // Delete()
 
 // Equal reports whether this posting is of the same time as `aID`.
@@ -223,12 +226,15 @@ func (p *TPosting) Len() int {
 
 // Load reads the Markdown from disk, returning a possible I/O error.
 func (p *TPosting) Load() error {
-	filepathname := p.PathFileName()
-	if _, err := os.Stat(filepathname); nil != err {
+	fName := p.PathFileName()
+	if 0 == len(fName) {
+		return fmt.Errorf("No filename for posting '%s'", p.id)
+	}
+	if _, err := os.Stat(fName); nil != err {
 		return err // probably ENOENT
 	}
 
-	bs, err := ioutil.ReadFile(filepathname) // #nosec G304
+	bs, err := ioutil.ReadFile(fName) // #nosec G304
 	if nil != err {
 		return err
 	}
@@ -276,6 +282,9 @@ func (p *TPosting) Markdown() []byte {
 
 	// now we have to check the filesystem
 	fName := p.PathFileName()
+	if 0 == len(fName) {
+		return p.markdown
+	}
 	if _, err = os.Stat(fName); nil != err {
 		return p.markdown // return empty slice
 	}
@@ -295,6 +304,9 @@ func (p *TPosting) Markdown() []byte {
 
 // `pathname()` returns the complete article path-/filename.
 func pathname(aID string) string {
+	if 0 == len(aID) {
+		return ""
+	}
 	// We need the year to guard against ID overflows.
 	y, _, _ := timeID(aID).Date()
 
@@ -349,6 +361,9 @@ func (p *TPosting) Store() (int64, error) {
 		}
 	}
 	fName := p.PathFileName()
+	if 0 == len(fName) {
+		return 0, fmt.Errorf("No filename for posting '%s'", p.id)
+	}
 	if err := ioutil.WriteFile(fName, p.markdown, 0640); nil != err {
 		return 0, err
 	}
