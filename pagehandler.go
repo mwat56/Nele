@@ -108,7 +108,7 @@ func NewPageHandler() (*TPageHandler, error) {
 		result.mfs = 10485760 // 10 MB
 	}
 
-	if s, err = AppArguments.Get("pageview"); nil == err {
+	if s, err = AppArguments.Get("pageView"); nil == err {
 		if pageview := ("true" == s); pageview {
 			InitPageImages(PostingBaseDirectory(), "./img/")
 		}

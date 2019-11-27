@@ -217,6 +217,10 @@ func InitConfig() {
 	flag.StringVar(&mfsStr, "maxfilesize", mfsStr,
 		"max. accepted size of uploaded files")
 
+	pageView, _ := AppArguments.AsBool("pageView")
+	flag.BoolVar(&pageView, "pageView", pageView,
+		"(optional) use page preview images for links")
+
 	portInt, _ := AppArguments.AsInt("port")
 	flag.IntVar(&portInt, "port", portInt,
 		"<portNumber> the IP port to listen to ")
@@ -345,6 +349,13 @@ func InitConfig() {
 		mfsStr = fmt.Sprintf("%d", mfs)
 	}
 	AppArguments.set("mfs", mfsStr)
+
+	if pageView {
+		s = "true"
+	} else {
+		s = ""
+	}
+	AppArguments.set("pageView", s)
 
 	AppArguments.set("port", fmt.Sprintf("%d", portInt))
 
