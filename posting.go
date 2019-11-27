@@ -66,12 +66,16 @@ func timeID(aID string) (rTime time.Time) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
-	// `poPostingBaseDirectory` is the base directory for storing the articles.
+	// `poPostingBaseDirectory` is the base directory for storing articles.
 	//
-	// This variable's value _must_ be set initially before creating any
+	// This variable's value must be set initially before creating any
 	// `TPosting` or `TPostList` instances.
 	// After that it should be considered `read/only`.
-	poPostingBaseDirectory = "./postings"
+	// Its default wert is `./postings`.
+	poPostingBaseDirectory = func(aBaseDir string) string {
+		dir, _ := filepath.Abs(aBaseDir)
+		return dir
+	}("./postings")
 )
 
 // PostingBaseDirectory returns the base directory used for
@@ -85,18 +89,23 @@ func PostingBaseDirectory() string {
 //
 //	`aBaseDir` The base directory to use for storing articles/postings.
 func SetPostingBaseDirectory(aBaseDir string) {
-	poPostingBaseDirectory, _ = filepath.Abs(aBaseDir)
+	dir, err := filepath.Abs(aBaseDir)
+	if nil == err {
+		poPostingBaseDirectory = dir
+	}
 } // SetPostingBaseDirectory()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
-	// TPosting is a single article/posting to be injected into a template.
+	// TPosting is a single article/posting to be used by a template.
 	TPosting struct {
 		id       string // hex. representation of date/time
 		markdown []byte // (article-/file-)contents in Markdown markup
 	}
 )
+
+//TODO combine `NewPosting()` and `newPosting()`
 
 // NewPosting returns a new posting structure with an empty article text.
 func NewPosting() *TPosting {
@@ -313,7 +322,7 @@ func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
 	p.Markdown()
 
-	return template.HTML(markupTags(MDtoHTML(p.markdown))) // #nosec G203
+	return template.HTML(MarkupTags(MDtoHTML(p.markdown))) // #nosec G203
 } // Post()
 
 // Set assigns the article's Markdown text.
@@ -347,7 +356,7 @@ func (p *TPosting) Store() (int64, error) {
 		}
 	}
 	fName := p.PathFileName()
-	if err := ioutil.WriteFile(fName, p.markdown, 0644); nil != err {
+	if err := ioutil.WriteFile(fName, p.markdown, 0640); nil != err {
 		return 0, err
 	}
 
