@@ -7,6 +7,7 @@
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
+//lint:file-ignore ST1005 - I prefer capitalisation
 
 /*
  * This file provides article/posting related functions and methods.
@@ -339,7 +340,7 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 			p.markdown = []byte("")
 		}
 	} else {
-		_ = p.Load()
+		p.markdown = []byte("")
 	}
 
 	return p
@@ -348,18 +349,16 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 // Store writes the article's Markdown to disk returning
 // the number of bytes written and a possible I/O error.
 //
-// The file is created on disk with mode `0644` (`-rw-r--r--`).
+// The file is created on disk with mode `0640` (`-rw-r-----`).
 func (p *TPosting) Store() (int64, error) {
 	if _, err := p.makeDir(); nil != err {
-		// without an appropriate directory we can't save anything ...
+		// without an appropriate directory we can't save anything …
 		return 0, err
 	}
 	if 0 == len(p.markdown) {
-		_ = p.Load()
-		if 0 == len(p.markdown) {
-			return 0, fmt.Errorf("Markdown '%s' is empty", p.id)
-		}
+		return 0, p.Delete()
 	}
+
 	fName := p.PathFileName()
 	if 0 == len(fName) {
 		return 0, fmt.Errorf("No filename for posting '%s'", p.id)
@@ -383,7 +382,7 @@ func (p *TPosting) Time() time.Time {
 
 /*
 func updatePostDirs() {
-	dirnames, err := filepath.Glob(postingBaseDirectory + "/*")
+	dirnames, err := filepath.Glob(poPostingBaseDirectory + "/*")
 	if nil != err {
 		return
 	}
