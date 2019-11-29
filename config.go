@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/mwat56/ini"
+	"github.com/mwat56/pageview"
 )
 
 type (
@@ -61,7 +62,7 @@ func (al *tAguments) Get(aKey string) (string, error) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// `absolute()` return `aDir` as an absolute path
+// `absolute()` returns `aDir` as an absolute path.
 func absolute(aBaseDir, aDir string) string {
 	if 0 == len(aDir) {
 		return aDir
@@ -352,6 +353,9 @@ func InitConfig() {
 
 	if pageView {
 		s = "true"
+		_ = pageview.SetImageDirectory(absolute(dataDir, "img"))
+		pageview.SetImageFileType(`png`)
+		pageview.SetMaxAge(0)
 	} else {
 		s = ""
 	}
