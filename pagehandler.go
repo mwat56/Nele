@@ -39,13 +39,14 @@ type (
 		bn       string                        // the blog's name
 		dataDir  string                        // datadir: base dir for data
 		hashList *hashtags.THashList           // #hashtags/@mentions list
-		iup      *uploadhandler.TUploadHandler // `img` upload handler
+		imgUp    *uploadhandler.TUploadHandler // `img` upload handler
 		lang     string                        // default language
 		logStack bool                          // log stack trace
 		mfs      int64                         // max. size of uploaded files
+		pageView bool                          // use link page previews
 		realm    string                        // host/domain to secure by BasicAuth
-		sfh      http.Handler                  // `static` file handler
-		sup      *uploadhandler.TUploadHandler // `static` upload handler
+		staticFh http.Handler                  // `static` file handler
+		staticUp *uploadhandler.TUploadHandler // `static` upload handler
 		theme    string                        // `dark` or `light` display theme
 		userList *passlist.TPassList           // user/password list
 		viewList *TViewList                    // list of template/views
@@ -79,7 +80,7 @@ func NewPageHandler() (*TPageHandler, error) {
 		return nil, err
 	}
 	result.dataDir = s
-	result.sfh = jffs.FileServer(http.Dir(result.dataDir + `/`))
+	result.staticFh = jffs.FileServer(http.Dir(result.dataDir + `/`))
 	if result.viewList, err = newViewList(filepath.Join(result.dataDir, "views")); nil != err {
 		return nil, err
 	}
@@ -109,8 +110,9 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 
 	if s, err = AppArguments.Get("pageView"); nil == err {
-		if pageview := ("true" == s); pageview {
-			InitPageImages(PostingBaseDirectory(), "./img/")
+		if pv := ("true" == s); pv {
+			result.pageView = true
+			UpdateLinkPreviews(PostingBaseDirectory(), "/img/")
 		}
 	}
 
@@ -227,7 +229,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "css":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.staticFh.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 == len(tail) {
@@ -252,15 +254,14 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "e", "ep": // edit a single posting
 		if 0 < len(tail) {
 			p := NewPosting(tail)
-			txt := p.Markdown()
-			if 0 < len(txt) {
+			if 0 < p.Len() {
 				t := p.Time()
 				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
 					Set("HMS",
 						fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
 					Set("ID", p.ID()).
-					Set("Manuscript", template.HTML(txt)).
+					Set("Manuscript", template.HTML(p.Markdown())).
 					Set("monthURL", "/m/"+date).
 					Set("Robots", "noindex,nofollow").
 					Set("weekURL", "/w/"+date).
@@ -278,7 +279,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
 
 	case "fonts":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.staticFh.ServeHTTP(aWriter, aRequest)
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
@@ -288,7 +289,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case "img":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.staticFh.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
 		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
@@ -365,15 +366,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "r", "rp": // posting's removal
 		if 0 < len(tail) {
 			p := NewPosting(tail)
-			txt := p.Markdown()
-			date := p.Date()
-			if 0 < len(txt) {
+			if 0 < p.Len() {
+				t := p.Time()
+				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
-					Set("Manuscript", template.HTML(txt)).
+					Set("HMS",
+						fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
+					Set("Manuscript", template.HTML(p.Markdown())).
 					Set("ID", p.ID()).
 					Set("monthURL", "/m/"+date).
 					Set("weekURL", "/w/"+date).
-					Set("Robots", "noindex,nofollow") // #nosec G203
+					Set("Robots", "noindex,nofollow").
+					Set("YMD", date) // #nosec G203
 				ph.handleReply("rp", aWriter, pageData)
 				return
 			}
@@ -411,7 +415,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("ss", aWriter, pageData)
 
 	case "static":
-		ph.sfh.ServeHTTP(aWriter, aRequest)
+		ph.staticFh.ServeHTTP(aWriter, aRequest)
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -532,9 +536,9 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 	)
 	if isImage {
 		img = "!"
-		txt, status = ph.iup.ServeUpload(aWriter, aRequest)
+		txt, status = ph.imgUp.ServeUpload(aWriter, aRequest)
 	} else {
-		txt, status = ph.sup.ServeUpload(aWriter, aRequest)
+		txt, status = ph.staticUp.ServeUpload(aWriter, aRequest)
 	}
 
 	if 200 == status {
@@ -565,11 +569,13 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
-			p := NewPosting("")
-			p.Set(m)
+			p := NewPosting("").Set(m)
 			if _, err := p.Store(); nil != err {
 				apachelogger.Err("TPageHandler.handlePOST()",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
+			}
+			if ph.pageView {
+				PrepareLinkPreviews(p, "/img/")
 			}
 			go goAddID(ph.hashList, p.ID(), p.Markdown())
 
@@ -610,6 +616,9 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
 		go goRenameID(ph.hashList, tail, np.ID())
+		if ph.pageView {
+			PrepareLinkPreviews(np, "/img/")
+		}
 
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 
@@ -637,6 +646,9 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				_, _ = p.Set(old).Store()
 			}
 		}
+		if ph.pageView {
+			PrepareLinkPreviews(p, "/img/")
+		}
 		go goUpdateID(ph.hashList, tail, m)
 
 		tail += "?z=" + p.ID() // kick the browser cache
@@ -657,6 +669,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		go goRemoveID(ph.hashList, tail)
 
+		//TODO remove page preview image
+
 		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
 	case "si": // store image
@@ -664,8 +678,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		if nil == ph.iup { // lazy initialisation
-			ph.iup = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/img/"),
+		if nil == ph.imgUp { // lazy initialisation
+			ph.imgUp = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/img/"),
 				"imgFile", ph.mfs)
 		}
 		ph.handleUpload(aWriter, aRequest, true)
@@ -675,8 +689,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		if nil == ph.sup { // lazy initialisation
-			ph.sup = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/static/"),
+		if nil == ph.staticUp { // lazy initialisation
+			ph.staticUp = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/static/"),
 				"statFile", ph.mfs)
 		}
 		ph.handleUpload(aWriter, aRequest, false)
