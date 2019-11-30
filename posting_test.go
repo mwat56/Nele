@@ -566,7 +566,7 @@ func TestTPosting_Store(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", fields{p1}, len1, true},
+		{" 1", fields{p1}, len1, false},
 		{" 2", fields{p2}, len2, false},
 	}
 	for _, tt := range tests {
@@ -578,7 +578,7 @@ func TestTPosting_Store(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("TPosting.Store() = '%v', want '%v'", got, tt.want)
+				t.Errorf("TPosting.Store() = '%v',\nwant '%v'", got, tt.want)
 			}
 		})
 		tt.fields.p.Delete() // clean up
