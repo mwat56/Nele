@@ -9,6 +9,7 @@ package nele
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/mwat56/pageview"
 )
@@ -52,14 +53,14 @@ func Test_checkForImgURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotRList := checkForImgURL(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
+			if gotRList := checkForImgageURL(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
 				t.Errorf("checkForImgURL() = %v,\nwant %v", gotRList, tt.wantRList)
 			}
 		})
 	}
 } // Test_checkForImgURL()
 
-func Test_goCheckPageImages(t *testing.T) {
+func Test_checkPageImages(t *testing.T) {
 	pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	pageImgDir := pageview.ImageDirectory()
@@ -84,18 +85,29 @@ func Test_goCheckPageImages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goCheckPageImages(tt.args.aPosting, tt.args.aImageURLdir, tt.args.aImageDir)
+			checkPageImages(tt.args.aPosting, tt.args.aImageURLdir, tt.args.aImageDir)
 		})
 	}
-} // Test_goCheckPageImages()
+} // Test_checkPageImages()
 
-func Test_goSetPostingLinkViews(t *testing.T) {
-	pageview.SetImageDirectory("/tmp/")
+func Test_setPostingLinkViews(t *testing.T) {
+	pageview.SetImageDirectory("./img/")
 	pageview.SetMaxAge(1)
 	pageImgDir := pageview.ImageDirectory()
 	imgURLdir := "/img/"
-	var p1 TPosting
+	var p0 TPosting
+	p1 := NewPosting("15d79fb1b4097182")
+	_ = p1.Load()
 	p2 := NewPosting("15d9c2334fce3991")
+	_ = p2.Load()
+	p3 := NewPosting("15d9393f4f5f3bb4")
+	_ = p3.Load()
+	p4 := NewPosting("15d93196ab1b2899")
+	_ = p4.Load()
+	p5 := NewPosting("15d8b372f3186303")
+	_ = p5.Load()
+	p6 := NewPosting("15dbb86d6c2cdc2c")
+	_ = p6.Load()
 	type args struct {
 		aPosting        *TPosting
 		aImageDirectory string
@@ -106,12 +118,41 @@ func Test_goSetPostingLinkViews(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{" 1", args{&p1, imgURLdir, pageImgDir}},
+		{" 0", args{&p0, imgURLdir, pageImgDir}},
+		{" 1", args{p1, imgURLdir, pageImgDir}},
 		{" 2", args{p2, imgURLdir, pageImgDir}},
+		{" 3", args{p3, imgURLdir, pageImgDir}},
+		{" 4", args{p4, imgURLdir, pageImgDir}},
+		{" 5", args{p5, imgURLdir, pageImgDir}},
+		{" 6", args{p6, imgURLdir, pageImgDir}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goSetPostingLinkViews(tt.args.aPosting, tt.args.aImageDirectory, tt.args.aCacheDirectory)
+			setPostingLinkViews(tt.args.aPosting, tt.args.aImageDirectory, tt.args.aCacheDirectory)
 		})
 	}
-} // Test_goSetPostingLinkViews()
+} // Test_setPostingLinkViews()
+
+func Test_goUpdateAllLinkPreviews(t *testing.T) {
+	pageview.SetImageDirectory("./img/")
+	pageview.SetMaxAge(1)
+	type args struct {
+		aPostingBaseDir string
+		aImageURLdir    string
+		aImageDir       string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{" 1", args{PostingBaseDirectory(), "/img/", pageview.ImageDirectory()}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			goUpdateAllLinkPreviews(tt.args.aPostingBaseDir, tt.args.aImageURLdir, tt.args.aImageDir)
+			time.Sleep(time.Second)
+		})
+	}
+	time.Sleep(time.Second)
+} // Test_goUpdateAllLinkPreviews()
