@@ -222,6 +222,14 @@ func (p *TPosting) ID() string {
 
 // Len returns the current length of the posting's Markdown text.
 func (p *TPosting) Len() int {
+	if result := len(p.markdown); 0 < result {
+		return result
+	}
+	if err := p.Load(); nil != err {
+		apachelogger.Err("TPosting.Len()",
+			fmt.Sprintf("TPosting.Load(%s): %v", p.id, err))
+	}
+
 	return len(p.markdown)
 } // Len()
 
@@ -269,35 +277,17 @@ func (p *TPosting) makeDir() (string, error) {
 
 // Markdown returns the Markdown of this article.
 //
-// If the markup is not already in memory this methods tries
-// to read the text data from the filesystem.
-//
-// In case of I/O errors while accessing the file an empty
-// byte slice is returned.
+// If the markup is not already in memory this methods calls
+// `TPosting.Load()` to read the text data from the filesystem.
 func (p *TPosting) Markdown() []byte {
 	if 0 < len(p.markdown) {
 		// that's the easy path …
 		return p.markdown
 	}
-	var err error
 
-	// now we have to check the filesystem
-	fName := p.PathFileName()
-	if 0 == len(fName) {
-		return p.markdown
-	}
-	if _, err = os.Stat(fName); nil != err {
-		return p.markdown // return empty slice
-	}
-
-	var bs []byte
-	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
+	if err := p.Load(); nil != err {
 		apachelogger.Err("TPosting.Markdown()",
-			fmt.Sprintf("ioutil.ReadFile(%s): %v", fName, err))
-	}
-	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
-		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
-		p.markdown = []byte("")
+			fmt.Sprintf("TPosting.Load(%s): %v", p.id, err))
 	}
 
 	return p.markdown
