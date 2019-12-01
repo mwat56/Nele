@@ -30,15 +30,15 @@ var (
 	// R/O RegEx to extract link-text and link-URL from markup.
 	// Checking for the not-existence od e leading `!` should exclude
 	// embedded image links.
-	pvLinkRE = regexp.MustCompile(`(?s)([^\[]*]\s*[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
-	//                                 11111111111111111111   2222222222        33333333333
+	pvLinkRE = regexp.MustCompile(`(?s)([^\[]]\s*[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
+	//                                 1111111111111111111   2222222222        33333333333
 	// `[link-text](link-url)`
 	// 1 : lead in (ignored)
 	// 2 : link text
 	// 3 : remote page URL
 
 	// R/O simple RegEx to check whether an URL starts with a scheme.
-	pvSchemeRE = regexp.MustCompile(`^\w+:`)
+	pvSchemeRE = regexp.MustCompile(`^\w+://`)
 )
 
 type (
@@ -136,7 +136,6 @@ func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir, aImageDir string) {
 //	`aLink` contains the link parts to use.
 //	`aImageURLdir` is the URL directory for page preview images.
 func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
-
 	imgName, err := pageview.CreateImage(aLink.linkURL)
 	if (nil != err) || (0 == len(imgName)) {
 		apachelogger.Err("preparePost()",
@@ -174,24 +173,24 @@ func setPostingLinkViews(aPosting *TPosting, aImageURLdir, aImageDir string) {
 	}
 
 	linkMatches := pvLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
-	if (nil == linkMatches) || (0 == len(linkMatches)) {
-		// Here we didn't find any normal links so check
-		// the links with an embedded page preview image.
-		checkPageImages(aPosting, aImageURLdir, aImageDir)
-		return
-	}
-	for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
-		if !pvSchemeRE.Match(linkMatches[cnt][3]) {
-			continue // skip local links
+	if (nil != linkMatches) && (0 < len(linkMatches)) {
+		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+			url := string(linkMatches[cnt][3])
+			if !pvSchemeRE.MatchString(url) {
+				continue // skip local links
+			}
+			preparePost(aPosting,
+				&tLink{
+					link:     string(linkMatches[cnt][0]),
+					linkText: string(linkMatches[cnt][2]),
+					linkURL:  url,
+				},
+				aImageURLdir)
 		}
-		preparePost(aPosting,
-			&tLink{
-				link:     string(linkMatches[cnt][0]),
-				linkText: string(linkMatches[cnt][2]),
-				linkURL:  string(linkMatches[cnt][3]),
-			},
-			aImageURLdir)
 	}
+	// In case we didn't find any normal links we check
+	// the links with an embedded page preview image:
+	checkPageImages(aPosting, aImageURLdir, aImageDir)
 } // setPostingLinkViews()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
