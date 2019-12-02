@@ -10,6 +10,7 @@ package nele
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -150,7 +151,7 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	}
 
 	// replace `[link-text](link-url)` by
-	// `[![alt-text](image-URL)](link-url)`
+	// `[![alt-text](image-URL)](link-URL)`
 	search := regexp.QuoteMeta(aLink.link)
 	if re, err := regexp.Compile(search); nil == err {
 		replace := "[![" + aLink.linkText +
@@ -161,8 +162,26 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	}
 } // preparePost()
 
-// `setPostingLinkViews()` sets the external links in the text of
-// `aPosting` to include a page preview image (if available).
+// RemoveImages deletes the images used in `aPosting`.
+//
+//	`aPosting` The posting the image(s) of which are going to be deleted.
+func RemoveImages(aPosting *TPosting) {
+	if (nil == aPosting) || (0 == aPosting.Len()) {
+		return
+	}
+
+	list := checkForImgageURL(aPosting.Markdown())
+	for _, pair := range list {
+		fName := pageview.PathFile(pair.pageURL)
+		if fi, err := os.Stat(fName); (nil != err) || fi.IsDir() {
+			continue
+		}
+		_ = os.Remove(fName)
+	}
+} // RemoveImages()
+
+// `setPostingLinkViews()` changes the external links in the text
+// of `aPosting` to include a page preview image (if available).
 //
 //	`aPosting` is the posting the text of which is going to be processed.
 //	`aImageURLdir` is the URL directory for page preview images.

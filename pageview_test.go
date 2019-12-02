@@ -96,7 +96,7 @@ func Test_setPostingLinkViews(t *testing.T) {
 	pageImgDir := pageview.ImageDirectory()
 	imgURLdir := "/img/"
 	var p0 TPosting
-	p1 := NewPosting("15d79fb1b4097182")
+	p1 := NewPosting("15d678172cfc527a")
 	_ = p1.Load()
 	p2 := NewPosting("15d9c2334fce3991")
 	_ = p2.Load()
@@ -156,3 +156,27 @@ func Test_goUpdateAllLinkPreviews(t *testing.T) {
 	}
 	time.Sleep(time.Second)
 } // Test_goUpdateAllLinkPreviews()
+
+func TestRemoveImages(t *testing.T) {
+	pageview.SetImageDirectory("./img/")
+	var t1 TPosting
+	t2 := NewPosting("15553ea895695af6")
+	t3 := NewPosting("")
+	type args struct {
+		aPosting *TPosting
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{" 1", args{&t1}},
+		{" 2", args{t2}},
+		{" 3", args{t3}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RemoveImages(tt.args.aPosting)
+		})
+	}
+} // TestRemoveImages()
