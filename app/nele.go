@@ -70,7 +70,7 @@ func doFile(aMe string) {
 
 // `fatal()` logs `aMessage` and terminates the program.
 func fatal(aMessage string) {
-	apachelogger.Log("Nele/main", aMessage)
+	apachelogger.Err("Nele/main", aMessage)
 	runtime.Gosched() // let the logger write
 	apachelogger.Close()
 	log.Fatalln(aMessage)
@@ -86,7 +86,7 @@ func setupSinals(aServer *http.Server) {
 	go func() {
 		for signal := range c {
 			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
-			apachelogger.Log(`Nele/catchSignals`, msg)
+			apachelogger.Err(`Nele/catchSignals`, msg)
 			log.Println(msg)
 			runtime.Gosched() // let the logger write
 			if err := aServer.Shutdown(context.Background()); nil != err {
