@@ -295,7 +295,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
 
 	case "index", "index.html":
-		ph.handleRoot("20", pageData, aWriter, aRequest)
+		ph.handleRoot("30", pageData, aWriter, aRequest)
 
 		/*
 			case "js":
@@ -465,7 +465,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if w := aRequest.FormValue("w"); 0 < len(w) {
 			ph.reDir(aWriter, aRequest, "/w/"+w)
 		} else {
-			ph.handleRoot("20", pageData, aWriter, aRequest)
+			ph.handleRoot("30", pageData, aWriter, aRequest)
 		}
 
 	default:
@@ -555,7 +555,7 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 	}
 } // handleUpload()
 
-// `handlePOST()` process the HTTP POST requests.
+// `handlePOST()` processes the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
 	// Here we can't use
 	//	ph.reDir(aWriter, aRequest, "/somethingelse/")
@@ -663,13 +663,12 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		p := NewPosting(tail)
+		RemoveImages(p) // remove page preview image(s)
 		if err := p.Delete(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
 		}
 		go goRemoveID(ph.hashList, tail)
-
-		//TODO remove page preview image
 
 		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
