@@ -76,9 +76,9 @@ func fatal(aMessage string) {
 	log.Fatalln(aMessage)
 } // fatal()
 
-// `setupSinals()` configures the capture of the interrupts `SIGINT`,
-// `SIGKILL`, and `SIGTERM` to terminate the program gracefully.
-func setupSinals(aServer *http.Server) {
+// `setupSignals()` configures the capture of the interrupts `SIGINT`
+// `and `SIGTERM` to terminate the program gracefully.
+func setupSignals(aServer *http.Server) {
 	// handle `CTRL-C` and `kill(15)`.
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
@@ -94,7 +94,7 @@ func setupSinals(aServer *http.Server) {
 			}
 		}
 	}()
-} // setupSinals()
+} // setupSignals()
 
 // `userCmdline()` checks for and executes password file commandline actions.
 func userCmdline() {
@@ -181,7 +181,7 @@ func main() {
 		ReadTimeout:       1 * time.Minute,
 		WriteTimeout:      5 * time.Minute,
 	}
-	setupSinals(server)
+	setupSignals(server)
 	if (nil == err) && (0 < len(s)) { // values from logfile test
 		apachelogger.SetErrLog(server)
 	}
