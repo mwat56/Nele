@@ -29,7 +29,7 @@ var (
 	// 2 : remote page URL
 
 	// R/O RegEx to extract link-text and link-URL from markup.
-	// Checking for the not-existence od e leading `!` should exclude
+	// Checking for the not-existence of the leading `!` should exclude
 	// embedded image links.
 	pvLinkRE = regexp.MustCompile(`(?s)([^\[]]\s*[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
 	//                                 1111111111111111111   2222222222        33333333333
@@ -106,7 +106,7 @@ func checkPageImages(aPosting *TPosting, aImageURLdir, aImageDir string) {
 // articles/postings.
 //	`aImageURLdir` is the local URL directory for page preview images.
 //	`aImageDir` is the directory used to store the generated images.
-func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir, aImageDir string) {
+func goUpdateAllLinkPreviews(aPostingBaseDir, aImgURLdir, aImageDir string) {
 	dirnames, err := filepath.Glob(aPostingBaseDir + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
@@ -123,7 +123,7 @@ func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir, aImageDir string) {
 				fName := filepath.Base(postName)
 				p := NewPosting(fName[:len(fName)-3]) // strip name extension
 				if err := p.Load(); nil == err {
-					setPostingLinkViews(p, aImageURLdir, aImageDir)
+					setPostingLinkViews(p, aImgURLdir, aImageDir)
 				}
 			}
 		}
@@ -136,18 +136,18 @@ func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir, aImageDir string) {
 //	`aPosting` is the posting the text of which is going to be updated.
 //	`aLink` contains the link parts to use.
 //	`aImageURLdir` is the URL directory for page preview images.
-func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
+func preparePost(aPosting *TPosting, aLink *tLink, aImgURLdir string) {
 	imgName, err := pageview.CreateImage(aLink.linkURL)
 	if (nil != err) || (0 == len(imgName)) {
 		apachelogger.Err("preparePost()",
 			fmt.Sprintf("pageview.CreateImage(%s): '%v'", aLink.linkURL, err))
 		return
 	}
-	if 0 == len(aImageURLdir) {
+	if 0 == len(aImgURLdir) {
 		return
 	}
-	if '/' != aImageURLdir[0] {
-		aImageURLdir = `/` + aImageURLdir
+	if '/' != aImgURLdir[0] {
+		aImgURLdir = `/` + aImgURLdir
 	}
 
 	// replace `[link-text](link-url)` by
@@ -155,17 +155,17 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	search := regexp.QuoteMeta(aLink.link)
 	if re, err := regexp.Compile(search); nil == err {
 		replace := "[![" + aLink.linkText +
-			"](" + filepath.Join(aImageURLdir, imgName) +
+			"](" + filepath.Join(aImgURLdir, imgName) +
 			")](" + aLink.linkURL + ")"
 		txt := re.ReplaceAllLiteral(aPosting.Markdown(), []byte(replace))
 		_, _ = aPosting.Set(txt).Store()
 	}
 } // preparePost()
 
-// RemoveImages deletes the images used in `aPosting`.
+// RemovePagePreviews deletes the images used in `aPosting`.
 //
 //	`aPosting` The posting the image(s) of which are going to be deleted.
-func RemoveImages(aPosting *TPosting) {
+func RemovePagePreviews(aPosting *TPosting) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
 	}
@@ -178,7 +178,7 @@ func RemoveImages(aPosting *TPosting) {
 		}
 		_ = os.Remove(fName)
 	}
-} // RemoveImages()
+} // RemovePagePreviews()
 
 // `setPostingLinkViews()` changes the external links in the text
 // of `aPosting` to include a page preview image (if available).
@@ -186,7 +186,7 @@ func RemoveImages(aPosting *TPosting) {
 //	`aPosting` is the posting the text of which is going to be processed.
 //	`aImageURLdir` is the URL directory for page preview images.
 //	`aImageDir` is the directory used to store the generated images.
-func setPostingLinkViews(aPosting *TPosting, aImageURLdir, aImageDir string) {
+func setPostingLinkViews(aPosting *TPosting, aImgURLdir, aImageDir string) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
 	}
@@ -204,26 +204,15 @@ func setPostingLinkViews(aPosting *TPosting, aImageURLdir, aImageDir string) {
 					linkText: string(linkMatches[cnt][2]),
 					linkURL:  url,
 				},
-				aImageURLdir)
+				aImgURLdir)
 		}
 	}
 	// In case we didn't find any normal links we check
 	// the links with an embedded page preview image:
-	checkPageImages(aPosting, aImageURLdir, aImageDir)
+	checkPageImages(aPosting, aImgURLdir, aImageDir)
 } // setPostingLinkViews()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// UpdateLinkPreviews starts the process to update the preview images
-// in all postings.
-//
-//	`aPostingBaseDir` is the base directory used for storing
-// articles/postings.
-//	`aImageURLdir` is the URL directory for page preview images.
-func UpdateLinkPreviews(aPostingBaseDir, aImageURLdir string) {
-	go goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir, pageview.ImageDirectory())
-	runtime.Gosched()
-} // UpdateLinkPreviews()
 
 // PrepareLinkPreviews updates the external link(s) in `aPosting`
 // to include page preview image(s) (if available).
@@ -233,5 +222,16 @@ func UpdateLinkPreviews(aPostingBaseDir, aImageURLdir string) {
 func PrepareLinkPreviews(aPosting *TPosting, aImageURLdir string) {
 	setPostingLinkViews(aPosting, aImageURLdir, pageview.ImageDirectory())
 } // PrepareLinkPreviews()
+
+// UpdateLinkPreviews starts the process to update the preview images
+// in all postings.
+//
+//	`aPostingBaseDir` is the base directory used for storing
+// articles/postings.
+//	`aImageURLdir` is the URL directory for page preview images.
+func UpdateLinkPreviews(aPostingBaseDir, aImgURLdir string) {
+	go goUpdateAllLinkPreviews(aPostingBaseDir, aImgURLdir, pageview.ImageDirectory())
+	runtime.Gosched()
+} // UpdateLinkPreviews()
 
 /* _EoF_ */
