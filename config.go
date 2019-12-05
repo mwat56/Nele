@@ -356,6 +356,9 @@ func InitConfig() {
 		_ = pageview.SetImageDirectory(absolute(dataDir, "img"))
 		pageview.SetImageFileType(`png`)
 		pageview.SetMaxAge(0)
+		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
+		// Doesn't work with Facebook:
+		// pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
 	} else {
 		s = ""
 	}
