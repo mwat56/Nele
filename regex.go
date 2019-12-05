@@ -358,7 +358,7 @@ func SearchRubric(aBaseDir, aRubric string) *TPostList {
 
 var (
 	// RegEx to find path and possible added path components
-	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?=:;/,_@-]*)?`)
+	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?=:;/,_@#-]*)?`)
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
