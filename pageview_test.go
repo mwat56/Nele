@@ -157,10 +157,10 @@ func Test_goUpdateAllLinkPreviews(t *testing.T) {
 	time.Sleep(time.Second)
 } // Test_goUpdateAllLinkPreviews()
 
-func TestRemoveImages(t *testing.T) {
+func TestRemovePagePreviews(t *testing.T) {
 	pageview.SetImageDirectory("./img/")
 	var t1 TPosting
-	t2 := NewPosting("15553ea895695af6")
+	t2 := NewPosting("")
 	t3 := NewPosting("")
 	type args struct {
 		aPosting *TPosting
@@ -176,7 +176,7 @@ func TestRemoveImages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RemoveImages(tt.args.aPosting)
+			RemovePagePreviews(tt.args.aPosting)
 		})
 	}
-} // TestRemoveImages()
+} // TestRemovePagePreviews()
