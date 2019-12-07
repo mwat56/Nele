@@ -663,7 +663,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		p := NewPosting(tail)
-		RemoveImages(p) // remove page preview image(s)
+		RemovePagePreviews(p)
 		if err := p.Delete(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST()",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
@@ -720,7 +720,7 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 
 // `handleSearch()` serves the search results.
 func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
-	pl := SearchPostings(regexp.QuoteMeta(aTerm))
+	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
 	aData = check4lang(aData, aRequest).
 		Set("Robots", "noindex,follow").
 		Set("Matches", pl.Len()).
