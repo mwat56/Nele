@@ -72,11 +72,11 @@ var (
 	// This variable's value must be set initially before creating any
 	// `TPosting` or `TPostList` instances.
 	// After that it should be considered `read/only`.
-	// Its default wert is `./postings`.
-	poPostingBaseDirectory = func(aBaseDir string) string {
-		dir, _ := filepath.Abs(aBaseDir)
+	// Its default value is `./postings`.
+	poPostingBaseDirectory = func() string {
+		dir, _ := filepath.Abs(`./postings`)
 		return dir
-	}("./postings")
+	}()
 )
 
 // PostingBaseDirectory returns the base directory used for
@@ -139,9 +139,7 @@ func (p *TPosting) Before(aID string) bool {
 // This method does NOT remove the file (if any) associated with this
 // posting/article; for that call the `Delete()` method.
 func (p *TPosting) Clear() *TPosting {
-	var bs []byte
-
-	p.markdown = bs
+	p.markdown = []byte(``)
 
 	return p
 } // Clear()
@@ -161,12 +159,12 @@ func (p *TPosting) Date() string {
 	return fmt.Sprintf("%d-%02d-%02d", y, m, d)
 } // Date()
 
-// delFile() removes `aFileName` from the filesystem
+// `delFile()` removes `aFileName` from the filesystem
 // returning a possible I/O error.
 //
 // A non-existing file is not considered an error here.
 //
-//	`aFileName` is the name of the file to delFile.
+//	`aFileName` The name of the file to delete.
 func delFile(aFileName *string) error {
 	err := os.Remove(*aFileName)
 	if nil != err {
@@ -214,20 +212,23 @@ func (p *TPosting) Exists() bool {
 // The identifier is based on the article's creation time
 // and given in hexadecimal notation.
 //
-// This methods allows the template to validate and use
+// This method allows the template to validate and use
 // the placeholder `.ID`
 func (p *TPosting) ID() string {
 	return p.id
 } // ID()
 
 // Len returns the current length of the posting's Markdown text.
+//
+// If the markup is not already in memory this methods calls
+// `TPosting.Load()` to read the text data from the filesystem.
 func (p *TPosting) Len() int {
 	if result := len(p.markdown); 0 < result {
 		return result
 	}
 	if err := p.Load(); nil != err {
 		apachelogger.Err("TPosting.Len()",
-			fmt.Sprintf("TPosting.Load(%s): %v", p.id, err))
+			fmt.Sprintf("TPosting.Load('%s'): %v", p.id, err))
 	}
 
 	return len(p.markdown)
@@ -249,13 +250,13 @@ func (p *TPosting) Load() error {
 	}
 	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
 		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
-		p.markdown = []byte("")
+		p.markdown = []byte(``)
 	}
 
 	return nil
 } // Load()
 
-// makeDir() creates the directory for storing the article
+// `makeDir()` creates the directory for storing the article
 // returning the article's path/file-name but w/o filename extension.
 //
 // The directory is created with filemode `0775` (`drwxrwxr-x`).
@@ -287,7 +288,7 @@ func (p *TPosting) Markdown() []byte {
 
 	if err := p.Load(); nil != err {
 		apachelogger.Err("TPosting.Markdown()",
-			fmt.Sprintf("TPosting.Load(%s): %v", p.id, err))
+			fmt.Sprintf("TPosting.Load('%s'): %v", p.id, err))
 	}
 
 	return p.markdown
