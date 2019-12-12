@@ -18,6 +18,7 @@ import (
 	"html/template"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/mwat56/hashtags"
@@ -78,6 +79,7 @@ func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
 	go func() {
 		aList.IDparse(aPosting.ID(), aPosting.Markdown())
 	}()
+	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
 // InitHashlist initialises the hash list.
@@ -118,6 +120,7 @@ func InitHashlist(aList *hashtags.THashList) {
 	} // doInitHashlist()
 
 	go walkAllPosts(aList, doInitHashlist)
+	runtime.Gosched() // get the background operation started
 } // InitHashlist()
 
 // MarkupCloud returns a list with the markup of all existing
@@ -227,6 +230,7 @@ func MarkupTags(aPage []byte) []byte {
 //	`aID` The ID of the posting to remove.
 func RemoveIDTags(aList *hashtags.THashList, aID string) {
 	go aList.IDremove(aID)
+	runtime.Gosched() // get the background operation started
 } // RemoveIDTags()
 
 // RenameIDTags renames all references of `aOldID` to `aNewID`.
@@ -236,13 +240,14 @@ func RemoveIDTags(aList *hashtags.THashList, aID string) {
 //	`aNewID` The posting's new ID.
 func RenameIDTags(aList *hashtags.THashList, aOldID, aNewID string) {
 	go aList.IDrename(aOldID, aNewID)
+	runtime.Gosched() // get the background operation started
 } // RenameIDTags()
 
 // ReplaceTag replaces the #tags/@mentions in `aList`.
 //
 //	`aList` The hashlist to update.
 //	`aSearchTag` The old #tag/@mention to find.
-//	`aReplaceTag` Rge new #tag/@mention to use.
+//	`aReplaceTag` The new #tag/@mention to use.
 func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 	if (nil == aList) || (0 == len(aSearchTag)) || (0 == len(aReplaceTag)) {
 		return
@@ -259,7 +264,7 @@ func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 		return
 	}
 
-	doReplaceTag := func(aList *hashtags.THashList, aPosting *TPosting) {
+	doReplaceTag := func(aHL *hashtags.THashList, aPosting *TPosting) {
 		if 0 == aPosting.Len() {
 			return
 		}
@@ -273,17 +278,20 @@ func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 
 		txt := searchRE.ReplaceAllLiteral(aPosting.Markdown(), []byte(aReplaceTag))
 		_, _ = aPosting.Set(txt).Store()
-		aList.IDremove(aPosting.ID()).IDparse(aPosting.ID(), txt)
+		aHL.IDremove(aPosting.ID()).IDparse(aPosting.ID(), txt)
 	} // doReplaceTag()
 
 	go walkAllPosts(aList, doReplaceTag)
+	runtime.Gosched() // get the background operation started
 } // ReplaceTag()
 
 // UpdateTags updates the #hashtag/@mention references of `aPosting`.
 //
 //	`aList` The hashlist to update.
+//	`aPosting` The new posting to process.
 func UpdateTags(aList *hashtags.THashList, aPosting *TPosting) {
 	go aList.IDupdate(aPosting.ID(), aPosting.Markdown())
+	runtime.Gosched() // get the background operation started
 } // UpdateTags()
 
 /* _EoF_ */
