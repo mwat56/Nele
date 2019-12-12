@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 import (
 	"testing"
 )
@@ -40,37 +42,6 @@ func Test_absolute(t *testing.T) {
 	}
 } // Test_absolute()
 
-func Test_iniData(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-		{" 1"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			readIniData()
-		})
-	}
-}
-
-/*
-// to run this function the `init()` function must be commented out
-func Test_initArgs(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-		{"1"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			initArguments()
-		})
-	}
-} // Test_initArgs()
-*/
-
 func Test_kmg2Num(t *testing.T) {
 	type args struct {
 		aString string
@@ -97,6 +68,20 @@ func Test_kmg2Num(t *testing.T) {
 		})
 	}
 } // Test_kmg2Num()
+
+func Test_readIniData(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		// TODO: Add test cases.
+		{" 1"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			readIniData()
+		})
+	}
+} // Test_readIniData()
 
 func TestShowHelp(t *testing.T) {
 	tests := []struct {

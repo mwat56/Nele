@@ -6,6 +6,7 @@
 
 package nele
 
+//lint:file-ignore ST1005 - capitalisation wanted
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 import (
@@ -34,6 +35,9 @@ type (
 var (
 	// AppArguments is the list for the cmdline arguments and INI values.
 	AppArguments tAguments
+
+	// RegEx to match a size value (xxx)
+	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
 )
 
 // `set()` adds/sets another key-value pair.
@@ -56,7 +60,6 @@ func (al *tAguments) Get(aKey string) (string, error) {
 		return result, nil
 	}
 
-	//lint:ignore ST1005 - capitalisation wanted
 	return "", fmt.Errorf("Missing config value: %s", aKey)
 } // Get()
 
@@ -75,6 +78,28 @@ func absolute(aBaseDir, aDir string) string {
 	s, _ := filepath.Abs(filepath.Join(aBaseDir, aDir))
 	return s
 } // absolute()
+
+// `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
+func kmg2Num(aString string) (rInt int) {
+	matches := cfKmgRE.FindStringSubmatch(aString)
+	if 2 < len(matches) {
+		// The RegEx only matches digits so we can
+		// safely ignore all Atoi() errors.
+		rInt, _ = strconv.Atoi(matches[1])
+		switch strings.ToLower(matches[2]) {
+		case "", "b":
+			return
+		case "kb":
+			rInt *= 1024
+		case "mb":
+			rInt *= 1024 * 1024
+		case "gb":
+			rInt *= 1024 * 1024 * 1024
+		}
+	}
+
+	return
+} // kmg2Num()
 
 // `readIniData()` returns the config values read from INI file(s).
 //
@@ -140,6 +165,8 @@ func readIniData() {
 	AppArguments = tAguments{*ini1.GetSection("")}
 } // readIniData()
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 /*
 func init() {
 	// // see: https://github.com/microsoft/vscode-go/issues/2734
@@ -160,8 +187,8 @@ func init() {
 func InitConfig() {
 	readIniData()
 
-	bnStr, _ := AppArguments.Get("blogname")
-	flag.StringVar(&bnStr, "blogname", bnStr,
+	blogName, _ := AppArguments.Get("blogname")
+	flag.StringVar(&blogName, "blogname", blogName,
 		"Name of this Blog (shown on every page)\n")
 
 	s, _ := AppArguments.Get("datadir")
@@ -175,13 +202,13 @@ func InitConfig() {
 		"<filename> Name of the access logfile to write to\n")
 
 	s, _ = AppArguments.Get("certKey")
-	ckStr := absolute(dataDir, s)
-	flag.StringVar(&ckStr, "certkey", ckStr,
+	certKey := absolute(dataDir, s)
+	flag.StringVar(&certKey, "certkey", certKey,
 		"<fileName> the name of the TLS certificate's private key\n")
 
 	s, _ = AppArguments.Get("certPem")
-	cpStr := absolute(dataDir, s)
-	flag.StringVar(&cpStr, "certpem", cpStr,
+	certPem := absolute(dataDir, s)
+	flag.StringVar(&certPem, "certpem", certPem,
 		"<fileName> the name of the TLS certificate PEM\n")
 
 	s, _ = AppArguments.Get("errorLog")
@@ -189,21 +216,21 @@ func InitConfig() {
 	flag.StringVar(&errorLog, "errorlog", errorLog,
 		"<filename> Name of the error logfile to write to\n")
 
-	gzipBool, _ := AppArguments.AsBool("gzip")
-	flag.BoolVar(&gzipBool, "gzip", gzipBool,
+	gzip, _ := AppArguments.AsBool("gzip")
+	flag.BoolVar(&gzip, "gzip", gzip,
 		"(optional) use gzip compression for server responses")
 
 	s, _ = AppArguments.Get("hashfile")
-	hashStr := absolute(dataDir, s)
-	flag.StringVar(&hashStr, "hashfile", hashStr,
+	hashFile := absolute(dataDir, s)
+	flag.StringVar(&hashFile, "hashfile", hashFile,
 		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
 
-	iniStr, _ := AppArguments.Get("inifile")
-	flag.StringVar(&iniStr, "ini", iniStr,
+	iniFile, _ := AppArguments.Get("inifile")
+	flag.StringVar(&iniFile, "ini", iniFile,
 		"<fileName> the path/filename of the INI file to use\n")
 
-	langStr, _ := AppArguments.Get("lang")
-	flag.StringVar(&langStr, "lang", langStr,
+	language, _ := AppArguments.Get("lang")
+	flag.StringVar(&language, "lang", language,
 		"(optional) the default language to use ")
 
 	listenStr, _ := AppArguments.Get("listen")
@@ -214,8 +241,8 @@ func InitConfig() {
 	flag.BoolVar(&logStack, "logStack", logStack,
 		"<boolean> Log a stack trace for recovered runtime errors ")
 
-	mfsStr, _ := AppArguments.Get("maxfilesize")
-	flag.StringVar(&mfsStr, "maxfilesize", mfsStr,
+	maxFileSize, _ := AppArguments.Get("maxfilesize")
+	flag.StringVar(&maxFileSize, "maxfilesize", maxFileSize,
 		"max. accepted size of uploaded files")
 
 	pageView, _ := AppArguments.AsBool("pageView")
@@ -226,54 +253,54 @@ func InitConfig() {
 	flag.IntVar(&portInt, "port", portInt,
 		"<portNumber> the IP port to listen to ")
 
-	paBool := false
-	flag.BoolVar(&paBool, "pa", paBool,
+	postAdd := false
+	flag.BoolVar(&postAdd, "pa", postAdd,
 		"(optional) posting add: write a posting from the commandline")
 
-	pfStr := ""
-	flag.StringVar(&pfStr, "pf", pfStr,
+	postFile := ""
+	flag.StringVar(&postFile, "pf", postFile,
 		"<fileName> (optional) post file: name of a file to add as new posting")
 
-	realStr, _ := AppArguments.Get("realm")
-	flag.StringVar(&realStr, "realm", realStr,
+	realmStr, _ := AppArguments.Get("realm")
+	flag.StringVar(&realmStr, "realm", realmStr,
 		"(optional) <hostName> name of host/domain to secure by BasicAuth\n")
 
-	themStr, _ := AppArguments.Get("theme")
-	flag.StringVar(&themStr, "theme", themStr,
+	themeStr, _ := AppArguments.Get("theme")
+	flag.StringVar(&themeStr, "theme", themeStr,
 		"<name> the display theme to use ('light' or 'dark')\n")
 
-	uaStr := ""
-	flag.StringVar(&uaStr, "ua", uaStr,
+	userAdd := ""
+	flag.StringVar(&userAdd, "ua", userAdd,
 		"<userName> (optional) user add: add a username to the password file")
 
-	ucStr := ""
-	flag.StringVar(&ucStr, "uc", ucStr,
+	userChange := ""
+	flag.StringVar(&userChange, "uc", userChange,
 		"<userName> (optional) user check: check a username in the password file")
 
-	udStr := ""
-	flag.StringVar(&udStr, "ud", udStr,
-		"<userName> (optional) user delete: remove a username from the password file")
-
 	s, _ = AppArguments.Get("passfile")
-	ufStr := absolute(dataDir, s)
-	flag.StringVar(&ufStr, "uf", ufStr,
+	userFile := absolute(dataDir, s)
+	flag.StringVar(&userFile, "uf", userFile,
 		"<fileName> (optional) user passwords file storing user/passwords for BasicAuth\n")
 
-	ulBool := false
-	flag.BoolVar(&ulBool, "ul", ulBool,
+	userList := false
+	flag.BoolVar(&userList, "ul", userList,
 		"(optional) user list: show all users in the password file")
 
-	uuStr := ""
-	flag.StringVar(&uuStr, "uu", uuStr,
+	userName := ""
+	flag.StringVar(&userName, "ud", userName,
+		"<userName> (optional) user delete: remove a username from the password file")
+
+	userUpdate := ""
+	flag.StringVar(&userUpdate, "uu", userUpdate,
 		"<userName> (optional) user update: update a username in the password file")
 
 	flag.Usage = ShowHelp
 	flag.Parse() // // // // // // // // // // // // // // // // // // //
 
-	if 0 == len(bnStr) {
-		bnStr = time.Now().Format("2006:01:02:15:04:05")
+	if 0 == len(blogName) {
+		blogName = time.Now().Format("2006:01:02:15:04:05")
 	}
-	AppArguments.set("blogname", bnStr)
+	AppArguments.set("blogname", blogName)
 
 	if 0 < len(dataDir) {
 		dataDir, _ = filepath.Abs(dataDir)
@@ -293,43 +320,42 @@ func InitConfig() {
 	}
 	AppArguments.set("accessLog", accessLog)
 
-	if 0 < len(ckStr) {
-		ckStr = absolute(dataDir, ckStr)
-		if fi, err := os.Stat(ckStr); (nil != err) || (0 >= fi.Size()) {
-			ckStr = ""
+	if 0 < len(certKey) {
+		certKey = absolute(dataDir, certKey)
+		if fi, err := os.Stat(certKey); (nil != err) || (0 == fi.Size()) {
+			certKey = ""
 		}
 	}
-	AppArguments.set("certKey", ckStr)
+	AppArguments.set("certKey", certKey)
 
-	if 0 < len(cpStr) {
-		cpStr = absolute(dataDir, cpStr)
-		if fi, err := os.Stat(cpStr); (nil != err) || (0 >= fi.Size()) {
-			cpStr = ""
+	if 0 < len(certPem) {
+		certPem = absolute(dataDir, certPem)
+		if fi, err := os.Stat(certPem); (nil != err) || (0 == fi.Size()) {
+			certPem = ""
 		}
 	}
-	AppArguments.set("certPem", cpStr)
+	AppArguments.set("certPem", certPem)
 
 	if 0 < len(errorLog) {
 		errorLog = absolute(dataDir, errorLog)
 	}
 	AppArguments.set("errorLog", errorLog)
 
-	if gzipBool {
-		s = "true"
+	if gzip {
+		AppArguments.set("gzip", "true")
 	} else {
-		s = ""
+		AppArguments.set("gzip", "")
 	}
-	AppArguments.set("gzip", s)
 
-	if 0 < len(hashStr) {
-		hashStr = absolute(dataDir, hashStr)
+	if 0 < len(hashFile) {
+		hashFile = absolute(dataDir, hashFile)
 	}
-	AppArguments.set("hashfile", hashStr)
+	AppArguments.set("hashfile", hashFile)
 
-	if 0 == len(langStr) {
-		langStr = "en"
+	if 0 == len(language) {
+		language = "en"
 	}
-	AppArguments.set("lang", langStr)
+	AppArguments.set("lang", language)
 
 	if "0" == listenStr {
 		listenStr = ""
@@ -337,92 +363,61 @@ func InitConfig() {
 	AppArguments.set("listen", listenStr)
 
 	if logStack {
-		s = "true"
+		AppArguments.set("logStack", "true")
 	} else {
-		s = ""
+		AppArguments.set("logStack", "")
 	}
-	AppArguments.set("logStack", s)
 
-	if 0 == len(mfsStr) {
-		mfsStr = "10485760" // 10 MB
+	if 0 == len(maxFileSize) {
+		maxFileSize = "10485760" // 10 MB
 	} else {
-		mfs := kmg2Num(mfsStr)
-		mfsStr = fmt.Sprintf("%d", mfs)
+		maxFileSize = fmt.Sprintf("%d", kmg2Num(maxFileSize))
 	}
-	AppArguments.set("mfs", mfsStr)
+	AppArguments.set("mfs", maxFileSize)
 
 	if pageView {
-		s = "true"
 		_ = pageview.SetImageDirectory(absolute(dataDir, "img"))
 		pageview.SetImageFileType(`png`)
 		pageview.SetMaxAge(0)
-		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
+		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
 		// Doesn't work with Facebook:
-		// pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		AppArguments.set("pageView", "true")
 	} else {
-		s = ""
+		AppArguments.set("pageView", "")
 	}
-	AppArguments.set("pageView", s)
 
 	AppArguments.set("port", fmt.Sprintf("%d", portInt))
 
-	if paBool {
-		s = "true"
+	if postAdd {
+		AppArguments.set("pa", "true")
 	} else {
-		s = ""
+		AppArguments.set("pa", "")
 	}
-	AppArguments.set("pa", s)
 
-	if 0 < len(pfStr) {
-		pfStr = absolute(dataDir, pfStr)
+	if 0 < len(postFile) {
+		postFile = absolute(dataDir, postFile)
 	}
-	AppArguments.set("pf", pfStr)
-	AppArguments.set("realm", realStr)
-	AppArguments.set("theme", themStr)
-	AppArguments.set("ua", uaStr)
-	AppArguments.set("uc", ucStr)
-	AppArguments.set("ud", udStr)
+	AppArguments.set("pf", postFile)
+	AppArguments.set("realm", realmStr)
+	AppArguments.set("theme", themeStr)
+	AppArguments.set("ua", userAdd)
+	AppArguments.set("uc", userChange)
+	AppArguments.set("ud", userName)
 
-	if 0 < len(ufStr) {
-		ufStr = absolute(dataDir, ufStr)
+	if 0 < len(userFile) {
+		userFile = absolute(dataDir, userFile)
 	}
-	AppArguments.set("uf", ufStr)
+	AppArguments.set("uf", userFile)
 
-	if ulBool {
-		s = "true"
+	if userList {
+		AppArguments.set("ul", "true")
 	} else {
-		s = ""
+		AppArguments.set("ul", "")
 	}
-	AppArguments.set("ul", s)
-	AppArguments.set("uu", uuStr)
+
+	AppArguments.set("uu", userUpdate)
 } // InitConfig()
-
-var (
-	// RegEx to match a size value (xxx)
-	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
-)
-
-// `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
-func kmg2Num(aString string) (rInt int) {
-	matches := cfKmgRE.FindStringSubmatch(aString)
-	if 2 < len(matches) {
-		// The RegEx only matches digits so we can
-		// safely ignore all Atoi() errors.
-		rInt, _ = strconv.Atoi(matches[1])
-		switch strings.ToLower(matches[2]) {
-		case "", "b":
-			return
-		case "kb":
-			rInt *= 1024
-		case "mb":
-			rInt *= 1024 * 1024
-		case "gb":
-			rInt *= 1024 * 1024 * 1024
-		}
-	}
-
-	return
-} // kmg2Num()
 
 // ShowHelp lists the commandline options to `Stderr`.
 func ShowHelp() {
