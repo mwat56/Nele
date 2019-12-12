@@ -571,13 +571,13 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
 			p := NewPosting("").Set(m)
 			if _, err := p.Store(); nil != err {
-				apachelogger.Err("TPageHandler.handlePOST()",
+				apachelogger.Err("TPageHandler.handlePOST('a')",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
 			if ph.pageView {
 				PrepareLinkPreviews(p, "/img/")
 			}
-			go goAddID(ph.hashList, p.ID(), p.Markdown())
+			AddTagID(ph.hashList, p)
 
 			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
 		} else {
@@ -608,14 +608,14 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		npn := np.PathFileName()
 		// ensure existence of directory:
 		if _, err := np.makeDir(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST()",
+			apachelogger.Err("TPageHandler.handlePOST('d 1')",
 				fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
 		}
 		if err := os.Rename(opn, npn); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST()",
+			apachelogger.Err("TPageHandler.handlePOST('d 2')",
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
-		go goRenameID(ph.hashList, tail, np.ID())
+		RenameIDTags(ph.hashList, op.ID(), np.ID())
 		if ph.pageView {
 			PrepareLinkPreviews(np, "/img/")
 		}
@@ -631,17 +631,16 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		var old []byte
-		m := replCRLF([]byte(aRequest.FormValue("manuscript")))
+		txt := replCRLF([]byte(aRequest.FormValue("manuscript")))
 		p := NewPosting(tail)
 		if err := p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST()",
+			apachelogger.Err("TPageHandler.handlePOST('e')",
 				fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
 		} else {
 			old = p.Markdown()
 		}
-		p.Set(m)
-		if bw, err := p.Store(); nil != err {
-			if bw < int64(len(m)) {
+		if bw, err := p.Set(txt).Store(); nil != err {
+			if bw < int64(len(txt)) {
 				// let's hope for the best …
 				_, _ = p.Set(old).Store()
 			}
@@ -649,7 +648,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if ph.pageView {
 			PrepareLinkPreviews(p, "/img/")
 		}
-		go goUpdateID(ph.hashList, tail, m)
+		UpdateTags(ph.hashList, p)
 
 		tail += "?z=" + p.ID() // kick the browser cache
 		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
@@ -665,10 +664,10 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		p := NewPosting(tail)
 		RemovePagePreviews(p)
 		if err := p.Delete(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST()",
+			apachelogger.Err("TPageHandler.handlePOST('r')",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
 		}
-		go goRemoveID(ph.hashList, tail)
+		RemoveIDTags(ph.hashList, tail)
 
 		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
