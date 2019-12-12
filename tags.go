@@ -9,14 +9,13 @@ package nele
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 /*
-* This files provides functions related to #hashtags/@mentions
+* This file provides functions related to #hashtags/@mentions
  */
 
 import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -24,46 +23,20 @@ import (
 	"github.com/mwat56/hashtags"
 )
 
-/*
-* All functions starting with `go` are supposed to run in the background.
- */
+type (
+	// This function type is used by `walkAllPosts()`.
+	//
+	//	`aList` The hashlist to use (update).
+	//	`aPosting` The posting to handle.
+	tWalkPostFunc func(aList *hashtags.THashList, aPosting *TPosting)
+)
 
-// `goAddID()` checks a newly added posting for #hashtags and @mentions.
-func goAddID(aList *hashtags.THashList, aID string, aText []byte) {
-	aList.IDparse(aID, aText)
-} // goAddID()
-
-// `doCheckPost()` returns whether there is a file identified
-// by `aID` containing `aHash`.
+// `walkAllPosts()` visits all existing postings and calling `aWalkFunc`
+// for each article.
 //
-// The function's result is `false` (1) if the file associated with
-// `aID` doesnt't exist, or (2) if the file can't be read, or (3)
-// the given `aHash` can't be found in the posting's text.
-func doCheckPost(aHash, aID string) bool {
-	p := NewPosting(aID)
-	if !p.Exists() {
-		return false
-	}
-	if err := p.Load(); nil != err {
-		return false
-	}
-	txt := bytes.ToLower(p.Markdown())
-
-	return (0 <= bytes.Index(txt, []byte(aHash)))
-} // doCheckPost()
-
-// `goCheckHashes()` walks all postings referenced by `aList`.
-func goCheckHashes(aList *hashtags.THashList) {
-	aList.Walk(doCheckPost)
-} // goCheckHashes()
-
-// `goInitHashlist()` initialises the hash list.
-func goInitHashlist(aList *hashtags.THashList) {
-	if _, err := aList.Load(); (nil == err) && (0 < aList.Len()) {
-		go goCheckHashes(aList)
-		return // assume everything is up-to-date
-	}
-
+//	`aList` The hashlist to use/update.
+//	`aWalkFunc` The function to call for each posting.
+func walkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
 	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
@@ -73,33 +46,18 @@ func goInitHashlist(aList *hashtags.THashList) {
 		if nil != err {
 			continue // it might be a file (not a directory) …
 		}
-		if 0 >= len(filesnames) {
+		if 0 == len(filesnames) {
 			continue // skip empty directory
 		}
 		for _, postName := range filesnames {
-			id := strings.TrimPrefix(postName, mdName+"/")
-			if txt, err := ioutil.ReadFile(postName); /* #nosec G304 */ nil == err {
-				aList.IDparse(id[:len(id)-3], txt) // strip name extension
-			}
+			fName := strings.TrimPrefix(postName, mdName+"/")
+			aWalkFunc(aList, NewPosting(fName[:len(fName)-3])) // strip name extension
 		}
 	}
 	_, _ = aList.Store()
-} // goInitHashlist()
+} // walkAllPosts()
 
-// `goRemoveID()` removes `aID` from `aList's` items.
-func goRemoveID(aList *hashtags.THashList, aID string) {
-	aList.IDremove(aID)
-} // goRemoveID()
-
-// `goRenameID()` renames all references of `aOldID` to `aNewID`.
-func goRenameID(aList *hashtags.THashList, aOldID, aNewID string) {
-	aList.IDrename(aOldID, aNewID)
-} // goRenameID()
-
-// `goUpdateID()` updates the #hashtag/@mention references of `aID`.
-func goUpdateID(aList *hashtags.THashList, aID string, aText []byte) {
-	aList.IDupdate(aID, aText)
-} // goUpdateID()
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
@@ -112,13 +70,54 @@ var (
 	htHashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
 )
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// AddTagID checks a newly added `aPosting` for #hashtags and @mentions.
+//
+//	`aList` The hashlist to use (update).
+//	`aPosting` The new posting to handle.
+func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
+	go func() {
+		aList.IDparse(aPosting.ID(), aPosting.Markdown())
+	}()
+} // AddTagID()
 
 // InitHashlist initialises the hash list.
 //
 //	`aList` The list of #hashtags/@mentions to update.
 func InitHashlist(aList *hashtags.THashList) {
-	go goInitHashlist(aList)
+	if _, err := aList.Load(); (nil == err) && (0 < aList.Len()) {
+		// `doCheckPost()` returns whether there is a file identified
+		// by `aID` containing `aHash`.
+		//
+		// The function's result is `false` (1) if the file associated with
+		// `aID` doesnt't exist, or (2) if the file can't be read, or (3)
+		// the given `aHash` can't be found in the posting's text.
+		//
+		//	`aHash` The hashtag to check for.
+		//	`aID` The ID of the posting to handle.
+		doCheckPost := func(aHash, aID string) bool {
+			p := NewPosting(aID)
+			if !p.Exists() {
+				return false
+			}
+			if err := p.Load(); nil != err {
+				return false
+			}
+			txt := bytes.ToLower(p.Markdown())
+
+			return (0 <= bytes.Index(txt, []byte(aHash)))
+		} // doCheckPost()
+
+		go aList.Walk(doCheckPost)
+		return // assume everything is up-to-date
+	}
+
+	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
+		if 0 < aPosting.Len() {
+			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
+		}
+	} // doInitHashlist()
+
+	go walkAllPosts(aList, doInitHashlist)
 } // InitHashlist()
 
 // MarkupCloud returns a list with the markup of all existing
@@ -221,5 +220,70 @@ func MarkupTags(aPage []byte) []byte {
 
 	return []byte(result)
 } // MarkupTags()
+
+// RemoveIDTags removes `aID` from `aList's` items.
+//
+//	`aList` The hashlist to update.
+//	`aID` The ID of the posting to remove.
+func RemoveIDTags(aList *hashtags.THashList, aID string) {
+	go aList.IDremove(aID)
+} // RemoveIDTags()
+
+// RenameIDTags renames all references of `aOldID` to `aNewID`.
+//
+//	`aList` The hashlist to update.
+//	`aOldID` The posting's old ID.
+//	`aNewID` The posting's new ID.
+func RenameIDTags(aList *hashtags.THashList, aOldID, aNewID string) {
+	go aList.IDrename(aOldID, aNewID)
+} // RenameIDTags()
+
+// ReplaceTag replaces the #tags/@mentions in `aList`.
+//
+//	`aList` The hashlist to update.
+//	`aSearchTag` The old #tag/@mention to find.
+//	`aReplaceTag` Rge new #tag/@mention to use.
+func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
+	if (nil == aList) || (0 == len(aSearchTag)) || (0 == len(aReplaceTag)) {
+		return
+	}
+	switch aSearchTag[0] {
+	case '#', '@':
+		switch aReplaceTag[0] {
+		case '#', '@':
+			// nothing to do
+		default:
+			return
+		}
+	default:
+		return
+	}
+
+	doReplaceTag := func(aList *hashtags.THashList, aPosting *TPosting) {
+		if 0 == aPosting.Len() {
+			return
+		}
+		searchRE, err := regexp.Compile(`(?i)\` + aSearchTag)
+		if nil != err {
+			return
+		}
+		if !searchRE.Match(aPosting.Markdown()) {
+			return
+		}
+
+		txt := searchRE.ReplaceAllLiteral(aPosting.Markdown(), []byte(aReplaceTag))
+		_, _ = aPosting.Set(txt).Store()
+		aList.IDremove(aPosting.ID()).IDparse(aPosting.ID(), txt)
+	} // doReplaceTag()
+
+	go walkAllPosts(aList, doReplaceTag)
+} // ReplaceTag()
+
+// UpdateTags updates the #hashtag/@mention references of `aPosting`.
+//
+//	`aList` The hashlist to update.
+func UpdateTags(aList *hashtags.THashList, aPosting *TPosting) {
+	go aList.IDupdate(aPosting.ID(), aPosting.Markdown())
+} // UpdateTags()
 
 /* _EoF_ */
