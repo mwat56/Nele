@@ -139,7 +139,9 @@ func (p *TPosting) Before(aID string) bool {
 // This method does NOT remove the file (if any) associated with this
 // posting/article; for that call the `Delete()` method.
 func (p *TPosting) Clear() *TPosting {
-	p.markdown = []byte(``)
+	// p.markdown = []byte(``) // doesn't pass the equality test :-((
+	var bs []byte
+	p.markdown = bs
 
 	return p
 } // Clear()
@@ -328,10 +330,10 @@ func (p *TPosting) Post() template.HTML {
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if 0 < len(aMarkdown) {
 		if p.markdown = bytes.TrimSpace(aMarkdown); nil == p.markdown {
-			p.markdown = []byte("")
+			p.markdown = []byte(``)
 		}
 	} else {
-		p.markdown = []byte("")
+		p.markdown = []byte(``)
 	}
 
 	return p
@@ -365,6 +367,13 @@ func (p *TPosting) Store() (int64, error) {
 
 	return fi.Size(), nil
 } // Store()
+
+// String returns a stringified version of the posting object.
+//
+// Note: This is mainly for debugging purposes and has no real life use.
+func (p *TPosting) String() string {
+	return p.id + `: [[` + string(p.markdown) + `]]`
+} // String()
 
 // Time returns the posting's date/time.
 func (p *TPosting) Time() time.Time {

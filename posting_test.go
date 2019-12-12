@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 import (
 	"reflect"
 	"testing"
@@ -226,7 +228,7 @@ func TestTPosting_Clear(t *testing.T) {
 	md2 := []byte("Oh dear! This is a posting.")
 	p2 := NewPosting(id).Set(md2)
 	p3 := NewPosting(id)
-	p3.Set(md2).Markdown()
+	p3.Set(md2).Len()
 
 	type fields struct {
 		p *TPosting
@@ -245,7 +247,7 @@ func TestTPosting_Clear(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := tt.fields.p
 			if got := p.Clear(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPosting.Clear() = %v, want %v", got, tt.want)
+				t.Errorf("TPosting.Clear() = '%v',\n\t\t\twant '%v'", got, tt.want)
 			}
 		})
 	}
@@ -273,7 +275,7 @@ func TestTPosting_clone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := tt.fields.p
 			if got := p.clone(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPosting.clone() = %v, want %v", got, tt.want)
+				t.Errorf("TPosting.clone() = %s,\nwant %s", got, tt.want)
 			}
 		})
 	}
