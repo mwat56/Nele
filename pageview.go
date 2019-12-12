@@ -223,15 +223,15 @@ func PrepareLinkPreviews(aPosting *TPosting, aImageURLdir string) {
 	setPostingLinkViews(aPosting, aImageURLdir, pageview.ImageDirectory())
 } // PrepareLinkPreviews()
 
-// UpdateLinkPreviews starts the process to update the preview images
+// UpdatePreviews starts the process to update the preview images
 // in all postings.
 //
 //	`aPostingBaseDir` is the base directory used for storing
 // articles/postings.
 //	`aImageURLdir` is the URL directory for page preview images.
-func UpdateLinkPreviews(aPostingBaseDir, aImgURLdir string) {
+func UpdatePreviews(aPostingBaseDir, aImgURLdir string) {
 	go goUpdateAllLinkPreviews(aPostingBaseDir, aImgURLdir, pageview.ImageDirectory())
-	runtime.Gosched()
+	runtime.Gosched() // get the background operation started
 } // UpdateLinkPreviews()
 
 /* _EoF_ */
