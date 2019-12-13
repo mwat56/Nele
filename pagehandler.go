@@ -88,7 +88,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("hashfile"); nil == err {
 		result.hashList, _ = hashtags.New("")
 		result.hashList.SetFilename(s)
-		InitHashlist(result.hashList)
+		InitHashlist(result.hashList) // background operation
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -112,7 +112,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	if s, err = AppArguments.Get("pageView"); nil == err {
 		if pv := ("true" == s); pv {
 			result.pageView = true
-			UpdateLinkPreviews(PostingBaseDirectory(), "/img/")
+			UpdatePreviews(PostingBaseDirectory(), "/img/") // background operation
 		}
 	}
 
@@ -441,7 +441,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("weekURL", "/w/"+date)
 		ph.handleReply("searchresult", aWriter, pageData)
 
-	case "":
+	case `x`, `xp`, `xt`: // eXchange #tags/@mentions
+		pageData = check4lang(pageData, aRequest).
+			Set("Robots", "noindex,nofollow")
+		ph.handleReply("xt", aWriter, pageData)
+
+	case ``:
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
 			ph.handleHashtag(ht, pageData, aWriter, aRequest)
 		} else if m := aRequest.FormValue("m"); 0 < len(m) {
@@ -486,74 +491,6 @@ func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter
 
 	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
 } // handleMention()
-
-// `handleReply()` sends `aPage` with `aData` to `aWriter`.
-func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TDataList) {
-	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
-		apachelogger.Err("TPageHandler.handleReply()",
-			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
-	}
-} // handleReply()
-
-// `handleShare()` serves the edit page for a shared URL.
-func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
-	p := NewPosting("")
-	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
-	if _, err := p.Store(); nil != err {
-		apachelogger.Err("TPageHandler.handleShare()",
-			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
-	}
-
-	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
-} // handleShare()
-
-func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
-	pl := NewPostList()
-	if 0 < len(aList) {
-		for _, id := range aList {
-			p := NewPosting(id)
-			if err := p.Load(); nil != err {
-				apachelogger.Err("TPageHandler.handleTagMentions()",
-					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
-				continue
-			}
-			pl.Add(p)
-		}
-	}
-
-	aData = check4lang(aData, aRequest).
-		Set("Robots", "index,follow").
-		Set("Matches", pl.Len()).
-		Set("Postings", pl.Sort())
-	ph.handleReply("searchresult", aWriter, aData)
-} // handleTagMentions()
-
-// `handleUpload()` processes a file upload.
-func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http.Request, isImage bool) {
-	var (
-		status          int
-		fName, img, txt string
-	)
-	if isImage {
-		img = "!"
-		txt, status = ph.imgUp.ServeUpload(aWriter, aRequest)
-	} else {
-		txt, status = ph.staticUp.ServeUpload(aWriter, aRequest)
-	}
-
-	if 200 == status {
-		fName = strings.TrimPrefix(txt, ph.dataDir)
-		p := NewPosting("")
-		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
-		if _, err := p.Store(); nil != err {
-			apachelogger.Err("TPageHandler.handleUpload()",
-				fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
-		}
-		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
-	} else {
-		http.Error(aWriter, txt, status)
-	}
-} // handleUpload()
 
 // `handlePOST()` processes the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -693,12 +630,34 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		ph.handleUpload(aWriter, aRequest, false)
 
+	case `x`: // eXchange #tags/@mentions
+		if a := aRequest.FormValue("abort"); 0 < len(a) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
+		}
+		if s := aRequest.FormValue("search"); 0 < len(s) {
+			if r := aRequest.FormValue("replace"); 0 < len(r) {
+				ReplaceTag(ph.hashList,
+					strings.TrimSpace(s),
+					strings.TrimSpace(r)) // background operation
+			}
+		}
+		http.Redirect(aWriter, aRequest, "/x/", http.StatusSeeOther)
+
 	default:
-		// if nothing matched (above) reply to the request
+		// If nothing (above) matched reply to the request
 		// with an HTTP 404 "not found" error.
 		http.NotFound(aWriter, aRequest)
 	}
 } // handlePOST()
+
+// `handleReply()` sends `aPage` with `aData` to `aWriter`.
+func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TDataList) {
+	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
+		apachelogger.Err("TPageHandler.handleReply()",
+			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
+	}
+} // handleReply()
 
 // `handleRoot()` serves the logical web-root directory.
 func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -727,6 +686,66 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter htt
 	ph.handleReply("searchresult", aWriter, aData)
 } // handleSearch()
 
+// `handleShare()` serves the edit page for a shared URL.
+func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
+	p := NewPosting("")
+	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
+	if _, err := p.Store(); nil != err {
+		apachelogger.Err("TPageHandler.handleShare()",
+			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
+	}
+
+	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
+} // handleShare()
+
+func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+	pl := NewPostList()
+	if 0 < len(aList) {
+		for _, id := range aList {
+			p := NewPosting(id)
+			if err := p.Load(); nil != err {
+				apachelogger.Err("TPageHandler.handleTagMentions()",
+					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
+				continue
+			}
+			pl.Add(p)
+		}
+	}
+
+	aData = check4lang(aData, aRequest).
+		Set("Robots", "index,follow").
+		Set("Matches", pl.Len()).
+		Set("Postings", pl.Sort())
+	ph.handleReply("searchresult", aWriter, aData)
+} // handleTagMentions()
+
+// `handleUpload()` processes a file upload.
+func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http.Request, isImage bool) {
+	var (
+		status          int
+		fName, img, txt string
+	)
+	if isImage {
+		img = "!"
+		txt, status = ph.imgUp.ServeUpload(aWriter, aRequest)
+	} else {
+		txt, status = ph.staticUp.ServeUpload(aWriter, aRequest)
+	}
+
+	if 200 == status {
+		fName = strings.TrimPrefix(txt, ph.dataDir)
+		p := NewPosting("")
+		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
+		if _, err := p.Store(); nil != err {
+			apachelogger.Err("TPageHandler.handleUpload()",
+				fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
+		}
+		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
+	} else {
+		http.Error(aWriter, txt, status)
+	}
+} // handleUpload()
+
 // Len returns the length of the internal views list.
 func (ph *TPageHandler) Len() int {
 	return len(*(ph.viewList))
@@ -739,12 +758,13 @@ func (ph *TPageHandler) Len() int {
 func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	path, _ := URLparts(aRequest.URL.Path)
 	switch path {
-	case "a", "ap", // add new post
-		"d", "dp", // change post's date
-		"e", "ep", // edit post
-		"r", "rp", // posting's removal
-		"share",    // share another URL
-		"si", "ss": // store images, store static data
+	case `a`, `ap`, // add new post
+		`d`, `dp`, // change post's date
+		`e`, `ep`, // edit post
+		`r`, `rp`, // posting's removal
+		`share`,    // share another URL
+		`si`, `ss`, // store images, store static data
+		`x`, `xp`, `xt`: // eXchange #tags/@mentions
 		return true
 	}
 
