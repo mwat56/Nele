@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	// bf "github.com/russross/blackfriday/v2"
@@ -337,28 +338,9 @@ func SearchPostings(aText string) *TPostList {
 	return pl
 } // SearchPostings()
 
-/*
-// SearchRubric traverses the sub-directories of `aBaseDir` looking
-// for `aRubric` in all posting files.
-//
-// `aBaseDir` is the directory of which all subdirectories are scanned.
-//
-// `aRubric` is the rubric to look for in the postings.
-//
-// The returned `TPostList` can be empty because (a) `aText` could not be
-// compiled into a regular expression, (b) no files to search were found,
-// or (c) no files matched `aText`.
-func SearchRubric(aBaseDir, aRubric string) *TPostList {
-	// the required markup would be "* _`text`_" on a single line
-	rubric := fmt.Sprintf("^\\*\\s+_`%s`_\\s*$", aRubric)
-
-	return SearchPostings(aBaseDir, rubric)
-} // SearchRubric()
-*/
-
 var (
 	// RegEx to find path and possible added path components
-	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?!=:;/,_@#-]*)?`)
+	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?!=:;/,_@# -]*)?`)
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
@@ -372,7 +354,7 @@ func URLparts(aURL string) (rDir, rPath string) {
 	}
 	matches := reURLpartsRE.FindStringSubmatch(aURL)
 	if 2 < len(matches) {
-		return matches[1], matches[2]
+		return matches[1], strings.TrimSpace(matches[2])
 	}
 
 	return aURL, ""

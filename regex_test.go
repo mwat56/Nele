@@ -187,7 +187,7 @@ func TestURLparts(t *testing.T) {
 		// TODO: Add test cases.
 		{" 1", args{"/"}, "", ""},
 		{" 1a", args{""}, "", ""},
-		{" 1b", args{"index/"}, "index", ""},
+		{" 1b", args{"index/ "}, "index", ""},
 		{" 2", args{"/css"}, "css", ""},
 		{" 2a", args{"css"}, "css", ""},
 		{" 3", args{"/css/styles.css"}, "css", "styles.css"},
@@ -202,6 +202,7 @@ func TestURLparts(t *testing.T) {
 		{" 8", args{"/static/https://github.com/"}, "static", "https://github.com/"},
 		{" 9", args{"/ht/kurzerklärt"}, "ht", "kurzerklärt"},
 		{"10", args{`share/https://utopia.de/ratgeber/pink-lady-das-ist-faul-an-dieser-apfelsorte/#main_content`}, `share`, `https://utopia.de/ratgeber/pink-lady-das-ist-faul-an-dieser-apfelsorte/#main_content`},
+		{"11", args{"/s/search term"}, "s", "search term"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
