@@ -21,9 +21,9 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-	nele "github.com/mwat56/Nele"
 	"github.com/mwat56/apachelogger"
 	"github.com/mwat56/errorhandler"
+	"github.com/mwat56/nele"
 )
 
 // `doConsole()` checks for the `add` commandline argument, adds the
@@ -83,7 +83,7 @@ func setupSignals(aServer *http.Server) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
+	catcher := func() {
 		for signal := range c {
 			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
 			apachelogger.Err(`Nele/catchSignals`, msg)
@@ -93,7 +93,9 @@ func setupSignals(aServer *http.Server) {
 				fatal(fmt.Sprintf("%s: %v", os.Args[0], err))
 			}
 		}
-	}()
+	} // catcher()
+
+	go catcher()
 } // setupSignals()
 
 // `userCmdline()` checks for and executes password file commandline actions.
