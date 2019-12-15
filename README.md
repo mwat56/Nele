@@ -17,6 +17,7 @@
 		- [Commandline postings](#commandline-postings)
 		- [Authentication](#authentication)
 		- [User/password file & handling](#userpassword-file--handling)
+		- [Page/link previews](#pagelink-previews)
 	- [Configuration](#configuration)
 	- [URLs](#urls)
 	- [Files](#files)
@@ -34,7 +35,7 @@
 
 ## Purpose
 
-The purpose of this package was twofold initially. On one hand I needed a project to learn the (then to me new) `Go` language, and on the other hand I wanted a project, that lead me into different domains, like user authentication, configuration, data formats, error handling, filesystem access, data logging, os, network, regex, templating etc. –
+The purpose of this package/application was twofold initially. On one hand I needed a project to learn the (then to me new) `Go` language, and on the other hand I wanted a project, that lead me into different domains, like user authentication, configuration, data formats, error handling, filesystem access, data logging, os, network, regex, templating etc. –
 And, I wanted no external dependencies (like databases etc.). –
 And, I didn't care for Windows(tm) compatibility since I left the MS-platform about 25 years ago after using it in the 80s and early 90s of the last century.
 (But who, in his right mind, would want to run a web-service on such a platform anyway?)
@@ -492,6 +493,8 @@ The `datadir`/`fonts` directory contains some freely available fonts used by the
 
 The `datadir`/`/img/` directory can be used to store, well, _images_ to which you then can link in your articles.
 You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
+
+Additionally any page preview images are stored here (if use set the `pageView` INI_ or commandline-option to `true`).
 
 ### Postings
 
