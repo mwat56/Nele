@@ -6,8 +6,8 @@ After=network.target
 Type=idle
 User=matthias
 Group=matthias
-WorkingDirectory=/home/matthias/devel/Go/src/github.com/mwat56/Nele/
-ExecStart=/home/matthias/devel/Go/src/github.com/mwat56/Nele/bin/nele-linux-amd64 -listen=0
+WorkingDirectory=/home/matthias/devel/Go/src/github.com/mwat56/nele/
+ExecStart=/home/matthias/devel/Go/src/github.com/mwat56/nele/bin/nele-linux-amd64 -listen=0
 Restart=on-failure
 
 [Install]
