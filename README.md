@@ -1,13 +1,13 @@
 # Nele Blog
 
 [![Golang](https://img.shields.io/badge/Language-Go-green.svg)](https://golang.org/)
-[![GoDoc](https://godoc.org/github.com/mwat56/Nele?status.svg)](https://godoc.org/github.com/mwat56/Nele/)
-[![Go Report](https://goreportcard.com/badge/github.com/mwat56/Nele)](https://goreportcard.com/report/github.com/mwat56/Nele)
-[![Issues](https://img.shields.io/github/issues/mwat56/Nele.svg)](https://github.com/mwat56/Nele/issues?q=is%3Aopen+is%3Aissue)
-[![Size](https://img.shields.io/github/repo-size/mwat56/Nele.svg)](https://github.com/mwat56/Nele/)
-[![Tag](https://img.shields.io/github/tag/mwat56/Nele.svg)](https://github.com/mwat56/Nele/tags)
-[![License](https://img.shields.io/github/license/mwat56/Nele.svg)](https://github.com/mwat56/Nele/blob/master/LICENSE)
-[![View examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg)](https://github.com/mwat56/Nele/blob/master/app/nele.go)
+[![GoDoc](https://godoc.org/github.com/mwat56/nele?status.svg)](https://godoc.org/github.com/mwat56/nele/)
+[![Go Report](https://goreportcard.com/badge/github.com/mwat56/nele)](https://goreportcard.com/report/github.com/mwat56/nele)
+[![Issues](https://img.shields.io/github/issues/mwat56/nele.svg)](https://github.com/mwat56/nele/issues?q=is%3Aopen+is%3Aissue)
+[![Size](https://img.shields.io/github/repo-size/mwat56/nele.svg)](https://github.com/mwat56/nele/)
+[![Tag](https://img.shields.io/github/tag/mwat56/nele.svg)](https://github.com/mwat56/nele/tags)
+[![License](https://img.shields.io/github/license/mwat56/nele.svg)](https://github.com/mwat56/nele/blob/master/LICENSE)
+[![View examples](https://img.shields.io/badge/learn%20by-examples-0077b3.svg)](https://github.com/mwat56/nele/blob/master/app/nele.go)
 
 - [Nele Blog](#nele-blog)
 	- [Purpose](#purpose)
@@ -64,7 +64,7 @@ So I intentionally didn't bother with comments or discussion threading.
 
 You can use `Go` to install this package for you:
 
-    go get -u github.com/mwat56/Nele
+    go get -u github.com/mwat56/nele
 
 ## Usage
 
@@ -80,13 +80,12 @@ On my system it looked (at a certain point in time) like this:
 	drwxrwxr-x 12 matthias matthias     4096 Mai 23 18:35 .
 	drwxrwxr-x 12 matthias matthias     4096 Mai 23 17:58 ..
 	-rw-rw-r--  1 matthias matthias      474 Apr 27 00:21 addTest.md
-	-rw-rw-r--  1 matthias matthias     1458 Mai 23 17:58 blog.ini
+	drwxrwxr-x  3 matthias matthias     4096 Mai 23 18:14 app
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 certs
 	-rw-rw-r--  1 matthias matthias     6583 Mai 23 18:14 cmdline.go
 	-rw-rw-r--  1 matthias matthias    10149 Mai 23 18:20 config.go
 	-rw-rw-r--  1 matthias matthias     1846 Mai 23 18:14 config_test.go
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 css
-	drwxrwxr-x  3 matthias matthias     4096 Mai 23 18:14 _demo
 	-rw-rw-r--  1 matthias matthias      823 Mai 23 18:14 doc.go
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 fonts
 	drwxrwxr-x  8 matthias matthias     4096 Mai 23 18:10 .git
@@ -96,7 +95,6 @@ On my system it looked (at a certain point in time) like this:
 	-rw-------  1 matthias matthias     4004 Mai 23 18:11 go.sum
 	-rw-rw-r--  1 matthias matthias     5010 Mai 23 18:18 hashfile.db
 	drwxrwxr-x  2 matthias matthias     4096 Mai 23 18:14 img
-	-rw-rw-r--  1 matthias matthias       84 Apr 12 15:46 intl.ini
 	-rw-rw-r--  1 matthias matthias    32474 Mai 23 17:58 LICENSE
 	-rwxrwxr-x  1 matthias matthias 11149115 Mai 23 18:19 nele
 	-rw-rw-r--  1 matthias matthias    21803 Mai 23 18:14 pagehandler.go
@@ -139,21 +137,21 @@ Let's start with the command line:
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
 		<fileName> the name of the TLS certificate's private key
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.key")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/certs/server.key")
 	-certPem string
 		<fileName> the name of the TLS certificate PEM
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/certs/server.pem")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/certs/server.pem")
 	-datadir string
 		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele")
 	-gzip
 		(optional) use gzip compression for server responses (default true)
 	-hashfile string
 		<fileName> (optional) the name of a file storing #hashtags and @mentions
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/hashfile.db")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/hashfile.db")
 	-ini string
 		<fileName> the path/filename of the INI file to use
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/nele.ini")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/nele.ini")
 	-lang string
 		(optional) the default language to use  (default "de")
 	-listen string
@@ -167,6 +165,8 @@ Let's start with the command line:
 		max. accepted size of uploaded files (default "10MB")
 	-pa
 		(optional) posting add: write a posting from the commandline
+	-pageView
+		(optional) use page preview images for links (default true)
 	-pf string
 		<fileName> (optional) post file: name of a file to add as new posting
 	-port int
@@ -185,7 +185,7 @@ Let's start with the command line:
 		<userName> (optional) user delete: remove a username from the password file
 	-uf string
 		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/Nele/pwaccess.db")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/pwaccess.db")
 	-ul
 		(optional) user list: show all users in the password file
 	-uu string
@@ -247,6 +247,11 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 
 	# Accepted size of uploaded files.
 	maxfilesize = 10MB
+
+	# Use preview images of linked pages.
+	# NOTE: This feature depends on the external `wkhtmltoimage` external;
+	# for more details see: https://godoc.org/github.com/mwat56/pageview
+	pageView = true
 
 	# Password file for HTTP Basic Authentication.
 	# NOTE: a relative path/name will be combined with `datadir` (above).
@@ -371,13 +376,30 @@ That only leaves `-uu` to update (change) a user's password.
 
 First we added (`-ua`) a new user, then we updated the password (`-uu`), and finally we asked for the list of users (`-ul`).
 
+### Page/link previews
+
+If you set the `pageView` INI- or commandline-option to `true` there will be a preview image generated – by way of calling the external [wkhtmltoimage](https://wkhtmltopdf.org/index.html) commandline utility.
+Those image files are stored locally (in the `./img/` directory) and may be used as often as you want.
+
+The great commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
+Under Linux this utility is usually part of your distribution.
+If not, you can [download wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) from the web and install it.
+Usually the package from the download page above is more recent than the version in your Linux distribution.
+If in doubt, I'd suggest to test both versions to determine which one to use and works best for you.
+
+Generating a preview image usually takes between one and five seconds, depending on the actual web-page in question, however, it can take considerably longer.
+To avoid hanging the program the `wkhtmltoimage` is called with an one minute timeout.
+
+And, finally, not all web-pages can be rendered properly and turned into an image.
+In such case `wkhtmltoimage` just crashes and the link in your paosting just remains as is (i.e. a normal text link w/o preview).
+
 ## Configuration
 
 The system's configuration takes two steps:
 
 1. Prepare the required files and directories.
 2. Customise the INI file and/or prepare a script with all needed commandline arguments.
-3. You most probably want to customise the files [./views/imprint.gohtml](https://github.com/mwat56/Nele/blob/master/views/imprint.gohtml#L17), [./views/licence.gohtml](https://github.com/mwat56/Nele/blob/master/views/licence.gohtml#L20), and [./views/privacy.gohtml](https://github.com/mwat56/Nele/blob/master/views/privacy.gohtml#L17) according to your personal reqirements.
+3. You most probably want to customise the files [./views/imprint.gohtml](https://github.com/mwat56/nele/blob/master/views/imprint.gohtml#L17), [./views/licence.gohtml](https://github.com/mwat56/nele/blob/master/views/licence.gohtml#L20), and [./views/privacy.gohtml](https://github.com/mwat56/nele/blob/master/views/privacy.gohtml#L17) according to your personal reqirements.
 
 ## URLs
 
@@ -396,9 +418,9 @@ Provided the given `#tagname` was actually used in one or more of your articles 
 You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
 * `/ml/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
-* `/n/` gives you the newest 20 articles.
+* `/n/` gives you the newest 30 articles.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
-If you want to see the articles in slices of, say, 10 per page (instead of the default 20/page) you could use the URL `/n/10,10` and to see the secong slice user `/n/10,20`, the third with `/n/10,30` and so on.
+If you want to see the articles in slices of, say, 10 per page (instead of the default 30/page) you could use the URL `/n/10,10` and to see the second slice user `/n/10,20`, the third with `/n/10,30` and so on.
 However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for you.
 * `/p/1234567890abcdef` shows you a single article/posting (the ID is automatically generated).
 This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
@@ -424,9 +446,11 @@ _Note_ that there's no `undo` feature: Once you've deleted an article/posting it
 * `/si` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
-Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown to edit.
+Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown for you to edit.
 * `/ss` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
+* `/x/` (eXchange): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing.
+_Note_ that the search for the term to replace will is done case-insensitive while the replament string gets inserted as you write it.
 
 ## Files
 
@@ -508,6 +532,7 @@ The following external libraries were used building `Nele`:
 * [PageView](https://github.com/mwat56/pageview)
 * [PassList](https://github.com/mwat56/passlist)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
+* [wkHtmlToImage](https://wkhtmltopdf.org/)
 
 ## Licence
 
