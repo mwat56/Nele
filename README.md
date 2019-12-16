@@ -406,57 +406,65 @@ The system's configuration takes two steps:
 
 The system uses a number of slightly different URL groups.
 
+### Static URLs
+
 First, there are the static files served from the `css`, `img`, and `static` directories.
 The actual location of which you can configure with the `datadir` INI entry and/or commandline option.
 
-Second, are the URLs any _normal_ user might see and use:
+### Common URLs
+
+Second, there are the URLs any normal user might see and use:
 
 * `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
 * `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
-* `/hl/tagname` allows you to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
-Provided the given `#tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
+* `/hl/tagname` allows the users to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
+Provided the given `tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/m/` shows the articles of the current month.
-You can, however, specify the month you're interested in by adding a data part defining the month you want to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
-* `/ml/mentionedname` allows you to search for `@mentionedname` (but you'll input it without the at sign `@` because that has a special meaning in an URL).
+One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
+* `/ml/mentionedname` allows the users to search for `@mentionedname` (but one will input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 30 articles.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
-If you want to see the articles in slices of, say, 10 per page (instead of the default 30/page) you could use the URL `/n/10,10` and to see the second slice user `/n/10,20`, the third with `/n/10,30` and so on.
-However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for you.
-* `/p/1234567890abcdef` shows you a single article/posting (the ID is automatically generated).
+If one want to see the articles in slices of, say, 10 per page (instead of the default 30/page) one can use the URL `/n/10,10` and to see the second slice use `/n/10,20`, the third with `/n/10,30` and so on.
+However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for the reader.
+* `/p/1234567890abcdef` shows a single article/posting (the ID is automatically generated).
 This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
-* `/s/searchterm` can be used to search for articles containing a certain word.
+* `/s/searchterm` can be used to search for articles containing a certain word or expression.
 All existing articles will be searched for the given `searchterm`.
 * `/w/` shows the articles of the current week.
-You can, however, specify the week you're interested in by adding a data part defining the week you want to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles from the week in April 2019 containing the 13th.
+One can, however, specify the week one is interested in by adding a data part defining the week to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles from the week in April 2019 containing the 13th.
 
-And, third, there's a group of URLs your users won't usually see or use, because by design they are reserved for you.
+### Internal URLs
+
+And, third, there's a group of URLs your users won't usually see or use, because by design they are reserved for you, the author of your postings.
 These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password files comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
-If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like and therefor the system disables all options that might modify your system.
+If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefor the system disables all options that might modify your system.
 
-* `/a` add a new posting.
+* `/ap` add a new posting.
 A simple Web form will allow you to input whatever's on your mind.
-* `/d/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
-Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just replace in the URL the `p` by a `d`.
-* `/e/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
-The procedure is the same: go to `/p/34567890abcdef12` and replace the `p` by an `e`.
-* `/r/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
+* `/dp/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
+Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just prepend in the URL the `p` by a `d`.
+* `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
+* `/il/` lets you start the re-initialisation of the hashlist.
+It clears the current list and reads all postings to extract the #hashtags and @mentions.
+_Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
+* `/rp/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
-* `/si` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
-Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
 Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown for you to edit.
+* `/si` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
+Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
 * `/ss` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
 * `/x/` (eXchange): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing.
-_Note_ that the search for the term to replace will is done case-insensitive while the replament string gets inserted as you write it.
+_Note_ that the search for the term to replace is done case-insensitive while the replacement string gets inserted as you write it.
 
 ## Files
 
 Right at the start I mentioned that I wanted to avoid external dependencies – like databases for example.
-Well, that's not exactly true (or even possible), because there is _one_ database that's always already there, regardless of the operating system: the _filesystem_.
+Well, that's not exactly true (or even possible), because there is _one_ "database" that's always already there, regardless of the operating system: the _filesystem_.
 The trick is to figure out how to best use it for our own purposes.
 The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles, and use part of that very timestamp as ID and name for the directory names as well.
 
@@ -487,29 +495,29 @@ The `theme` INI setting and the `-theme` commandline option determine which of t
 
 ### Fonts
 
-The `datadir`/`fonts` directory contains some freely available fonts used by the CSS files.
+The `datadir`/`fonts/` directory contains some freely available fonts used by the CSS files.
 
 ### Images
 
-The `datadir`/`/img/` directory can be used to store, well, _images_ to which you then can link in your articles.
+The `datadir`/`img/` directory can be used to store, well, _images_ to which you then can link in your articles.
 You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
 
-Additionally any page preview images are stored here (if use set the `pageView` INI_ or commandline-option to `true`).
+Additionally any page preview images are stored here (if use set the `pageView` INI- or commandline-option to `true`).
 
 ### Postings
 
-The `datadir`/`/` directory is the base for storing all the articles.
+The `datadir/` directory is the base for storing all the articles.
 The system creates subdirectories as needed to store new articles.
 This directory structure is not accessed via a direct URL but used internally by the system.
 
 ### Static
 
-The `datadir`/`/static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
+The `datadir`/`static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
 You can put there whatever file you like either form the command-line or by using the system's `/ss` URL.
 
 ### Views
 
-The `datadir`/`/views/` directory holds the templates with which the final HTML pages are generated.
+The `datadir`/`views/` directory holds the templates with which the final HTML pages are generated.
 Provided that you feel at home working with _Go_ templates you might change them as you seem fit.
 I will, however, __not__ provide any support for you changing the default template structure.
 
