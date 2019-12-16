@@ -50,6 +50,10 @@ hr {
 	border-color: #ccc;
 	color: #ccc;
 }
+input {
+	background: #fff;
+	color: #333;
+}
 pre, xmp {
 	border-left: thick solid #999;
 }
