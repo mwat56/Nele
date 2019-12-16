@@ -601,6 +601,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		ReadHashlist(ph.hashList)
+		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case `r`: // posting removal
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
