@@ -82,6 +82,20 @@ func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
 	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
+// `initHashlist()` initialises the hash list.
+//
+//	`aList` The list of #hashtags/@mentions to update.
+func initHashlist(aList *hashtags.THashList) {
+	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
+		if 0 < aPosting.Len() {
+			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
+		}
+	} // doInitHashlist()
+
+	go walkAllPosts(aList, doInitHashlist)
+	runtime.Gosched() // get the background operation started
+} // initHashlist()
+
 // InitHashlist initialises the hash list.
 //
 //	`aList` The list of #hashtags/@mentions to update.
@@ -90,9 +104,10 @@ func InitHashlist(aList *hashtags.THashList) {
 		// `doCheckPost()` returns whether there is a file identified
 		// by `aID` containing `aHash`.
 		//
-		// The function's result is `false` (1) if the file associated with
-		// `aID` doesnt't exist, or (2) if the file can't be read, or (3)
-		// the given `aHash` can't be found in the posting's text.
+		// The function's result is `false` (1) if the file associated
+		// with `aID` doesnt't exist, or (2) if the file can't be
+		// read, or (3) the given `aHash` can't be found in the
+		// posting's text.
 		//
 		//	`aHash` The hashtag to check for.
 		//	`aID` The ID of the posting to handle.
@@ -113,14 +128,7 @@ func InitHashlist(aList *hashtags.THashList) {
 		return // assume everything is up-to-date
 	}
 
-	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
-		if 0 < aPosting.Len() {
-			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
-		}
-	} // doInitHashlist()
-
-	go walkAllPosts(aList, doInitHashlist)
-	runtime.Gosched() // get the background operation started
+	initHashlist(aList)
 } // InitHashlist()
 
 // MarkupCloud returns a list with the markup of all existing
@@ -223,6 +231,14 @@ func MarkupTags(aPage []byte) []byte {
 
 	return []byte(result)
 } // MarkupTags()
+
+// ReadHashlist reads all postings to (re-)build the list of
+// #hashtags/@mentions disregarding any pre-existing list.
+//
+//	`aList` The list of #hashtags/@mentions to build.
+func ReadHashlist(aList *hashtags.THashList) {
+	initHashlist(aList.Clear())
+} // ReadHashlist()
 
 // RemoveIDTags removes `aID` from `aList's` items.
 //
