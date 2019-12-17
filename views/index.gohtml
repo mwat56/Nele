@@ -9,15 +9,15 @@
 <dl class="posting">
 	{{- $lastDate := change -}}
 	{{- range $i, $post := $.Postings -}}
-		{{$date := $post.Date -}}
-		{{if $lastDate.Changed $date -}}
+		{{- $date := $post.Date -}}
+		{{- if $lastDate.Changed $date -}}
 			<dt>{{$date}}</dt>
 		{{- end -}}
 		{{- $ID := $post.ID -}}
 		{{- if eq $lang "de" -}}
 			{{- $title = "zum Artikel springen" -}}
 		{{- else -}}
-			{{- $title = "jump to article" -}}}
+			{{- $title = "jump to article" -}}
 		{{- end -}}
 		<dd><a class="idlink" id="p{{$ID}}" href="/p/{{$ID}}" title=" {{$title}} ">[*]</a>
 		{{- $post.Post -}}</dd>
