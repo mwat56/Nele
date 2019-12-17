@@ -289,9 +289,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case `i`, `il`: // (re-)init the hashList
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,nofollow")
-		ph.handleReply("il", aWriter, pageData)
+		if nil != ph.hashList {
+			pageData = check4lang(pageData, aRequest).
+				Set("Robots", "noindex,nofollow")
+			ph.handleReply("il", aWriter, pageData)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		}
 
 	case "img":
 		ph.staticFh.ServeHTTP(aWriter, aRequest)
@@ -365,6 +369,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "privacy", "datenschutz":
 		ph.handleReply("privacy", aWriter, check4lang(pageData, aRequest))
 
+	// case `pv`: // see below `v`
+
 	case "q":
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
 
@@ -421,6 +427,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "static":
 		ph.staticFh.ServeHTTP(aWriter, aRequest)
+
+	case `v`, `pv`: // update the pageView images
+		if ph.pageView {
+			pageData = check4lang(pageData, aRequest).
+				Set("Robots", "noindex,nofollow")
+			ph.handleReply("pv", aWriter, pageData)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		}
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -596,12 +611,16 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 
 	case `i`: // init hash list
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if nil != ph.hashList {
+			if a := aRequest.FormValue("abort"); 0 < len(a) {
+				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+				return
+			}
+			ReadHashlist(ph.hashList)
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-			return
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 		}
-		ReadHashlist(ph.hashList)
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 
 	case `r`: // posting removal
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
@@ -643,6 +662,17 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		ph.handleUpload(aWriter, aRequest, false)
 
+	case `v`:
+		if ph.pageView {
+			if a := aRequest.FormValue("abort"); 0 < len(a) {
+				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+				return
+			}
+			UpdatePreviews(PostingBaseDirectory(), `/img/`)
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		}
 	case `x`: // eXchange #tags/@mentions
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -658,7 +688,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		http.Redirect(aWriter, aRequest, "/x/", http.StatusSeeOther)
 
 	default:
-		// If nothing (above) matched reply to the request
+		// If nothing matched (above) reply to the request
 		// with an HTTP 404 "not found" error.
 		http.NotFound(aWriter, aRequest)
 	}
@@ -778,6 +808,7 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 		`r`, `rp`, // posting's removal
 		`share`,    // share another URL
 		`si`, `ss`, // store images, store static data
+		`v`, `pv`, // update pageView
 		`x`, `xp`, `xt`: // eXchange #tags/@mentions
 		return true
 	}
