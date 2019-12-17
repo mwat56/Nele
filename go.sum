@@ -11,7 +11,8 @@ github.com/mwat56/hashtags v0.4.13 h1:/dWQOtEKQHDDsOSX2oBGaK4HVu9dz8a8DrKUcHZTpJ
 github.com/mwat56/hashtags v0.4.13/go.mod h1:ZchRkwIrJc0a+0tstLgNSfy7sE0WNugDtRc5JYQ97Rk=
 github.com/mwat56/ini v1.3.7/go.mod h1:8axjOE51DosoIr6uFSr4JHEu3xMOSsbpekf0UIxWTA8=
 github.com/mwat56/jffs v0.0.5/go.mod h1:epj3q/qR+wuYcB3wqJv+GFo7xv0CkYSw1w1mHdv0X5s=
-github.com/mwat56/pageview v0.3.2/go.mod h1:QgIti2gRDe3yN5JlQBjNyG0l+OGRcfaCWqoMXKHsiNg=
+github.com/mwat56/pageview v0.3.3 h1:OB8jFH9cFs77/uyEvoSB9HLPES8kbpRUhUWrvQkR3h4=
+github.com/mwat56/pageview v0.3.3/go.mod h1:QgIti2gRDe3yN5JlQBjNyG0l+OGRcfaCWqoMXKHsiNg=
 github.com/mwat56/passlist v1.2.1/go.mod h1:Xxo8P+B54Q/9uc66+skNAdKsWWYFkRqEJ3W/k73sSTE=
 github.com/mwat56/uploadhandler v1.0.9/go.mod h1:zzoD7x/ueUCVRSr3uTz9l4YqKJlBvlza7Zls8Ewfisc=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
