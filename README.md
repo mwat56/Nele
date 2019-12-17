@@ -442,23 +442,25 @@ Only users whose credentials (i.e. username and password) are stored in the pass
 _So don't forget to setup an appropriate password file_.
 If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefor the system disables all options that might modify your system.
 
-* `/ap` add a new posting.
+* `/ap/` add a new posting.
 A simple Web form will allow you to input whatever's on your mind.
 * `/dp/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
 Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just prepend in the URL the `p` by a `d`.
 * `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
-* `/il/` lets you start the re-initialisation of the hashlist.
+* `/il/` (init list): Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist.
 It clears the current list and reads all postings to extract the #hashtags and @mentions.
 _Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
+* `/pv/` (pageView): Assuming you set the `pageview` INI-/commandline-option to `true` this shows you a simple HTML form by which you can start a background process checking all postings for page preview images.
+Again, this was implemented as adebugging aid and you won't usually use this option.
 * `/rp/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
 Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown for you to edit.
-* `/si` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
+* `/si/` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
-* `/ss` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
+* `/ss/` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
-* `/x/` (eXchange): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing.
+* `/xt/` (eXchange tag): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing.
 _Note_ that the search for the term to replace is done case-insensitive while the replacement string gets inserted as you write it.
 
 ## Files
