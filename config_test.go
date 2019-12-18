@@ -29,7 +29,7 @@ func Test_absolute(t *testing.T) {
 		{" 3", args{bd, "./dir/"}, "/var/tmp/dir"},
 		{" 4", args{bd, "../opt/file.txt"}, "/var/opt/file.txt"},
 		{" 5", args{bd, "./bla.doc"}, "/var/tmp/bla.doc"},
-		{" 6", args{"", "dir"}, "/home/matthias/devel/Go/src/github.com/mwat56/Nele/dir"},
+		{" 6", args{"", "dir"}, "/home/matthias/devel/Go/src/github.com/mwat56/nele/dir"},
 		{" 7", args{"", "../../../dir"}, "/home/matthias/devel/Go/src/dir"},
 		{" 8", args{"/", "../../../dir"}, "/dir"},
 	}

@@ -6,6 +6,8 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 import (
 	"testing"
 )
@@ -20,7 +22,7 @@ func TestNewPageHandler(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", 16, false},
+		{" 1", 18, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
