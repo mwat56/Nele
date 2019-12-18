@@ -179,6 +179,7 @@ func (ph *TPageHandler) basicPageData() *TDataList {
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
 		Set("monthURL", "/m/"+date).
+		Set("PostingCount", PostingCount()).
 		Set("Robots", "index,follow").
 		Set("Taglist", MarkupCloud(ph.hashList)).
 		Set("Title", ph.realm+": "+date).

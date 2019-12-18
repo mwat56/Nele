@@ -1,9 +1,20 @@
 {{- define "rightbar" -}}
-{{- if .Taglist -}}
-	<p class="tc">
-	{{- range $i, $item := $.Taglist -}}
-	{{$item}}
+	{{- if .PostingCount -}}
+		{{- $lang := "de" -}}
+		{{- if .Lang}}{{$lang = .Lang}}{{end -}}
+		<p class="PostingCount">{{.PostingCount}}&nbsp;
+		{{- if eq $lang "de" -}}
+			Artikel
+		{{- else -}}
+			postings
+		{{- end -}}
+		</p>
 	{{- end -}}
-</p>
-{{- end -}}
+	{{- if .Taglist -}}
+		<p class="tc">
+		{{- range $i, $item := .Taglist -}}
+			{{$item}}
+		{{- end -}}
+		</p>
+	{{- end -}}
 {{- end -}}

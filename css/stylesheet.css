@@ -325,6 +325,11 @@ p.matches {
 	margin: -1.3ex 0 0 0;
 	padding: 0.5ex 1ex 0.5ex 1ex;
 }
+p.PostingCount {
+	margin: 1.5em 0.3ex 1ex 0;
+	text-align: right;
+	font-style: italic;
+}
 .right {
 	text-align: right;
 	margin-right: 1ex;
@@ -334,9 +339,10 @@ p.matches {
 	font-size: 89%;
 	font-weight: inherit;
 }
-.tc {
+p.tc {
 	hyphens: none;
-	margin: 6ex 0 3ex 0;
+	margin: 1ex 0 1em 0;
+	text-indent: 0;
 }
 .tc5, .tc25, .tc50, .tc99 {
 	display: inline-block;
@@ -345,11 +351,11 @@ p.matches {
 	margin: 0.2ex 0;
 }
 .tc5 {
-	font-size: 68%;
+	font-size: 69%;
 	font-style: normal;
 }
 .tc25 {
-	font-size: 86%;
+	font-size: 89%;
 	font-style: italic;
 }
 .tc50 {
@@ -364,7 +370,7 @@ p.matches {
 }
 .tc5, .tc25, .tc50, .tc99 {
 	border-radius: 0.5ex;
-	padding: 0.2ex 0.5ex;
+	padding: 0.1ex 0.4ex 0.1ex 0.2ex;
 }
 
 /* _EoF_ */
