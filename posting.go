@@ -85,6 +85,17 @@ func PostingBaseDirectory() string {
 	return poPostingBaseDirectory
 } // PostingBaseDirectory()
 
+// PostingCount returns the number of postings currently available.
+//
+// In case of I/O errors the return value will be `-1`.
+func PostingCount() int {
+	if filenames, err := filepath.Glob(poPostingBaseDirectory + "/*/*.md"); nil == err {
+		return len(filenames)
+	}
+
+	return -1
+} // PostingCount()
+
 // SetPostingBaseDirectory sets the base directory used for
 // storing articles/postings.
 //

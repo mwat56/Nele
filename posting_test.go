@@ -621,3 +621,21 @@ func TestTPosting_Time(t *testing.T) {
 		})
 	}
 } // TestTPosting_Time()
+
+func TestPostingCount(t *testing.T) {
+	SetPostingBaseDirectory("./postings/")
+	tests := []struct {
+		name       string
+		wantRCount int
+	}{
+		// TODO: Add test cases.
+		{" 1", 721},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotRCount := PostingCount(); gotRCount != tt.wantRCount {
+				t.Errorf("Count() = %v, want %v", gotRCount, tt.wantRCount)
+			}
+		})
+	}
+} // TestPostingCount()
