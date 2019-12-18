@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -77,6 +78,10 @@ var (
 		dir, _ := filepath.Abs(`./postings`)
 		return dir
 	}()
+
+	// Cache of last posting count.
+	// see `PostingCount()`, `delFile()`, `TPosting.Store()`
+	µCountCache uint32
 )
 
 // PostingBaseDirectory returns the base directory used for
@@ -89,8 +94,13 @@ func PostingBaseDirectory() string {
 //
 // In case of I/O errors the return value will be `-1`.
 func PostingCount() int {
+	if result := atomic.LoadUint32(&µCountCache); 0 < result {
+		return int(result)
+	}
 	if filenames, err := filepath.Glob(poPostingBaseDirectory + "/*/*.md"); nil == err {
-		return len(filenames)
+		result := len(filenames)
+		atomic.StoreUint32(&µCountCache, uint32(result))
+		return result
 	}
 
 	return -1
@@ -185,6 +195,7 @@ func delFile(aFileName *string) error {
 			return nil
 		}
 	}
+	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 
 	return err
 } // delFile()
@@ -375,6 +386,7 @@ func (p *TPosting) Store() (int64, error) {
 	if nil != err {
 		return 0, err
 	}
+	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 
 	return fi.Size(), nil
 } // Store()

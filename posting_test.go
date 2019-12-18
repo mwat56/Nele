@@ -156,6 +156,25 @@ func Test_newPost(t *testing.T) {
 	}
 } // Test_newPost()
 
+func TestPostingCount(t *testing.T) {
+	SetPostingBaseDirectory("./postings/")
+	tests := []struct {
+		name       string
+		wantRCount int
+	}{
+		// TODO: Add test cases.
+		{" 1", 721},
+		{" 2", 721},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotRCount := PostingCount(); gotRCount != tt.wantRCount {
+				t.Errorf("Count() = %v, want %v", gotRCount, tt.wantRCount)
+			}
+		})
+	}
+} // TestPostingCount()
+
 func TestTPosting_After(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 	id1 := newID(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
@@ -621,21 +640,3 @@ func TestTPosting_Time(t *testing.T) {
 		})
 	}
 } // TestTPosting_Time()
-
-func TestPostingCount(t *testing.T) {
-	SetPostingBaseDirectory("./postings/")
-	tests := []struct {
-		name       string
-		wantRCount int
-	}{
-		// TODO: Add test cases.
-		{" 1", 721},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotRCount := PostingCount(); gotRCount != tt.wantRCount {
-				t.Errorf("Count() = %v, want %v", gotRCount, tt.wantRCount)
-			}
-		})
-	}
-} // TestPostingCount()
