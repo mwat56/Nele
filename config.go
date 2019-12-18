@@ -114,14 +114,14 @@ func readIniData() {
 	fName, _ := filepath.Abs("./nele.ini")
 	ini1, err := ini.New(fName)
 	if nil == err {
-		ini1.AddSectionKey("", "inifile", fName)
+		ini1.AddSectionKey("", "iniFile", fName)
 	}
 
 	// (2) /etc/
 	fName = "/etc/nele.ini"
 	if ini2, err := ini.New(fName); nil == err {
 		ini1.Merge(ini2)
-		ini1.AddSectionKey("", "inifile", fName)
+		ini1.AddSectionKey("", "iniFile", fName)
 	}
 
 	// (3) ~user/
@@ -130,7 +130,7 @@ func readIniData() {
 		fName, _ = filepath.Abs(filepath.Join(fName, ".nele.ini"))
 		if ini2, err := ini.New(fName); nil == err {
 			ini1.Merge(ini2)
-			ini1.AddSectionKey("", "inifile", fName)
+			ini1.AddSectionKey("", "iniFile", fName)
 		}
 	}
 
@@ -139,7 +139,7 @@ func readIniData() {
 		fName, _ = filepath.Abs(filepath.Join(confDir, "nele.ini"))
 		if ini2, err := ini.New(fName); nil == err {
 			ini1.Merge(ini2)
-			ini1.AddSectionKey("", "inifile", fName)
+			ini1.AddSectionKey("", "iniFile", fName)
 		}
 	}
 
@@ -155,7 +155,7 @@ func readIniData() {
 				fName, _ = filepath.Abs(os.Args[i])
 				if ini2, _ := ini.New(fName); nil == err {
 					ini1.Merge(ini2)
-					ini1.AddSectionKey("", "inifile", fName)
+					ini1.AddSectionKey("", "iniFile", fName)
 				}
 			}
 			break
@@ -187,45 +187,45 @@ func init() {
 func InitConfig() {
 	readIniData()
 
-	blogName, _ := AppArguments.Get("blogname")
-	flag.StringVar(&blogName, "blogname", blogName,
+	blogName, _ := AppArguments.Get("blogName")
+	flag.StringVar(&blogName, "blogName", blogName,
 		"Name of this Blog (shown on every page)\n")
 
-	s, _ := AppArguments.Get("datadir")
+	s, _ := AppArguments.Get("dataDir")
 	dataDir, _ := filepath.Abs(s)
-	flag.StringVar(&dataDir, "datadir", dataDir,
+	flag.StringVar(&dataDir, "dataDir", dataDir,
 		"<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories\n")
 
 	s, _ = AppArguments.Get("accessLog")
 	accessLog := absolute(dataDir, s)
-	flag.StringVar(&accessLog, "accesslog", accessLog,
+	flag.StringVar(&accessLog, "accessLog", accessLog,
 		"<filename> Name of the access logfile to write to\n")
 
 	s, _ = AppArguments.Get("certKey")
 	certKey := absolute(dataDir, s)
-	flag.StringVar(&certKey, "certkey", certKey,
+	flag.StringVar(&certKey, "certKey", certKey,
 		"<fileName> the name of the TLS certificate's private key\n")
 
 	s, _ = AppArguments.Get("certPem")
 	certPem := absolute(dataDir, s)
-	flag.StringVar(&certPem, "certpem", certPem,
+	flag.StringVar(&certPem, "certPem", certPem,
 		"<fileName> the name of the TLS certificate PEM\n")
 
 	s, _ = AppArguments.Get("errorLog")
 	errorLog := absolute(dataDir, s)
-	flag.StringVar(&errorLog, "errorlog", errorLog,
+	flag.StringVar(&errorLog, "errorLog", errorLog,
 		"<filename> Name of the error logfile to write to\n")
 
 	gzip, _ := AppArguments.AsBool("gzip")
 	flag.BoolVar(&gzip, "gzip", gzip,
 		"(optional) use gzip compression for server responses")
 
-	s, _ = AppArguments.Get("hashfile")
+	s, _ = AppArguments.Get("hashFile")
 	hashFile := absolute(dataDir, s)
-	flag.StringVar(&hashFile, "hashfile", hashFile,
+	flag.StringVar(&hashFile, "hashFile", hashFile,
 		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
 
-	iniFile, _ := AppArguments.Get("inifile")
+	iniFile, _ := AppArguments.Get("iniFile")
 	flag.StringVar(&iniFile, "ini", iniFile,
 		"<fileName> the path/filename of the INI file to use\n")
 
@@ -277,7 +277,7 @@ func InitConfig() {
 	flag.StringVar(&userChange, "uc", userChange,
 		"<userName> (optional) user check: check a username in the password file")
 
-	s, _ = AppArguments.Get("passfile")
+	s, _ = AppArguments.Get("passFile")
 	userFile := absolute(dataDir, s)
 	flag.StringVar(&userFile, "uf", userFile,
 		"<fileName> (optional) user passwords file storing user/passwords for BasicAuth\n")
@@ -300,7 +300,7 @@ func InitConfig() {
 	if 0 == len(blogName) {
 		blogName = time.Now().Format("2006:01:02:15:04:05")
 	}
-	AppArguments.set("blogname", blogName)
+	AppArguments.set("blogName", blogName)
 
 	if 0 < len(dataDir) {
 		dataDir, _ = filepath.Abs(dataDir)
@@ -310,7 +310,7 @@ func InitConfig() {
 	} else if !f.IsDir() {
 		log.Fatalf("Error: Not a directory `%s`", dataDir)
 	}
-	AppArguments.set("datadir", dataDir)
+	AppArguments.set("dataDir", dataDir)
 
 	// `postingBaseDirectory` defined in `posting.go`:
 	SetPostingBaseDirectory(filepath.Join(dataDir, "./postings"))
@@ -350,7 +350,7 @@ func InitConfig() {
 	if 0 < len(hashFile) {
 		hashFile = absolute(dataDir, hashFile)
 	}
-	AppArguments.set("hashfile", hashFile)
+	AppArguments.set("hashFile", hashFile)
 
 	if 0 == len(language) {
 		language = "en"

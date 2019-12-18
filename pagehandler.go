@@ -72,11 +72,11 @@ func NewPageHandler() (*TPageHandler, error) {
 	)
 	result := new(TPageHandler)
 
-	if s, err = AppArguments.Get("blogname"); nil == err {
+	if s, err = AppArguments.Get("blogName"); nil == err {
 		result.bn = s
 	}
 
-	if s, err = AppArguments.Get("datadir"); nil != err {
+	if s, err = AppArguments.Get("dataDir"); nil != err {
 		return nil, err
 	}
 	result.dataDir = s
@@ -85,7 +85,7 @@ func NewPageHandler() (*TPageHandler, error) {
 		return nil, err
 	}
 
-	if s, err = AppArguments.Get("hashfile"); nil == err {
+	if s, err = AppArguments.Get("hashFile"); nil == err {
 		result.hashList, _ = hashtags.New("")
 		result.hashList.SetFilename(s)
 		InitHashlist(result.hashList) // background operation

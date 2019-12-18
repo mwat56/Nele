@@ -131,10 +131,13 @@ Let's start with the command line:
 
 	$ ./nele -h
 
-	Usage: bin/nele-linux-amd64 [OPTIONS]
+	Usage: bin/nele-linux-386 [OPTIONS]
 
-	-blogname string
-		Name of this Blog (shown on every page)
+	-accessLog string
+			<filename> Name of the access logfile to write to
+			(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/access.log")
+	-blogName string
+			Name of this Blog (shown on every page)
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
 		<fileName> the name of the TLS certificate's private key
@@ -142,12 +145,15 @@ Let's start with the command line:
 	-certPem string
 		<fileName> the name of the TLS certificate PEM
 		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/certs/server.pem")
-	-datadir string
+	-dataDir string
 		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
 		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele")
+	-errorLog string
+		<filename> Name of the error logfile to write to
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/error.log")
 	-gzip
 		(optional) use gzip compression for server responses (default true)
-	-hashfile string
+	-hashFile string
 		<fileName> (optional) the name of a file storing #hashtags and @mentions
 		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/hashfile.db")
 	-ini string
@@ -157,9 +163,6 @@ Let's start with the command line:
 		(optional) the default language to use  (default "de")
 	-listen string
 		the host's IP to listen at  (default "127.0.0.1")
-	-log string
-		(optional) name of the logfile to write to
-		(default "/dev/stdout")
 	-logStack
 		<boolean> Log a stack trace for recovered runtime errors  (default true)
 	-maxfilesize string
@@ -204,8 +207,12 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 
 	[Default]
 
+	# Name of the optional logfile to write to.
+	# NOTE: A relative path/name will be combined with `datadir` (above).
+	accessLog = ./access.log
+
 	# Name of this Blog (shown on every page).
-	blogname = "Meine Güte, was für'n Blah!"
+	blogName = "Meine Güte, was für'n Blah!"
 
 	# path-/filename of the TLS certificate's private key to enable
 	# TLS/HTTPS (if empty standard HTTP is used).
@@ -220,14 +227,18 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	# The directory root for the "css", "fonts", "img", "postings",
 	# "static", and "views" sub-directories.
 	# NOTE: This should be an _absolute_ path name.
-	datadir = ./
+	dataDir = ./
+
+	# Name of the optional logfile to write to.
+	# NOTE: A relative path/name will be combined with `datadir` (above).
+	errorLog =  ./error.log
 
 	# Use gzip compression for server responses.
 	gzip = true
 
 	# The file to store #hashtags and @mentions.
 	# NOTE: A relative path/name will be combined with `datadir` (above).
-	hashfile = ./hashfile.db
+	hashFile = ./hashfile.db
 
 	# The default UI language to use ("de" or "en").
 	lang = de
@@ -239,24 +250,20 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	# NOTE: This is merely a debugging aid and should normally be `false`.
 	logStack = true
 
-	# The IP port to listen to.
-	port = 8181
-
-	# Name of the optional logfile to write to.
-	# NOTE: A relative path/name will be combined with `datadir` (above).
-	logfile = /dev/stdout
-
-	# Accepted size of uploaded files.
-	maxfilesize = 10MB
-
 	# Use preview images of linked pages.
 	# NOTE: This feature depends on the external `wkhtmltoimage` external;
 	# for more details see: https://godoc.org/github.com/mwat56/pageview
 	pageView = true
 
+	# The IP port to listen to.
+	port = 8181
+
+	# Accepted size of uploaded files.
+	maxfilesize = 10MB
+
 	# Password file for HTTP Basic Authentication.
 	# NOTE: a relative path/name will be combined with `datadir` (above).
-	passfile = ./pwaccess.db
+	passFile = ./pwaccess.db
 
 	# Name of host/domain to secure by BasicAuth.
 	realm = "This Host"
