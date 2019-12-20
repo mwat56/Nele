@@ -131,32 +131,43 @@ func InitHashlist(aList *hashtags.THashList) {
 	initHashlist(aList)
 } // InitHashlist()
 
+var (
+	// Lookup table for URL to use in `MarkupCloud()`.
+	htListLookup = map[bool]string{
+		true:  `/hl/`,
+		false: `/ml/`,
+	}
+)
+
 // MarkupCloud returns a list with the markup of all existing
 // #hashtags/@mentions.
 //
 //	`aList` The list of #hashtags/@mentions to use.
 func MarkupCloud(aList *hashtags.THashList) []template.HTML {
-	var (
-		class, url string
-	)
+	var class string
 	list := aList.CountedList()
 	tl := make([]template.HTML, len(list))
 	for idx, item := range list {
-		if 5 > item.Count {
+		if 7 > item.Count { // b000111
 			class = "tc5"
-		} else if 25 > item.Count {
+		} else if 31 > item.Count { // b011111
 			class = "tc25"
-		} else if 50 > item.Count {
+		} else if 63 > item.Count { // b111111
 			class = "tc50"
 		} else {
 			class = "tc99"
 		}
-		if '#' == item.Tag[0] {
-			url = "/hl/" + item.Tag[1:]
-		} else {
-			url = "/ml/" + item.Tag[1:]
-		}
-		tl[idx] = template.HTML(` <a href="` + url + `" class="` + class + `" title=" ` + fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) + ` ">` + item.Tag + `</a> `) // #nosec G203
+		// if '#' == item.Tag[0] {
+		// 	url = "/hl/" + item.Tag[1:]
+		// } else {
+		// 	url = "/ml/" + item.Tag[1:]
+		// }
+
+		tl[idx] = template.HTML(` <a href="` +
+			htListLookup['#' == item.Tag[0]] + item.Tag[1:] +
+			`" class="` + class + `" title=" ` +
+			fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) +
+			` ">` + item.Tag + `</a> `) // #nosec G203
 	}
 
 	return tl
