@@ -93,17 +93,32 @@ func PostingBaseDirectory() string {
 // PostingCount returns the number of postings currently available.
 //
 // In case of I/O errors the return value will be `-1`.
-func PostingCount() int {
+func PostingCount() (rCount int) {
 	if result := atomic.LoadUint32(&µCountCache); 0 < result {
 		return int(result)
 	}
-	if filenames, err := filepath.Glob(poPostingBaseDirectory + "/*/*.md"); nil == err {
-		result := len(filenames)
-		atomic.StoreUint32(&µCountCache, uint32(result))
-		return result
-	}
 
-	return -1
+	// Instead of doing this in one loop we actually do it in two
+	// trading memory consumption with procesing time thus
+	// being prepared for huge amounts of postings.
+	// if filenames, err := filepath.Glob(poPostingBaseDirectory + "/*/*.md"); nil == err {
+	// 	rCount = len(filenames)
+	// 	atomic.StoreUint32(&µCountCache, uint32(rCount))
+	// 	return
+	// }
+
+	dirnames, err := filepath.Glob(poPostingBaseDirectory + "/*")
+	if nil != err {
+		return -1 // we can't recover from this :-(
+	}
+	for _, mdName := range dirnames {
+		if filesnames, err := filepath.Glob(mdName + "/*.md"); nil == err {
+			rCount += len(filesnames)
+		}
+	}
+	atomic.StoreUint32(&µCountCache, uint32(rCount))
+
+	return
 } // PostingCount()
 
 // SetPostingBaseDirectory sets the base directory used for
