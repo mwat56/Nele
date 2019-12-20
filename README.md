@@ -392,14 +392,14 @@ Those image files are stored locally (in the `./img/` directory) and may be used
 The great commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
 Under Linux this utility is usually part of your distribution.
 If not, you can [download wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) from the web and install it.
-Usually the package from the download page above is more recent than the version in your Linux distribution.
+Sometimes the package from the download page above is more recent than the version in your Linux distribution.
 If in doubt, I'd suggest to test both versions to determine which one to use and works best for you.
 
 Generating a preview image usually takes between one and five seconds, depending on the actual web-page in question, however, it can take considerably longer.
 To avoid hanging the program the `wkhtmltoimage` is called with an one minute timeout.
 
 And, finally, not all web-pages can be rendered properly and turned into an image.
-In such case `wkhtmltoimage` just crashes and the link in your paosting just remains as is (i.e. a normal text link w/o preview).
+In such case `wkhtmltoimage` usually just crashes and the link in your posting just remains as is (i.e. a normal text link w/o preview).
 
 ## Configuration
 
