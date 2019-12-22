@@ -281,14 +281,4 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 	return aPage
 } // RemoveWhiteSpace()
 
-var (
-	// RegEx to replace CR/LF by LF
-	reCrLfRE = regexp.MustCompile("\r\n")
-)
-
-// `replCRLF()` replaces all CR/LF pairs by a single LF.
-func replCRLF(aText []byte) []byte {
-	return reCrLfRE.ReplaceAllLiteral(aText, []byte("\n"))
-} // replCRLF()
-
 /* _EoF_ */

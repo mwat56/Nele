@@ -165,6 +165,16 @@ func newViewList(aDirectory string) (*TViewList, error) {
 } // newViewList()
 
 var (
+	// RegEx to replace CR/LF by LF
+	reCrLfRE = regexp.MustCompile("\r\n")
+)
+
+// `replCRLF()` replaces all CR/LF pairs by a single LF.
+func replCRLF(aText []byte) []byte {
+	return reCrLfRE.ReplaceAllLiteral(aText, []byte("\n"))
+} // replCRLF()
+
+var (
 	// RegEx to find path and possible added path components
 	reURLpartsRE = regexp.MustCompile(
 		`(?i)^/?([\p{L}\d_.-]+)?/?([\p{L}\d_§.?!=:;/,@# -]*)?`)
