@@ -18,6 +18,10 @@ func Test_MarkupTags(t *testing.T) {
 	[link text](http://host.com/page#frag2) #hash2`)
 	w1 := []byte(`bla <a href="/hl/hash1" class="smaller">#hash1</a> bla _<a href="/ml/mention1" class="smaller">@mention1</a>_ bla&#39; <a href="page#fragment">bla</a>
 	[link text](http://host.com/page<a href="/hl/frag2" class="smaller">#frag2</a>) <a href="/hl/hash2" class="smaller">#hash2</a>`)
+	p2 := []byte(`
+*@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Spain*`)
+	w2 := []byte(`
+*<a href="/ml/Antoni_Comín" class="smaller">@Antoni_Comín</a> <a href="/ml/Carles_Puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/Catalonia" class="smaller">@Catalonia</a> <a href="/ml/EU" class="smaller">@EU</a> <a href="/ml/Immunity" class="smaller">@Immunity</a> <a href="/ml/Oriol_Junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/Spain" class="smaller">@Spain</a>*`)
 	type args struct {
 		aPage []byte
 	}
@@ -28,6 +32,7 @@ func Test_MarkupTags(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{" 1", args{p1}, w1},
+		{" 2", args{p2}, w2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

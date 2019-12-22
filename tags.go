@@ -68,7 +68,7 @@ var (
 	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
 
 	// match: #hashtag|@mention
-	htHashMentionRE = regexp.MustCompile(`(?i)([@#][§\wÄÖÜß-]+)(.?|$)`)
+	htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}\d_§-]+)(.?|$)`)
 )
 
 // AddTagID checks a newly added `aPosting` for #hashtags and @mentions.
