@@ -340,7 +340,9 @@ func SearchPostings(aText string) *TPostList {
 
 var (
 	// RegEx to find path and possible added path components
-	reURLpartsRE = regexp.MustCompile(`(?i)^/?([\w._-]+)?/?([§ÄÖÜß\w.?!=:;/,_@# -]*)?`)
+	reURLpartsRE = regexp.MustCompile(
+		`(?i)^/?([\p{L}\d_.-]+)?/?([\p{L}\d_§.?!=:;/,@# -]*)?`)
+	//           1111111111111     222222222222222222222222
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,

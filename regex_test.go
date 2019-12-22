@@ -203,6 +203,8 @@ func TestURLparts(t *testing.T) {
 		{" 9", args{"/ht/kurzerklärt"}, "ht", "kurzerklärt"},
 		{"10", args{`share/https://utopia.de/ratgeber/pink-lady-das-ist-faul-an-dieser-apfelsorte/#main_content`}, `share`, `https://utopia.de/ratgeber/pink-lady-das-ist-faul-an-dieser-apfelsorte/#main_content`},
 		{"11", args{"/s/search term"}, "s", "search term"},
+		{"12", args{"/ml/antoni_comín"}, "ml", "antoni_comín"},
+		{"13", args{"/s/Änderungen erklären"}, "s", "Änderungen erklären"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
