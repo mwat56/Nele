@@ -3,37 +3,37 @@
 {{- end -}}
 
 {{- define "bodypage" -}}
-{{- $lang := "de" -}}
-{{- if .Lang}}{{$lang = .Lang}}{{end -}}
-{{- if eq $lang "de" -}}
-	<h3>Datum ändern:</h3>
-{{- else -}}
-	<h3>Change Date:</h3>
-{{- end -}}
-	<form method="post" action="/d/{{.ID}}" enctype="application/x-www-form-urlencoded">
+	{{- $lang := "de" -}}
+	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
 	{{- if eq $lang "de" -}}
-		<p class="right"><label for="ymd">Datum: </label> &nbsp;
-		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
-		<p class="right"><label for="hms">Zeit: </label> &nbsp;
-		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
-		<p class="right">
-		<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain"> &nbsp;
-		<input type="reset" name="reset" title=" Zurücksetzen " value=" Zurücksetzen "> &nbsp;
-		<input type="submit" name="submit" title=" Speichern " value=" Speichern "></p>
+		<h3>Datum ändern:</h3>
 	{{- else -}}
-		<p class="right"><label for="ymd">Date: </label> &nbsp;
-		<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
-		<p class="right"><label for="hms">Time: </label> &nbsp;
-		<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
-		<p class="right">
-		<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain"> &nbsp;
-		<input type="reset" name="reset" title=" Reset " value=" Reset "> &nbsp;
-		<input type="submit" name="submit" title=" Save " value=" Save "></p>
+		<h3>Change Date:</h3>
 	{{- end -}}
-	</form>
-{{- if .Manuscript -}}
-	<pre id="preview">
+		<form method="post" action="/dp/{{.ID}}" enctype="application/x-www-form-urlencoded">
+		{{- if eq $lang "de" -}}
+			<p class="right"><label for="ymd">Datum: </label> &nbsp;
+			<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
+			<p class="right"><label for="hms">Zeit: </label> &nbsp;
+			<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
+			<p class="right">
+			<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain"> &nbsp;
+			<input type="reset" name="reset" title=" Zurücksetzen " value=" Zurücksetzen "> &nbsp;
+			<input type="submit" name="submit" title=" Speichern " value=" Speichern "></p>
+		{{- else -}}
+			<p class="right"><label for="ymd">Date: </label> &nbsp;
+			<input type="date" id="ymd" name="ymd" max="{{.NOW}}" value="{{.YMD}}" autofocus></p>
+			<p class="right"><label for="hms">Time: </label> &nbsp;
+			<input type="time" id="hms" name="hms" value="{{.HMS}}"></p>
+			<p class="right">
+			<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain"> &nbsp;
+			<input type="reset" name="reset" title=" Reset " value=" Reset "> &nbsp;
+			<input type="submit" name="submit" title=" Save " value=" Save "></p>
+		{{- end -}}
+		</form>
+	{{- if .Manuscript -}}
+		<pre id="preview">
 {{.Manuscript}}
-	</pre>
-{{- end -}}
+		</pre>
+	{{- end -}}
 {{- end -}}

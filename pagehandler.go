@@ -86,9 +86,9 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 
 	if s, err = AppArguments.Get("hashFile"); nil == err {
-		result.hashList, _ = hashtags.New("")
-		result.hashList.SetFilename(s)
-		InitHashlist(result.hashList) // background operation
+		result.hashList, _ = hashtags.New(s)
+		hashtags.UseBinaryStorage = false //TODO REMOVE
+		InitHashlist(result.hashList)     // background operation
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
@@ -370,7 +370,14 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "privacy", "datenschutz":
 		ph.handleReply("privacy", aWriter, check4lang(pageData, aRequest))
 
-	// case `pv`: // see below `v`
+	case `pv`, `v`: // update the pageView images
+		if ph.pageView {
+			pageData = check4lang(pageData, aRequest).
+				Set("Robots", "noindex,nofollow")
+			ph.handleReply("pv", aWriter, pageData)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		}
 
 	case "q":
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
@@ -426,17 +433,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow")
 		ph.handleReply("ss", aWriter, pageData)
 
-	case "static":
+	case "static": // deliver a static resource
 		ph.staticFh.ServeHTTP(aWriter, aRequest)
-
-	case `v`, `pv`: // update the pageView images
-		if ph.pageView {
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,nofollow")
-			ph.handleReply("pv", aWriter, pageData)
-		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
-		}
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -521,7 +519,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	// GET `/somethingelse/` which would confuse the browser.
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
-	case `a`: // add a new post
+	case `ap`: // add a new post
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
@@ -542,7 +540,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case `d`: // change date of posting
+	case `dp`: // change date of posting
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
@@ -580,7 +578,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 
-	case `e`: // edit posting
+	case `ep`: // edit posting
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
@@ -611,7 +609,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		tail += "?z=" + p.ID() // kick the browser cache
 		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 
-	case `i`: // init hash list
+	case `il`: // init hash list
 		if nil != ph.hashList {
 			if a := aRequest.FormValue("abort"); 0 < len(a) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -623,7 +621,19 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 		}
 
-	case `r`: // posting removal
+	case `pv`: // update page preViews
+		if ph.pageView {
+			if a := aRequest.FormValue("abort"); 0 < len(a) {
+				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+				return
+			}
+			UpdatePreviews(PostingBaseDirectory(), `/img/`)
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		}
+
+	case `rp`: // posting removal
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
@@ -663,18 +673,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		ph.handleUpload(aWriter, aRequest, false)
 
-	case `v`:
-		if ph.pageView {
-			if a := aRequest.FormValue("abort"); 0 < len(a) {
-				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-				return
-			}
-			UpdatePreviews(PostingBaseDirectory(), `/img/`)
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
-		}
-	case `x`: // eXchange #tags/@mentions
+	case `xt`: // eXchange #tags/@mentions
 		if a := aRequest.FormValue("abort"); 0 < len(a) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return

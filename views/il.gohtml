@@ -6,16 +6,16 @@
 	{{- $lang := "de" -}}
 	{{- if .Lang}}{{$lang = .Lang}}{{end -}}
 	{{- if eq $lang "de" -}}
-		<h3>Hash-Liste neu einlesen</h3>
+		<h3 class="centered">Hash-Liste neu einlesen</h3>
 	{{- else -}}
-		<h3>re-read hash list</h3>
+		<h3 class="centered">Re-read hash list</h3>
 	{{- end -}}
-	<form method="post" action="/i/" enctype="application/x-www-form-urlencoded"><p class="centered">
+	<form method="post" action="/il/" enctype="application/x-www-form-urlencoded"><p class="centered">
 	{{- if eq $lang "de" -}}
-		<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain"> &nbsp;
+		<input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain"> &nbsp; &nbsp;
 		<input type="submit" name="submit" title=" Starten " value=" Starten ">
 	{{- else -}}
-		<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain"> &nbsp;
+		<input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain"> &nbsp; &nbsp;
 		<input type="submit" name="submit" title=" Start " value=" Start ">
 	{{- end -}}
 	</p></form>
