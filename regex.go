@@ -14,12 +14,10 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	// bf "github.com/russross/blackfriday/v2"
@@ -337,29 +335,5 @@ func SearchPostings(aText string) *TPostList {
 
 	return pl
 } // SearchPostings()
-
-var (
-	// RegEx to find path and possible added path components
-	reURLpartsRE = regexp.MustCompile(
-		`(?i)^/?([\p{L}\d_.-]+)?/?([\p{L}\d_§.?!=:;/,@# -]*)?`)
-	//           1111111111111     222222222222222222222222
-)
-
-// URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
-// `rPath` holds the remaining part of `aURL`.
-//
-// Depending on the actual value of `aURL` both return values may be
-// empty or both may be filled; none of both will hold a leading slash.
-func URLparts(aURL string) (rDir, rPath string) {
-	if result, err := url.QueryUnescape(aURL); nil == err {
-		aURL = result
-	}
-	matches := reURLpartsRE.FindStringSubmatch(aURL)
-	if 2 < len(matches) {
-		return matches[1], strings.TrimSpace(matches[2])
-	}
-
-	return aURL, ""
-} // URLparts()
 
 /* _EoF_ */

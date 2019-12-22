@@ -17,6 +17,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -162,6 +163,30 @@ func newViewList(aDirectory string) (*TViewList, error) {
 
 	return result, nil
 } // newViewList()
+
+var (
+	// RegEx to find path and possible added path components
+	reURLpartsRE = regexp.MustCompile(
+		`(?i)^/?([\p{L}\d_.-]+)?/?([\p{L}\d_§.?!=:;/,@# -]*)?`)
+	//           1111111111111     222222222222222222222222
+)
+
+// URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
+// `rPath` holds the remaining part of `aURL`.
+//
+// Depending on the actual value of `aURL` both return values may be
+// empty or both may be filled; none of both will hold a leading slash.
+func URLparts(aURL string) (rDir, rPath string) {
+	if result, err := url.QueryUnescape(aURL); nil == err {
+		aURL = result
+	}
+	matches := reURLpartsRE.FindStringSubmatch(aURL)
+	if 2 < len(matches) {
+		return matches[1], strings.TrimSpace(matches[2])
+	}
+
+	return aURL, ""
+} // URLparts()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -351,7 +376,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			p := NewPosting(tail)
 			if err := p.Load(); nil != err {
 				apachelogger.Err("TPageHandler.handleGET()",
-					fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
+					fmt.Sprintf("TPosting.Load('%s'): %v", p.ID(), err))
 			} else {
 				date := p.Date()
 				pageData = check4lang(pageData, aRequest).
