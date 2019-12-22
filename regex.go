@@ -160,26 +160,6 @@ func MDtoHTML(aMarkdown []byte) []byte {
 	return handlePreCode(result)
 } // MDtoHTML()
 
-var (
-	// RegEx to extract number and start of articles shown
-	reNumStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
-)
-
-// `numStart()` extracts two numbers from `aString`.
-func numStart(aString string) (rNum, rStart int) {
-	matches := reNumStartRE.FindStringSubmatch(aString)
-	if 3 < len(matches) {
-		if 0 < len(matches[1]) {
-			rNum, _ = strconv.Atoi(matches[1])
-		}
-		if 0 < len(matches[3]) {
-			rStart, _ = strconv.Atoi(matches[3])
-		}
-	}
-
-	return
-} // numStart()
-
 // `trimPREmatches()` removes leading/trailing whitespace from list entries.
 func trimPREmatches(aList [][]byte) [][]byte {
 	for idx, hit := range aList {

@@ -164,6 +164,29 @@ func newViewList(aDirectory string) (*TViewList, error) {
 	return result, nil
 } // newViewList()
 
+
+var (
+	// RegEx to extract number and start of articles shown
+	reNumStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
+)
+
+// `numStart()` extracts two numbers from `aString`.
+func numStart(aString string) (rNum, rStart int) {
+	matches := reNumStartRE.FindStringSubmatch(aString)
+	if 3 < len(matches) {
+		if 0 < len(matches[1]) {
+			rNum, _ = strconv.Atoi(matches[1])
+		}
+		if 0 < len(matches[3]) {
+			rStart, _ = strconv.Atoi(matches[3])
+		}
+	}
+
+	return
+} // numStart()
+
+
+
 var (
 	// RegEx to replace CR/LF by LF
 	reCrLfRE = regexp.MustCompile("\r\n")
