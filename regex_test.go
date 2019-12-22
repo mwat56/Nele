@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func Test_initWSre(t *testing.T) {
@@ -155,88 +154,6 @@ func Test_addExternURLtagets(t *testing.T) {
 		})
 	}
 } // Test_addExternURLtagets()
-
-func Test_getHMS(t *testing.T) {
-	type args struct {
-		aTime string
-	}
-	tests := []struct {
-		name        string
-		args        args
-		wantRHour   int
-		wantRMinute int
-		wantRSecond int
-	}{
-		// TODO: Add test cases.
-		{" 1", args{"1:2:3"}, 1, 2, 3},
-		{" 2", args{"01:2:3"}, 1, 2, 3},
-		{" 3", args{"01:02:3"}, 1, 2, 3},
-		{" 4", args{"01:02:03"}, 1, 2, 3},
-		{" 5", args{"23:02:03"}, 23, 2, 3},
-		{" 6", args{"24:02:03"}, 0, 0, 0},
-		{" 7", args{"23:2:73"}, 23, 2, 7},
-		{" 8", args{"1:82:3"}, 1, 8, 0},
-		{" 9", args{"1:0:1"}, 1, 0, 1},
-		{"10", args{"01:02"}, 1, 2, 0},
-		{"11", args{"01:02:"}, 1, 2, 0},
-		{"12", args{"01:02:03/#anchor"}, 1, 2, 3},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotRHour, gotRMinute, gotRSecond := getHMS(tt.args.aTime)
-			if gotRHour != tt.wantRHour {
-				t.Errorf("getHMS() gotRHour = %v, want %v", gotRHour, tt.wantRHour)
-			}
-			if gotRMinute != tt.wantRMinute {
-				t.Errorf("getHMS() gotRMinute = %v, want %v", gotRMinute, tt.wantRMinute)
-			}
-			if gotRSecond != tt.wantRSecond {
-				t.Errorf("getHMS() gotRSecond = %v, want %v", gotRSecond, tt.wantRSecond)
-			}
-		})
-	}
-} // Test_getHMS()
-
-func Test_getYMD(t *testing.T) {
-	type args struct {
-		aDate string
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantRYear  int
-		wantRMonth time.Month
-		wantRDay   int
-	}{
-		// TODO: Add test cases.
-		{" 0", args{""}, 0, 0, 0},
-		{" 1", args{"2019"}, 2019, 0, 0},
-		{" 2", args{"201909"}, 2019, 9, 0},
-		{" 3", args{"20191009"}, 2019, 10, 9},
-		{" 4", args{"WTF"}, 0, 0, 0},
-		{" 5", args{"1914Sep01"}, 1914, 0, 0},
-		{" 6", args{"2019-10-18"}, 2019, 10, 18},
-		{" 7", args{"1914 09 28"}, 1914, 9, 28},
-		{" 8", args{"20191308"}, 2019, 0, 0},
-		{" 9", args{"20190332"}, 2019, 3, 0},
-		{"10", args{"20191021#p156b52d99af4b401"}, 2019, 10, 21},
-		{"11", args{"20181128/#p156b52d99af4b401"}, 2018, 11, 28},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotRYear, gotRMonth, gotRDay := getYMD(tt.args.aDate)
-			if gotRYear != tt.wantRYear {
-				t.Errorf("getYMD() gotRYear = %v, want %v", gotRYear, tt.wantRYear)
-			}
-			if gotRMonth != tt.wantRMonth {
-				t.Errorf("getYMD() gotRMonth = %v, want %v", gotRMonth, tt.wantRMonth)
-			}
-			if gotRDay != tt.wantRDay {
-				t.Errorf("getYMD() gotRDay = %v, want %v", gotRDay, tt.wantRDay)
-			}
-		})
-	}
-} // Test_getYMD()
 
 func Test_handlePreCode(t *testing.T) {
 	m1 := []byte(`<p>test</p>

@@ -14,8 +14,6 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"strconv"
-	"time"
 
 	// bf "github.com/russross/blackfriday/v2"
 	bf "gopkg.in/russross/blackfriday.v2"
@@ -35,59 +33,6 @@ const (
 func addExternURLtagets(aPage []byte) []byte {
 	return reHrefRE.ReplaceAll(aPage, []byte(reHrefReplace))
 } // addExternURLtagets()
-
-var (
-	// RegEx to match hh:mm:ss
-	reHmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])([^0-9]([0-5]?[0-9]))?)?[^0-9]?|$`)
-)
-
-// `getHMS()` splits up `aTime` into `rHour`, `rMinute`, and `rSecond`.
-func getHMS(aTime string) (rHour, rMinute, rSecond int) {
-	matches := reHmsRE.FindStringSubmatch(aTime)
-	if 1 < len(matches) {
-		// The RegEx only matches digits so we can
-		// safely ignore all Atoi() errors.
-		rHour, _ = strconv.Atoi(matches[1])
-		if 0 < len(matches[5]) {
-			rMinute, _ = strconv.Atoi(matches[5])
-			if 0 < len(matches[7]) {
-				rSecond, _ = strconv.Atoi(matches[7])
-			}
-		}
-	}
-
-	return
-} // getHMS()
-
-var (
-	// RegEx to match YYYY(MM)(DD)
-	// Invalid values for month or day result in a `0` result.
-	// This is just a pattern test, it doesn't check whether the date is valid.
-	// reYmdRE = regexp.MustCompile("^([0-9]{4})[^0-9]?(((0?[0-9])|(1[0-2]))[^0-9]?((0?[0-9])?|([12][0-9])?|(3[01])?)?)?$")
-	reYmdRE = regexp.MustCompile(`^([0-9]{4})([^0-9]?(0[1-9]|1[012])([^0-9]?(0[1-9]|[12][0-9]|3[01])?)?)?[^0-9]?`)
-)
-
-// `getYMD()` splits up `aDate` into `rYear`, `rMonth`, and `rDay`.
-//
-// This is just a pattern test: the function doesn't check whether
-// the date as such is a valid date.
-func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
-	matches := reYmdRE.FindStringSubmatch(aDate)
-	if 1 < len(matches) {
-		// The RegEx only matches digits so we can
-		// safely ignore all Atoi() errors.
-		rYear, _ = strconv.Atoi(matches[1])
-		if 0 < len(matches[3]) {
-			m, _ := strconv.Atoi(matches[3])
-			rMonth = time.Month(m)
-			if 0 < len(matches[5]) {
-				rDay, _ = strconv.Atoi(matches[5])
-			}
-		}
-	}
-
-	return
-} // getYMD()
 
 func init() {
 	initWSre()
