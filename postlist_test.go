@@ -33,6 +33,37 @@ func TestNewPostList(t *testing.T) {
 	}
 } // TestNewPostList()
 
+func TestSearchPostings(t *testing.T) {
+	SetPostingBaseDirectory("/tmp/postings/")
+	bd := PostingBaseDirectory()
+	prepareTestFiles()
+	type args struct {
+		aBaseDir string
+		aText    string
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		// TODO: Add test cases.
+		{" 1", args{bd, "16"}, 24},
+		{" 2", args{bd, "8"}, 50},
+		{" 3", args{bd, "1\\d+"}, 72},
+		{" 4", args{bd, "10\\d+"}, 0},
+		{" 5", args{bd, "08\\s+08"}, 2},
+		{" 6", args{bd, bd}, 72},
+		{" 7", args{bd, "postings"}, 72},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SearchPostings(tt.args.aText); got.Len() != tt.want {
+				t.Errorf("Search() = %v, want %v", got.Len(), tt.want)
+			}
+		})
+	}
+} // TestSearchPostings()
+
 func TestTPostList_Add(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 	p1 := NewPosting("")

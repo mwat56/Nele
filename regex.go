@@ -13,9 +13,6 @@ package nele
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"path"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"time"
@@ -293,47 +290,5 @@ var (
 func replCRLF(aText []byte) []byte {
 	return reCrLfRE.ReplaceAllLiteral(aText, []byte("\n"))
 } // replCRLF()
-
-// SearchPostings traverses the sub-directories of `aBaseDir` looking
-// for `aText` in all posting files.
-//
-// The returned `TPostList` can be empty because (a) `aText` could not be
-// compiled into a regular expression, (b) no files to search were found,
-// or (c) no files matched `aText`.
-//
-// `aText` is the text to look for in the postings.
-func SearchPostings(aText string) *TPostList {
-	pl := NewPostList()
-
-	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
-	if err != nil {
-		return pl // empty list
-	}
-
-	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
-	if nil != err {
-		return pl
-	}
-	for _, dirname := range dirnames {
-		files, err := filepath.Glob(dirname + "/*.md")
-		if nil != err {
-			continue // it might be a file (not a directory) …
-		}
-
-		for _, fName := range files {
-			fTxt, err := ioutil.ReadFile(fName) // #nosec G304
-			if (nil != err) || (!pattern.Match(fTxt)) {
-				// We 'eat' possible errors here, indirectly
-				// assuming them to be a no-match.
-				continue
-			}
-			id := path.Base(fName)
-			p := NewPosting(id[:len(id)-3]) // exclude file extension
-			pl.Add(p.Set(fTxt))
-		}
-	}
-
-	return pl
-} // SearchPostings()
 
 /* _EoF_ */
