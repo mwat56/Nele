@@ -16,10 +16,14 @@
   + `Lang` == the page's language
 
 * `05rightbar.gohtml`: fills the right side of the page.
+  + `Lang` == the page's language
+  + `PostingCount` == the current number of overall postings
   + `Taglist` == List of #hashtags/@mentions
 
 * `06footer.gohtml`: includes the BODY/FOOTER element.
   + `Lang` == the page's language
+  + `weekURL` == address for postings of the current week
+  + `monthURL` == address for postings of the current month
 
 `./views/`
 
@@ -27,12 +31,13 @@
   + `Lang` == the page's language
 
 * `article.gohtml`: called for the URL `"/p/…"` to show a single posting.
-  + `Posting` == a single posting with the elements
+  + `Posting` == a single posting with the elements:
     - `Date` == the date of the single posting
     - `ID` == the identifier of the single posting
     - `Post` == the actual text of the single posting
+  + `weekURL` == address for postings of the current week
 
-* `dc.gohtml`: called for the URL `"/d/…"` to change an article's date/time.
+* `dp.gohtml`: called for the URL `"/dp/…"` to change an article's date/time.
   + `HMS` == the posting's hour-minute-second
   + `ID` == the ID of the current article
   + `Lang` == the page's language
@@ -40,10 +45,12 @@
   + `NOW` == the current date's year-month-date
   + `YMD` == the posting's year-month-day
 
-* `ed.gohtml`: called for the URL `"/e/…"` to edit an article's text.
+* `ep.gohtml`: called for the URL `"/ep/…"` to edit an article's text.
+  + `HMS` == the posting's hour-minute-second
   + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
+  + `YMD` == the posting's year-month-day
 
 * `error.gohtml`: internally called to send error messages to the remote user.
   + `Error` == the respective error message
@@ -51,15 +58,19 @@
 * `faq.gohtml`: called for the URL `"/faq"` to to show some FAQs
   + `Lang` == the page's language
 
+* `il.gohtml`: called for the URL `"/il"` to (re-)initialise the list of #hashtags/@mentions.
+  + `Lang` == the page's language
+
 * `imprint.gohtml`: called fo the URLs `"/imprint"` and `"/impressum"` to show the site's imprint.
   + `Lang` == the page's language
   + Please be aware that the actual contents of this file is subject to your own country's laws and legislation.
 
 * `index.gohtml`: called for the URLs `"/"`, `"/index"` and `"/n/…"` to show a list of postings
-  + `Postings` == a list of postings, each consisting of entries with the elements.
+  + `Postings` == a list of postings, each consisting of entries with the elements:
     - `Date` == the date of the respective posting
     - `ID` == the identifier of the respective posting
     - `Post` == the actual text of the respective posting
+  + `nextLink` == address of the next page og articles
 
 * `licence.gohtml`: called for URLs `"/licence"`, `"/license"`, and `"/lizenz"` to show the site content's licence.
   + `Lang` == the page's language
@@ -69,15 +80,20 @@
   + `Lang` == the page's language
   + Please be aware that the actual contents of this file is subject to your own country's laws and legislation.
 
-* `rp.gohtml`: called for the URL `"/r/…"` to remove an article's altogether.
+* `pv.gohtml`: called for the URL `"/pv"` to check all link preview images.
+  + `Lang` == the page's language
+
+* `rp.gohtml`: called for the URL `"/rp/…"` to remove an article's altogether.
+  + `HMS` == the posting's hour-minute-second
   + `ID` == the ID of the current article
   + `Lang` == the page's language
   + `Manuscript` == the posting's text
+  + `YMD` == the posting's year-month-day
 
 * `searchressult.gohtml`: called for the URL `"/s/…"` to show the results of a search.
   + `Lang` == the page's language
   + `Matches` == number of search results
-  + `Postings` == a list of postings, each consisting of entries with the elements
+  + `Postings` == a list of postings, each consisting of entries with the elements:
     - `Date` == the date of the respective posting
     - `ID` == the identifier of the respective posting
     - `Post` == the actual text of the respective posting
@@ -88,3 +104,5 @@
 * `ss.gohtml`: called for the URL `"/ss"` to upload a static file.
   + `Lang` == the page's language
 
+* `xt.gohtml`: called for the URL `"/xt"` to exchange some #hashtags/@mentions.
+  + `Lang` == the page's language
