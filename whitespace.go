@@ -6,109 +6,25 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 /*
- * This files provides a few RegEx based functions.
+ * This files provides a function to remove redundant whitespace
+ * and comments from a HTML page.
  */
 
 import (
 	"bytes"
 	"fmt"
 	"regexp"
-
-	// bf "github.com/russross/blackfriday/v2"
-	bf "gopkg.in/russross/blackfriday.v2"
 )
-
-var (
-	// RegEx to HREF= tag attributes
-	reHrefRE = regexp.MustCompile(` (href="http)`)
-)
-
-const (
-	// replacement text for `hrefRE`
-	reHrefReplace = ` target="_extern" $1`
-)
-
-// `addExternURLtagets()` adds a TARGET attribute to HREFs.
-func addExternURLtagets(aPage []byte) []byte {
-	return reHrefRE.ReplaceAll(aPage, []byte(reHrefReplace))
-} // addExternURLtagets()
-
-func init() {
-	initWSre()
-} // init()
-
-// Initialise the `whitespaceREs` list.
-func initWSre() int {
-	result := 0
-	for idx, re := range reWhitespaceREs {
-		reWhitespaceREs[idx].regEx = regexp.MustCompile(re.search)
-		result++
-	}
-	result++
-
-	return result
-} // initWSre()
-
-var (
-	// RegEx to correct wrong markup created by 'bf';
-	// see MDtoHTML()
-	bfPreCodeRE = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
-
-	bfPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
-)
-
-// `handlePreCode()` tries to fix the Pre/Code markup
-func handlePreCode(aMarkdown []byte) (rHTML []byte) {
-	rHTML = bfPreCodeRE.ReplaceAll(aMarkdown, []byte("$1\n$2\n$3"))
-	if i := bytes.Index(rHTML, []byte("<pre><code ")); 0 > i {
-		// no need for the second RegEx execution
-		return
-	}
-	rHTML = bfPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
-
-	return
-} // handlePreCode()
-
-// MDtoHTML converts the `aMarkdown` data returning HTML data.
-//
-// `aMarkdown` the raw Markdown text to convert.
-func MDtoHTML(aMarkdown []byte) []byte {
-	extensions := bf.WithExtensions(
-		bf.Autolink |
-			bf.BackslashLineBreak |
-			bf.DefinitionLists |
-			bf.FencedCode |
-			bf.Footnotes |
-			bf.HeadingIDs |
-			bf.NoIntraEmphasis |
-			bf.SpaceHeadings |
-			bf.Strikethrough |
-			bf.Tables)
-	r := bf.NewHTMLRenderer(bf.HTMLRendererParameters{
-		Flags: bf.FootnoteReturnLinks |
-			bf.Smartypants |
-			bf.SmartypantsFractions |
-			bf.SmartypantsDashes |
-			bf.SmartypantsLatexDashes,
-	})
-	result := bf.Run(aMarkdown, bf.WithRenderer(r), extensions)
-
-	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
-		// no need for RegEx execution
-		return result
-	}
-	// Testing for PRE makes this implementation twice as fast
-	// if there's no PRE in the generated HTML and about the
-	// same speed if there actually is a PRE part.
-
-	return handlePreCode(result)
-} // MDtoHTML()
 
 // `trimPREmatches()` removes leading/trailing whitespace from list entries.
 func trimPREmatches(aList [][]byte) [][]byte {
 	for idx, hit := range aList {
-		aList[idx] = bytes.TrimSpace(hit)
+		if aList[idx] = bytes.TrimSpace(hit); nil == aList[idx] {
+			aList[idx] = []byte(``)
+		}
 	}
 
 	return aList
@@ -122,15 +38,14 @@ type (
 		replace string
 		regEx   *regexp.Regexp
 	}
-	tReList []tReItem
 )
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
-	rePreRE = regexp.MustCompile(`(?si)\s*<pre[^>]*>.*?</pre>\s*`)
+	wsPreRE = regexp.MustCompile(`(?si)\s*<pre[^>]*>.*?</pre>\s*`)
 
 	// List of regular expressions matching different sets of HTML whitespace.
-	reWhitespaceREs = tReList{
+	wsREs = []tReItem{
 		// comments
 		{`(?s)<!--.*?-->`, ``, nil},
 		// HTML and HEAD elements:
@@ -156,21 +71,38 @@ var (
 	}
 )
 
-// RemoveWhiteSpace removes HTML comments and unnecessary whitespace.
+var (
+	// Initialise the `whitespaceREs` list.
+	_ = func() int {
+		result := 0
+		for idx, re := range wsREs {
+			wsREs[idx].regEx = regexp.MustCompile(re.search)
+			result++
+		}
+		result++
+
+		return result
+	}()
+)
+
+// RemoveWhiteSpace returns `aPage` with al.l HTML comments and
+// unnecessary whitespace removed.
 //
 // This function removes all unneeded/redundant whitespace
 // and HTML comments from the given <tt>aPage</tt>.
 // This can reduce significantly the amount of data to send to
-// the remote user agent thus saving bandwidth.
+// the remote user agent thus saving bandwidth and transfer time.
+//
+//	`aPage` The web page's HTML markup to process.
 func RemoveWhiteSpace(aPage []byte) []byte {
 	var repl, search string
 
 	// fmt.Println("Page0:", string(aPage))
 	// (0) Check whether there are PREformatted parts:
-	preMatches := rePreRE.FindAll(aPage, -1)
+	preMatches := wsPreRE.FindAll(aPage, -1)
 	if (nil == preMatches) || (0 >= len(preMatches)) {
 		// no PRE hence only the other REs to perform
-		for _, reEntry := range reWhitespaceREs {
+		for _, reEntry := range wsREs {
 			aPage = reEntry.regEx.ReplaceAll(aPage, []byte(reEntry.replace))
 		}
 		return aPage
@@ -179,24 +111,24 @@ func RemoveWhiteSpace(aPage []byte) []byte {
 
 	// Make sure PREformatted parts remain as-is.
 	// (1) replace the PRE parts with a dummy text:
-	for l, cnt := len(preMatches), 0; cnt < l; cnt++ {
-		search = fmt.Sprintf("\\s*%s\\s*", regexp.QuoteMeta(string(preMatches[cnt])))
+	for lLen, cnt := len(preMatches), 0; cnt < lLen; cnt++ {
+		search = fmt.Sprintf(`\s*%s\s*`, regexp.QuoteMeta(string(preMatches[cnt])))
 		if re, err := regexp.Compile(search); nil == err {
-			repl = fmt.Sprintf("</-%d-%d-%d-%d-/>", cnt, cnt, cnt, cnt)
+			repl = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
 			aPage = re.ReplaceAllLiteral(aPage, []byte(repl))
 		}
 	}
 	// fmt.Println("Page1:", string(aPage))
 
 	// (2) traverse through all the whitespace REs:
-	for _, re := range reWhitespaceREs {
+	for _, re := range wsREs {
 		aPage = re.regEx.ReplaceAll(aPage, []byte(re.replace))
 	}
 	// fmt.Println("Page2:", string(aPage))
 
 	// (3) replace the PRE dummies with the real markup:
-	for l, cnt := len(preMatches), 0; cnt < l; cnt++ {
-		search = fmt.Sprintf("\\s*</-%d-%d-%d-%d-/>\\s*", cnt, cnt, cnt, cnt)
+	for lLen, cnt := len(preMatches), 0; cnt < lLen; cnt++ {
+		search = fmt.Sprintf(`\s*</-%d-%d-%d-%d-/>\s*`, cnt, cnt, cnt, cnt)
 		if re, err := regexp.Compile(search); nil == err {
 			aPage = re.ReplaceAllLiteral(aPage, preMatches[cnt])
 		}
