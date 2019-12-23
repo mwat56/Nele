@@ -87,10 +87,10 @@ func getHMS(aTime string) (rHour, rMinute, rSecond int) {
 } // getHMS()
 
 var (
-	// RegEx to match YYYY(MM)(DD)
+	// RegEx to match YYYY(MM)(DD).
 	// Invalid values for month or day result in a `0` result.
-	// This is just a pattern test, it doesn't check whether the date is valid.
-	// reYmdRE = regexp.MustCompile("^([0-9]{4})[^0-9]?(((0?[0-9])|(1[0-2]))[^0-9]?((0?[0-9])?|([12][0-9])?|(3[01])?)?)?$")
+	// This is just a pattern test, it doesn't check whether
+	// the date is valid.
 	reYmdRE = regexp.MustCompile(`^([0-9]{4})([^0-9]?(0[1-9]|1[012])([^0-9]?(0[1-9]|[12][0-9]|3[01])?)?)?[^0-9]?`)
 )
 
@@ -141,8 +141,8 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	if s, err = AppArguments.Get("hashFile"); nil == err {
 		result.hashList, _ = hashtags.New(s)
-		hashtags.UseBinaryStorage = false //TODO REMOVE
-		InitHashlist(result.hashList)     // background operation
+		// hashtags.UseBinaryStorage = false //TODO REMOVE
+		InitHashlist(result.hashList) // background operation
 	}
 
 	if s, err = AppArguments.Get("lang"); nil == err {
