@@ -104,8 +104,8 @@ func InitHashlist(aList *hashtags.THashList) {
 		// `doCheckPost()` returns whether there is a file identified
 		// by `aID` containing `aHash`.
 		//
-		// The function's result is `false` (1) if the file associated
-		// with `aID` doesnt't exist, or (2) if the file can't be
+		// The function's result is `false` if (1) the file associated
+		// with `aID` doesnt't exist, or if (2) the file can't be
 		// read, or (3) the given `aHash` can't be found in the
 		// posting's text.
 		//
