@@ -17,6 +17,8 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"regexp"
+	// bf "github.com/russross/blackfriday/v2"
 )
 
 type (
@@ -47,6 +49,21 @@ func (dl *TDataList) Set(aKey string, aValue interface{}) *TDataList {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+const (
+	// replacement text for `reHrefRE`
+	reHrefReplace = ` target="_extern" $1`
+)
+
+var (
+	// RegEx to HREF= tag attributes
+	reHrefRE = regexp.MustCompile(` (href="http)`)
+)
+
+// `addExternURLtagets()` adds a TARGET attribute to HREFs.
+func addExternURLtagets(aPage []byte) []byte {
+	return reHrefRE.ReplaceAll(aPage, []byte(reHrefReplace))
+} // addExternURLtagets()
+
 type (
 	// Internal type to track changes in certain template vars.
 	tChange struct {
@@ -72,6 +89,8 @@ func newChange() *tChange {
 } // newChange()
 
 // `htmlSafe()` returns `aText` as template.HTML.
+//
+// _Note_ that this is just a typexast without any tests.
 func htmlSafe(aText string) template.HTML {
 	return template.HTML(aText) // #nosec G203
 } // htmlSafe()
