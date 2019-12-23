@@ -396,7 +396,7 @@ Sometimes the package from the download page above is more recent than the versi
 If in doubt, I'd suggest to test both versions to determine which one to use and works best for you.
 
 Generating a preview image usually takes between one and five seconds, depending on the actual web-page in question, however, it can take considerably longer.
-To avoid hanging the program the `wkhtmltoimage` is called with an one minute timeout.
+To avoid hanging the program the `wkhtmltoimage` executable is called with an one minute timeout.
 
 And, finally, not all web-pages can be rendered properly and turned into an image.
 In such case `wkhtmltoimage` usually just crashes and the link in your posting just remains as is (i.e. a normal text link w/o preview).
@@ -425,17 +425,17 @@ Second, there are the URLs any normal user might see and use:
 * `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
 * `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
 * `/hl/tagname` allows the users to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
-Provided the given `tagname` was actually used in one or more of your articles a list of the respective articles will be shown.
+Provided the given `tagname` was actually used in one or more of your articles a list of the respective postings will be shown.
 * `/m/` shows the articles of the current month.
 One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
 * `/ml/mentionedname` allows the users to search for `@mentionedname` (but one will input it without the at sign `@` because that has a special meaning in an URL).
-Provided the given `@mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
+Provided the given `mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 30 articles.
 The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
 If one want to see the articles in slices of, say, 10 per page (instead of the default 30/page) one can use the URL `/n/10,10` and to see the second slice use `/n/10,20`, the third with `/n/10,30` and so on.
 However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for the reader.
 * `/p/1234567890abcdef` shows a single article/posting (the ID is automatically generated).
-This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link.
+This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link in the overview page(s).
 * `/s/searchterm` can be used to search for articles containing a certain word or expression.
 All existing articles will be searched for the given `searchterm`.
 * `/w/` shows the articles of the current week.
@@ -443,8 +443,8 @@ One can, however, specify the week one is interested in by adding a data part de
 
 ### Internal URLs
 
-And, third, there's a group of URLs your users won't usually see or use, because by design they are reserved for you, the author of your postings.
-These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password files comes in.
+And, third, there's a group of URLs your users won't see or use, because by design they are reserved for you, the author of your postings.
+These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password file comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
 If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefor the system disables all options that might modify your system.
@@ -453,7 +453,7 @@ If you forget that (or the file is not accessible for the program) everybody on 
 A simple Web form will allow you to input whatever's on your mind.
 * `/dp/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
 Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just prepend in the URL the `p` by a `d`.
-* `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`.
+* `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`, e.g. to fix typos or correct the grammar.
 * `/il/` (init list): Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist.
 It clears the current list and reads all postings to extract the #hashtags and @mentions.
 _Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
@@ -509,7 +509,7 @@ The `datadir`/`fonts/` directory contains some freely available fonts used by th
 ### Images
 
 The `datadir`/`img/` directory can be used to store, well, _images_ to which you then can link in your articles.
-You can put there whatever images you like either form the command-line or by using the system's `/si` URL.
+You can put there whatever images you like either from the command-line or by using the system's `/si` URL.
 
 Additionally any page preview images are stored here (if use set the `pageView` INI- or commandline-option to `true`).
 
@@ -522,15 +522,15 @@ This directory structure is not accessed via a direct URL but used internally by
 ### Static
 
 The `datadir`/`static/` directory can be used to store, well, _static_ files to which you then can link in your articles.
-You can put there whatever file you like either form the command-line or by using the system's `/ss` URL.
+You can put there whatever file you like either from the command-line or by using the system's `/ss` URL.
 
 ### Views
 
 The `datadir`/`views/` directory holds the templates with which the final HTML pages are generated.
-Provided that you feel at home working with _Go_ templates you might change them as you seem fit.
+Provided that you feel at home working with _Go_ templates you might change them as you see fit.
 I will, however, __not__ provide any support for you changing the default template structure.
 
-An concise overview of the used templates and which variables they use you'll find in the file [template_vars.md](template_vars.md)
+A concise overview of the used templates and which variables they use you'll find in the file [template_vars.md](template_vars.md)
 
 ### Contents
 
