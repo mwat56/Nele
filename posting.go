@@ -21,6 +21,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -28,9 +29,66 @@ import (
 	"time"
 
 	"github.com/mwat56/apachelogger"
+	// bf "github.com/russross/blackfriday/v2"
+	bf "gopkg.in/russross/blackfriday.v2"
 )
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+var (
+	// RegEx to correct wrong/redundant markup created by 'bf';
+	// see MDtoHTML()
+	poPreCodeRE1 = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
+
+	poPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
+)
+
+// `handlePreCode()` tries to fix the Pre/Code markup
+func handlePreCode(aMarkdown []byte) (rHTML []byte) {
+	rHTML = poPreCodeRE1.ReplaceAll(aMarkdown, []byte("$1\n$2\n$3"))
+	if i := bytes.Index(rHTML, []byte("<pre><code ")); 0 > i {
+		// no need for the second RegEx execution
+		return
+	}
+	rHTML = poPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
+
+	return
+} // handlePreCode()
+
+// mdToHTML converts the `aMarkdown` data returning HTML data.
+//
+// `aMarkdown` the raw Markdown text to convert.
+func mdToHTML(aMarkdown []byte) []byte {
+	extensions := bf.WithExtensions(
+		bf.Autolink |
+			bf.BackslashLineBreak |
+			bf.DefinitionLists |
+			bf.FencedCode |
+			bf.Footnotes |
+			bf.HeadingIDs |
+			bf.NoIntraEmphasis |
+			bf.SpaceHeadings |
+			bf.Strikethrough |
+			bf.Tables)
+	r := bf.NewHTMLRenderer(bf.HTMLRendererParameters{
+		Flags: bf.FootnoteReturnLinks |
+			bf.Smartypants |
+			bf.SmartypantsFractions |
+			bf.SmartypantsDashes |
+			bf.SmartypantsLatexDashes,
+	})
+	result := bf.Run(aMarkdown, bf.WithRenderer(r), extensions)
+
+	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
+		// no need for RegEx execution
+		return result
+	}
+	// Testing for PRE first makes this implementation twice as fast
+	// if there's no PRE in the generated HTML and about the same
+	// speed if there actually is a PRE part.
+
+	return handlePreCode(result)
+} // mdToHTML()
 
 // `newID()` returns an article ID based on `aTime` in hexadecimal notation.
 //
@@ -358,7 +416,7 @@ func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
 	p.Markdown()
 
-	return template.HTML(MarkupTags(MDtoHTML(p.markdown))) // #nosec G203
+	return template.HTML(MarkupTags(mdToHTML(p.markdown))) // #nosec G203
 } // Post()
 
 // Set assigns the article's Markdown text.

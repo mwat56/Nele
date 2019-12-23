@@ -6,15 +6,59 @@
 
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 import (
 	"reflect"
 	"testing"
 	"time"
 )
 
-func Test_md2ht(t *testing.T) {
+func Test_handlePreCode(t *testing.T) {
+	m1 := []byte(`<p>test</p>
+
+	<pre><code>pre
+part</code></pre>
+
+<p>line 2</p>
+`)
+	w1 := []byte(`<p>test</p><pre>
+pre
+part
+</pre><p>line 2</p>
+`)
+	m2 := []byte(`<p>test</p>
+
+	<pre><code class="language-go">pre
+part</code></pre>
+
+<p>line 2</p>
+`)
+	w2 := []byte(`<p>test</p><pre class="language-go">
+pre
+part
+</pre><p>line 2</p>
+`)
+	type args struct {
+		aMarkdown []byte
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantRHTML []byte
+	}{
+		// TODO: Add test cases.
+		{" 1", args{m1}, w1},
+		{" 2", args{m2}, w2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotRHTML := handlePreCode(tt.args.aMarkdown); !reflect.DeepEqual(gotRHTML, tt.wantRHTML) {
+				t.Errorf("handlePreCode() = %s, want %s", gotRHTML, tt.wantRHTML)
+			}
+		})
+	}
+} // Test_handlePreCode()
+
+func Test_mdToHTML(t *testing.T) {
 	md1 := []byte(`
 ---
 
@@ -55,8 +99,38 @@ end tell
 `)
 	md3 := []byte("Hello `world`!")
 	ht3 := []byte("<p>Hello <code>world</code>!</p>\n")
+
+	md4 := []byte(`# head
+
+a single paragraph[^1].
+
+another "test" paragraph.
+
+    some preformatted
+	text
+
+[^1]: the footnote text
+`)
+	ht4 := []byte(`<h1>head</h1>
+
+<p>a single paragraph<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup>.</p>
+
+<p>another &ldquo;test&rdquo; paragraph.</p><pre>
+some preformatted
+text
+</pre><div class="footnotes">
+
+<hr>
+
+<ol>
+<li id="fn:1">the footnote text <a class="footnote-return" href="#fnref:1"><sup>[return]</sup></a></li>
+</ol>
+
+</div>
+`)
+
 	type args struct {
-		aMD []byte
+		aMarkdown []byte
 	}
 	tests := []struct {
 		name string
@@ -67,15 +141,16 @@ end tell
 		{" 1", args{md1}, ht1},
 		{" 2", args{md2}, ht2},
 		{" 3", args{md3}, ht3},
+		{" 4", args{md4}, ht4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MDtoHTML(tt.args.aMD); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("md2ht() = [%s],\nwant [%s]", got, tt.want)
+			if got := mdToHTML(tt.args.aMarkdown); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("mdToHTML() = [%s],\nwant [%s]", got, tt.want)
 			}
 		})
 	}
-} // Test_md2ht()
+} // Test_mdToHTML()
 
 func Test_newID(t *testing.T) {
 	ct000 := time.Date(2019, 10, 22, 0, 0, 0, 0, time.Local)
@@ -163,8 +238,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 761},
-		{" 2", 761},
+		{" 1", 800},
+		{" 2", 800},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
