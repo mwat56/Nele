@@ -14,7 +14,7 @@ require (
 	github.com/mwat56/uploadhandler v1.0.9
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915 // indirect
-	golang.org/x/sys v0.0.0-20191220220014-0732a990476f // indirect
+	golang.org/x/sys v0.0.0-20191224085550-c709ea063b76 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.1
 )
 
