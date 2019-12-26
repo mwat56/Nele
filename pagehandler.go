@@ -55,7 +55,7 @@ type (
 )
 
 // `check4lang()` looks for a CGI value of `lang` and adds it to `aData` if found.
-func check4lang(aData *TDataList, aRequest *http.Request) *TDataList {
+func check4lang(aData *TemplateData, aRequest *http.Request) *TemplateData {
 	if l := aRequest.FormValue("lang"); 0 < len(l) {
 		return aData.Set("Lang", l)
 	}
@@ -279,10 +279,10 @@ func (ph *TPageHandler) Address() string {
 } // Address()
 
 // `basicPageData()` returns a list of common Head entries.
-func (ph *TPageHandler) basicPageData() *TDataList {
+func (ph *TPageHandler) basicPageData() *TemplateData {
 	y, m, d := time.Now().Date()
 	date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
-	pageData := NewDataList().
+	pageData := NewTemplateData().
 		Set("Blogname", ph.bn).
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
@@ -607,13 +607,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	} // switch
 } // handleGET()
 
-func (ph *TPageHandler) handleHashtag(aTag string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleHashtag(aTag string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	tagList := ph.hashList.HashList("#" + aTag)
 
 	ph.handleTagMentions(tagList, aData, aWriter, aRequest)
 } // handleHashtag()
 
-func (ph *TPageHandler) handleMention(aMention string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleMention(aMention string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	mentionList := ph.hashList.MentionList("@" + aMention)
 
 	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
@@ -803,7 +803,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 } // handlePOST()
 
 // `handleReply()` sends `aPage` with `aData` to `aWriter`.
-func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TDataList) {
+func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TemplateData) {
 	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
 		apachelogger.Err("TPageHandler.handleReply()",
 			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
@@ -811,7 +811,7 @@ func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, a
 } // handleReply()
 
 // `handleRoot()` serves the logical web-root directory.
-func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	num, start := numStart(aNumStr)
 	if 0 == num {
 		num = 30
@@ -828,7 +828,7 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TDataList, aWriter htt
 } // handleRoot()
 
 // `handleSearch()` serves the search results.
-func (ph *TPageHandler) handleSearch(aTerm string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
 	aData = check4lang(aData, aRequest).
 		Set("Robots", "noindex,follow").
@@ -849,7 +849,7 @@ func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, 
 	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
 } // handleShare()
 
-func (ph *TPageHandler) handleTagMentions(aList []string, aData *TDataList, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := NewPostList()
 	if 0 < len(aList) {
 		for _, id := range aList {
