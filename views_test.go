@@ -40,7 +40,7 @@ func Test_addExternURLtagets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := addExternURLtagets(tt.args.aPage); !reflect.DeepEqual(got, tt.want) {
+			if got := addExternURLtargets(tt.args.aPage); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("addExternURLtagets() = %s,\nwant %s", got, tt.want)
 			}
 		})
@@ -116,19 +116,19 @@ func TestTView_render(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		fields  TView
 		args    args
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", fields(*v1), args{os.Stdout, dl1}, false},
-		{" 2", fields(*v2), args{os.Stdout, dl2}, false},
+		{" 1", *v1, args{os.Stdout, dl1}, false},
+		{" 2", *v2, args{os.Stdout, dl2}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &TView{
-				name: tt.fields.name,
-				tpl:  tt.fields.tpl,
+				tvName: tt.fields.tvName,
+				tvTpl:  tt.fields.tvTpl,
 			}
 			if err := v.render(tt.args.aWriter, tt.args.aData); (err != nil) != tt.wantErr {
 				t.Errorf("TView.render() error = %v,\nwantErr %v", err, tt.wantErr)

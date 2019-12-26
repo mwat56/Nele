@@ -32,22 +32,22 @@ var (
 	reHrefRE = regexp.MustCompile(` (href="http)`)
 )
 
-// `addExternURLtagets()` adds a TARGET attribute to HREFs.
-func addExternURLtagets(aPage []byte) []byte {
+// `addExternURLtargets()` adds a TARGET attribute to HREFs.
+func addExternURLtargets(aPage []byte) []byte {
 	return reHrefRE.ReplaceAll(aPage, []byte(reHrefReplace))
-} // addExternURLtagets()
+} // addExternURLtargets()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
 	// Internal type to track changes in certain template vars.
-	tChange struct {
+	tDataChange struct {
 		current string
 	}
 )
 
 // Changed returns whether `aNext` is the same as the last value.
-func (c *tChange) Changed(aNext string) bool {
+func (c *tDataChange) Changed(aNext string) bool {
 	if c.current == aNext {
 		return false
 	}
@@ -57,9 +57,9 @@ func (c *tChange) Changed(aNext string) bool {
 } // Changed()
 
 // `newChange()` returns a new change structure.
-func newChange() *tChange {
-	return &tChange{
-		"{{$}}", // ensure that first change is recognised
+func newChange() *tDataChange {
+	return &tDataChange{
+		`{{$}}`, // ensure that first change is recognised
 	}
 } // newChange()
 
@@ -82,18 +82,18 @@ var (
 // TView combines a template and its logical name.
 type TView struct {
 	// The view's symbolic name.
-	name string
+	tvName string
 
 	// The template as returned by a `NewView()` function call.
-	tpl *template.Template
+	tvTpl *template.Template
 }
 
 // NewView returns a new `TView` with `aName`.
 //
-// `aBaseDir` is the path to the directory storing the template files.
+//	`aBaseDir` is the path to the directory storing the template files.
 //
-// `aName` is the name of the template file providing the page's main
-// body without the filename extension (i.e. w/o ".gohtml"). `aName`
+//	`aName` is the name of the template file providing the page's main
+// body without the filename extension (i.e. w/o `.gohtml`). `aName`
 // serves as both the main template's name as well as the view's name.
 func NewView(aBaseDir, aName string) (*TView, error) {
 	bd, err := filepath.Abs(aBaseDir)
@@ -104,7 +104,7 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 	if nil != err {
 		return nil, err
 	}
-	files = append(files, bd+"/"+aName+".gohtml")
+	files = append(files, bd+`/`+aName+`.gohtml`)
 
 	templ, err := template.New(aName).
 		Funcs(viewFunctionMap).
@@ -114,8 +114,8 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 	}
 
 	return &TView{
-		name: aName,
-		tpl:  templ,
+		tvName: aName,
+		tvTpl:  templ,
 	}, nil
 } // NewView()
 
@@ -127,7 +127,7 @@ func (v *TView) render(aWriter io.Writer, aData *TemplateData) (rErr error) {
 	if page, rErr = v.RenderedPage(aData); nil != rErr {
 		return
 	}
-	_, rErr = aWriter.Write(addExternURLtagets(RemoveWhiteSpace(page)))
+	_, rErr = aWriter.Write(addExternURLtargets(RemoveWhiteSpace(page)))
 
 	return
 } // render()
@@ -152,7 +152,7 @@ func (v *TView) Render(aWriter http.ResponseWriter, aData *TemplateData) error {
 func (v *TView) RenderedPage(aData *TemplateData) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
-	if err := v.tpl.ExecuteTemplate(buf, v.name, aData); nil != err {
+	if err := v.tvTpl.ExecuteTemplate(buf, v.tvName, aData); nil != err {
 		return nil, err
 	}
 
@@ -162,6 +162,7 @@ func (v *TView) RenderedPage(aData *TemplateData) ([]byte, error) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
+	// Map indexed by a name pointing to a view instance.
 	tViewList map[string]*TView
 
 	// TViewList is a list of `TView` instances (to be used as a template pool).
@@ -182,7 +183,7 @@ func NewViewList() *TViewList {
 // The view's name (as specified in the `NewView()` function call)
 // is used as the view's key in this list.
 func (vl *TViewList) Add(aView *TView) *TViewList {
-	(*vl)[aView.name] = aView
+	(*vl)[aView.tvName] = aView
 
 	return vl
 } // Add()
