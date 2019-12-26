@@ -76,50 +76,6 @@ func TestNewView(t *testing.T) {
 	}
 } // TestNewView()
 
-func TestNewDataList(t *testing.T) {
-	dl := TDataList{}
-	tests := []struct {
-		name string
-		want *TDataList
-	}{
-		// TODO: Add test cases.
-		{" 1", &dl},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDataList(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDataList() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-} // TestNewDataList()
-
-func TestTDataList_Set(t *testing.T) {
-	dl := NewDataList()
-	rl := NewDataList()
-	(*rl)["Title"] = "Testing"
-	type args struct {
-		aKey   string
-		aValue interface{}
-	}
-	tests := []struct {
-		name string
-		d    *TDataList
-		args args
-		want *TDataList
-	}{
-		// TODO: Add test cases.
-		{" 1", dl, args{"Title", "Testing"}, rl},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.d.Set(tt.args.aKey, tt.args.aValue); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TDataList.Add() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-} // TestTDataList_Set()
-
 func TestTView_render(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 
@@ -137,13 +93,13 @@ func TestTView_render(t *testing.T) {
 
 	v1, _ := NewView("./views/", "index")
 	pl1 := NewPostList().Add(p1).Add(p2).Sort()
-	dl1 := NewDataList().
+	dl1 := NewTemplateData().
 		Set("Title", "this is the title").
 		Set("Headline", "This is an interesting issue").
 		Set("Postings", pl1)
 
 	v2, _ := NewView("./views/", "article")
-	dl2 := NewDataList().
+	dl2 := NewTemplateData().
 		Set("Title", "this is the article title").
 		Set("Headline", "Tis is an important topic").
 		Set("Lang", "en").
@@ -156,7 +112,7 @@ func TestTView_render(t *testing.T) {
 	}
 	type args struct {
 		aWriter io.Writer
-		aData   *TDataList
+		aData   *TemplateData
 	}
 	tests := []struct {
 		name    string
@@ -251,19 +207,19 @@ func TestTViewList_render(t *testing.T) {
 	pl1 := NewPostList().
 		Add(p1).
 		Add(p2)
-	dl1 := NewDataList().
+	dl1 := NewTemplateData().
 		Set("Lang", "en").
 		Set("Title", "this is the index title").
 		Set("Postings", *pl1)
 	pl2 := NewPostList().
 		Add(p3)
-	dl2 := NewDataList().
+	dl2 := NewTemplateData().
 		Set("Lang", "en").
 		Set("Title", "this is the article title").
 		Set("Postings", *pl2)
 	type args struct {
 		aName string
-		aData *TDataList
+		aData *TemplateData
 	}
 	tests := []struct {
 		name    string
