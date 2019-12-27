@@ -7,7 +7,6 @@
 package nele
 
 import (
-	"html/template"
 	"io"
 	"os"
 	"reflect"
@@ -106,17 +105,13 @@ func TestTView_render(t *testing.T) {
 		Set("Postings", p3).
 		Set("ToBeIgnored", "! Ignore Me !")
 
-	type fields struct {
-		name string
-		tpl  *template.Template
-	}
 	type args struct {
 		aWriter io.Writer
 		aData   *TemplateData
 	}
 	tests := []struct {
 		name    string
-		fields  TView
+		view    TView
 		args    args
 		wantErr bool
 	}{
@@ -126,11 +121,7 @@ func TestTView_render(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &TView{
-				tvName: tt.fields.tvName,
-				tvTpl:  tt.fields.tvTpl,
-			}
-			if err := v.render(tt.args.aWriter, tt.args.aData); (err != nil) != tt.wantErr {
+			if err := tt.view.render(tt.args.aWriter, tt.args.aData); (err != nil) != tt.wantErr {
 				t.Errorf("TView.render() error = %v,\nwantErr %v", err, tt.wantErr)
 				return
 			}
