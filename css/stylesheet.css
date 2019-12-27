@@ -348,7 +348,7 @@ p.tc {
 	display: inline-block;
 	font-family: monospace;
 	hyphens: none;
-	margin: 0.2ex 0;
+	margin: 0.1ex 0 0 0;
 }
 .tc5 {
 	font-size: 69%;
@@ -357,6 +357,7 @@ p.tc {
 .tc25 {
 	font-size: 89%;
 	font-style: italic;
+	font-weight: bold;
 }
 .tc50 {
 	font-size: 97%;
@@ -370,7 +371,7 @@ p.tc {
 }
 .tc5, .tc25, .tc50, .tc99 {
 	border-radius: 0.5ex;
-	padding: 0.1ex 0.4ex 0.1ex 0.2ex;
+	padding: 0 0.4ex 0.1ex 0.2ex;
 }
 
 /* _EoF_ */
