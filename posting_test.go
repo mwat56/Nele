@@ -235,16 +235,16 @@ func TestPostingCount(t *testing.T) {
 	SetPostingBaseDirectory("./postings/")
 	tests := []struct {
 		name       string
-		wantRCount int
+		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 813},
-		{" 2", 813},
+		{" 1", 842},
+		{" 2", 842},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotRCount := PostingCount(); gotRCount != tt.wantRCount {
-				t.Errorf("Count() = %v, want %v", gotRCount, tt.wantRCount)
+				t.Errorf("PostingCount() = %v, want %v", gotRCount, tt.wantRCount)
 			}
 		})
 	}

@@ -132,13 +132,15 @@ var (
 	// `TPosting` or `TPostList` instances.
 	// After that it should be considered `read/only`.
 	// Its default value is `./postings`.
+	//
+	//	see `PostingBaseDirectory()`, `SetPostingBaseDirectory()`
 	poPostingBaseDirectory = func() string {
 		dir, _ := filepath.Abs(`./postings`)
 		return dir
 	}()
 
-	// Cache of last posting count.
-	// see `PostingCount()`, `delFile()`, `TPosting.Store()`
+	// Cache of last/current posting count.
+	// see `PostingCount()`, `delFile()`, `goCount()`, `TPosting.Store()`
 	µCountCache uint32
 )
 
@@ -151,32 +153,15 @@ func PostingBaseDirectory() string {
 // PostingCount returns the number of postings currently available.
 //
 // In case of I/O errors the return value will be `-1`.
-func PostingCount() (rCount int) {
+func PostingCount() (rCount uint32) {
 	if result := atomic.LoadUint32(&µCountCache); 0 < result {
-		return int(result)
+		return result
 	}
+	// Apparently there's no current value ready
+	// so compute a new one:
+	goCount()
 
-	// Instead of doing this in one loop we actually do it in two
-	// trading memory consumption with procesing time thus
-	// being prepared for huge amounts of postings.
-	// if filenames, err := filepath.Glob(poPostingBaseDirectory + "/*/*.md"); nil == err {
-	// 	rCount = len(filenames)
-	// 	atomic.StoreUint32(&µCountCache, uint32(rCount))
-	// 	return
-	// }
-
-	dirnames, err := filepath.Glob(poPostingBaseDirectory + "/*")
-	if nil != err {
-		return -1 // we can't recover from this :-(
-	}
-	for _, mdName := range dirnames {
-		if filesnames, err := filepath.Glob(mdName + "/*.md"); nil == err {
-			rCount += len(filesnames)
-		}
-	}
-	atomic.StoreUint32(&µCountCache, uint32(rCount))
-
-	return
+	return atomic.LoadUint32(&µCountCache)
 } // PostingCount()
 
 // SetPostingBaseDirectory sets the base directory used for
@@ -269,9 +254,29 @@ func delFile(aFileName *string) error {
 		}
 	}
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+	go goCount()
 
 	return err
 } // delFile()
+
+// `goCount()` computes the current number of available postings.
+func goCount() {
+	count := 0
+
+	// Instead of doing this in _one_ glob we actually do it in two
+	// thus trading memory consumption with procesing time hence
+	// being prepared for huge amounts of postings.
+	dirnames, err := filepath.Glob(poPostingBaseDirectory + `/*`)
+	if nil != err {
+		return // we can't recover from this :-(
+	}
+	for _, mdName := range dirnames {
+		if filesnames, err := filepath.Glob(mdName + `/*.md`); nil == err {
+			count += len(filesnames)
+		}
+	}
+	atomic.StoreUint32(&µCountCache, uint32(count))
+} // goCount()
 
 // Delete removes the posting/article from the filesystem
 // returning a possible I/O error.
@@ -360,11 +365,10 @@ func (p *TPosting) Load() error {
 func (p *TPosting) makeDir() (string, error) {
 	fmode := os.ModeDir | 0775
 
-	// We need the year to guard against ID overflows.
-	y, _, _ := timeID(p.id).Date()
-	// Using the aID's first three characters leads to
+	// Using the ID's first three characters leads to
 	// directories worth about 52 days of data.
-	dir := fmt.Sprintf("%04d%s", y, p.id[:3])
+	// We need the year to guard against ID overflows.
+	dir := fmt.Sprintf(`%04d%s`, timeID(p.id).Year(), p.id[:3])
 	dirname := path.Join(poPostingBaseDirectory, dir)
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fmode); nil != err {
 		return "", err
@@ -396,14 +400,13 @@ func pathname(aID string) string {
 	if 0 == len(aID) {
 		return ""
 	}
-	// We need the year to guard against ID overflows.
-	y, _, _ := timeID(aID).Date()
 
-	// Using the aID's first three characters leads to
+	// Using the ID's first three characters leads to
 	// directories worth about 52 days of data.
-	dir := fmt.Sprintf("%04d%s", y, aID[:3])
+	// We need the year to guard against ID overflows.
+	dir := fmt.Sprintf(`%04d%s`, timeID(aID).Year(), aID[:3])
 
-	return path.Join(poPostingBaseDirectory, dir, aID+".md")
+	return path.Join(poPostingBaseDirectory, dir, aID+`.md`)
 } // pathname()
 
 // PathFileName returns the article's complete path-/filename.
@@ -460,6 +463,7 @@ func (p *TPosting) Store() (int64, error) {
 		return 0, err
 	}
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+	go goCount()
 
 	return fi.Size(), nil
 } // Store()
