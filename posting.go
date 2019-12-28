@@ -43,7 +43,7 @@ var (
 	poPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
 )
 
-// `handlePreCode()` tries to fix the Pre/Code markup
+// `handlePreCode()` tries to fix the Pre/Code markup.
 func handlePreCode(aMarkdown []byte) (rHTML []byte) {
 	rHTML = poPreCodeRE1.ReplaceAll(aMarkdown, []byte("$1\n$2\n$3"))
 	if i := bytes.Index(rHTML, []byte("<pre><code ")); 0 > i {
@@ -57,7 +57,7 @@ func handlePreCode(aMarkdown []byte) (rHTML []byte) {
 
 // mdToHTML converts the `aMarkdown` data returning HTML data.
 //
-// `aMarkdown` the raw Markdown text to convert.
+//	`aMarkdown` The raw Markdown text to convert.
 func mdToHTML(aMarkdown []byte) []byte {
 	extensions := bf.WithExtensions(
 		bf.Autolink |
@@ -153,15 +153,26 @@ func PostingBaseDirectory() string {
 // PostingCount returns the number of postings currently available.
 //
 // In case of I/O errors the return value will be `-1`.
-func PostingCount() (rCount uint32) {
+func PostingCount() (rCount int) {
 	if result := atomic.LoadUint32(&µCountCache); 0 < result {
-		return result
+		return int(result)
 	}
-	// Apparently there's no current value ready
-	// so compute a new one:
-	goCount()
+	// Apparently there's no current value ready so we compute a new one.
+	// Instead of doing this in _one_ glob we actually do it in two
+	// thus trading memory consumption with processing time and so
+	// we're being better prepared for huge amounts of postings.
+	dirnames, err := filepath.Glob(poPostingBaseDirectory + `/*`)
+	if nil != err {
+		return // we can't recover from this :-(
+	}
+	for _, mdName := range dirnames {
+		if filesnames, err := filepath.Glob(mdName + `/*.md`); nil == err {
+			rCount += len(filesnames)
+		}
+	}
+	atomic.StoreUint32(&µCountCache, uint32(rCount))
 
-	return atomic.LoadUint32(&µCountCache)
+	return
 } // PostingCount()
 
 // SetPostingBaseDirectory sets the base directory used for
@@ -254,29 +265,9 @@ func delFile(aFileName *string) error {
 		}
 	}
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-	go goCount()
 
 	return err
 } // delFile()
-
-// `goCount()` computes the current number of available postings.
-func goCount() {
-	count := 0
-
-	// Instead of doing this in _one_ glob we actually do it in two
-	// thus trading memory consumption with procesing time hence
-	// being prepared for huge amounts of postings.
-	dirnames, err := filepath.Glob(poPostingBaseDirectory + `/*`)
-	if nil != err {
-		return // we can't recover from this :-(
-	}
-	for _, mdName := range dirnames {
-		if filesnames, err := filepath.Glob(mdName + `/*.md`); nil == err {
-			count += len(filesnames)
-		}
-	}
-	atomic.StoreUint32(&µCountCache, uint32(count))
-} // goCount()
 
 // Delete removes the posting/article from the filesystem
 // returning a possible I/O error.
@@ -463,7 +454,6 @@ func (p *TPosting) Store() (int64, error) {
 		return 0, err
 	}
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-	go goCount()
 
 	return fi.Size(), nil
 } // Store()
@@ -487,21 +477,20 @@ func updatePostDirs() {
 		return
 	}
 	for _, dirname := range dirnames {
-		filesnames, err := filepath.Glob(dirname + "/*.md")
+		filenames, err := filepath.Glob(dirname + "/*.md")
 		if nil != err {
 			continue // it might be a file (not a directory) …
 		}
-		if 0 >= len(filesnames) {
+		if 0 >= len(filenames) {
 			continue // skip empty directory
 		}
-		for _, fName := range filesnames {
+		for _, fName := range filenames {
 			pName := strings.TrimPrefix(fName, dirname+"/")
 			id := pName[:len(pName)-3]
 			newName := pathname(id)
 
-			y, _, _ := timeID(id).Date()
-			dir := fmt.Sprintf("%04d%s", y, id[:3])
-			dirname := path.Join(postingBaseDirectory, dir)
+			dir := fmt.Sprintf("%04d%s", timeID(id).Year(), id[:3])
+			dirname := path.Join(poPostingBaseDirectory, dir)
 			os.MkdirAll(filepath.FromSlash(dirname), os.ModeDir|0775)
 			os.Rename(fName, newName)
 		}

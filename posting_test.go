@@ -8,6 +8,7 @@ package nele
 
 import (
 	"reflect"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -233,13 +234,14 @@ func Test_newPost(t *testing.T) {
 
 func TestPostingCount(t *testing.T) {
 	SetPostingBaseDirectory("./postings/")
+	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 	tests := []struct {
 		name       string
-		wantRCount uint32
+		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 842},
-		{" 2", 842},
+		{" 1", 864},
+		{" 2", 864},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
