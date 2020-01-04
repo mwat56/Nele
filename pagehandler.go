@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/mwat56/apachelogger"
+	"github.com/mwat56/cssfs"
 	"github.com/mwat56/hashtags"
 	"github.com/mwat56/jffs"
 	"github.com/mwat56/passlist"
@@ -38,6 +39,7 @@ type (
 	TPageHandler struct {
 		addr     string                        // listen address ("1.2.3.4:5678")
 		bn       string                        // the blog's name
+		cssFh    http.Handler                  // CSS `static` file handler
 		dataDir  string                        // datadir: base dir for data
 		hashList *hashtags.THashList           // #hashtags/@mentions list
 		imgUp    *uploadhandler.TUploadHandler // `img` upload handler
@@ -134,6 +136,9 @@ func NewPageHandler() (*TPageHandler, error) {
 		return nil, err
 	}
 	result.dataDir = s
+
+	result.cssFh = cssfs.FileServer(http.Dir(result.dataDir + `/`))
+
 	result.staticFh = jffs.FileServer(http.Dir(result.dataDir + `/`))
 	if result.viewList, err = newViewList(filepath.Join(result.dataDir, "views")); nil != err {
 		return nil, err
@@ -338,7 +343,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "css":
-		ph.staticFh.ServeHTTP(aWriter, aRequest)
+		ph.cssFh.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 == len(tail) {

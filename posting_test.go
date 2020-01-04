@@ -86,7 +86,7 @@ end tell
       beep
 	end tell
 
-Thats's an example of AppleScript
+That's an example of AppleScript
 
 ---
 `)
@@ -94,7 +94,7 @@ Thats's an example of AppleScript
 tell application &quot;Foo&quot;
   beep
 end tell
-</pre><p>Thats&rsquo;s an example of AppleScript</p>
+</pre><p>That&rsquo;s an example of AppleScript</p>
 
 <hr>
 `)
@@ -240,8 +240,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 864},
-		{" 2", 864},
+		{" 1", 880},
+		{" 2", 880},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

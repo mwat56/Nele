@@ -44,7 +44,7 @@ That's how I ended up with this little blog-system (for lack of a better word; o
 It's a system that lets you write and add articles from both the command line and a web-interface.
 It provides options to add, modify and delete entries using a user/password list for authentication when accessing certain URLs in this system.
 Articles can be added, edited (e.g. for correcting typos etc.), or removed altogether.
-If you don't like the styles coming with the package you can, of course, change them acoording to your preferences in your own installation.
+If you don't like the styles coming with the package you can, of course, change them according to your preferences in your own installation.
 
 The articles you write are then available on the net as _web-pages_.
 
@@ -251,7 +251,7 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	logStack = true
 
 	# Use preview images of linked pages.
-	# NOTE: This feature depends on the external `wkhtmltoimage` external;
+	# NOTE: This feature depends on the external `wkhtmltoimage` binary;
 	# for more details see: https://godoc.org/github.com/mwat56/pageview
 	pageView = true
 
@@ -389,7 +389,7 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 If you set the `pageView` INI- or commandline-option to `true` there will be a preview image generated – by way of calling the external [wkhtmltoimage](https://wkhtmltopdf.org/index.html) commandline utility.
 Those image files are stored locally (in the `./img/` directory) and may be used as often as you want.
 
-The great commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
+The commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
 Under Linux this utility is usually part of your distribution.
 If not, you can [download wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) from the web and install it.
 Sometimes the package from the download page above is more recent than the version in your Linux distribution.
@@ -422,12 +422,12 @@ The actual location of which you can configure with the `datadir` INI entry and/
 
 Second, there are the URLs any normal user might see and use:
 
-* `/` defines the logical root of the presentation; it's effectivily the same as `/n/` (see below).
+* `/` defines the logical root of the presentation; it's effectively the same as `/n/` (see below).
 * `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
 * `/hl/tagname` allows the users to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
 Provided the given `tagname` was actually used in one or more of your articles a list of the respective postings will be shown.
 * `/m/` shows the articles of the current month.
-One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the acticles from April 2019.
+One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the articles from April 2019.
 * `/ml/mentionedname` allows the users to search for `@mentionedname` (but one will input it without the at sign `@` because that has a special meaning in an URL).
 Provided the given `mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
 * `/n/` gives you the newest 30 articles.
@@ -439,7 +439,7 @@ This kind of URL your users will see when they choose on another page to see the
 * `/s/searchterm` can be used to search for articles containing a certain word or expression.
 All existing articles will be searched for the given `searchterm`.
 * `/w/` shows the articles of the current week.
-One can, however, specify the week one is interested in by adding a data part defining the week to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the acticles from the week in April 2019 containing the 13th.
+One can, however, specify the week one is interested in by adding a data part defining the week to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the articles from the week in April 2019 containing the 13th.
 
 ### Internal URLs
 
@@ -447,18 +447,18 @@ And, third, there's a group of URLs your users won't see or use, because by desi
 These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password file comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to setup an appropriate password file_.
-If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefor the system disables all options that might modify your system.
+If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefore the system disables all options that might modify your system.
 
 * `/ap/` add a new posting.
-A simple Web form will allow you to input whatever's on your mind.
+A simple Web form will allow you to input whatever is on your mind.
 * `/dp/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
-Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selectiing the respective `[*]` link on the index page and then just prepend in the URL the `p` by a `d`.
+Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selecting the respective `[*]` link on the index page and then just prepend the `p` by a `d` in the URL.
 * `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`, e.g. to fix typos or correct the grammar.
 * `/il/` (init list): Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist.
 It clears the current list and reads all postings to extract the #hashtags and @mentions.
 _Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
 * `/pv/` (pageView): Assuming you set the `pageview` INI-/commandline-option to `true` this shows you a simple HTML form by which you can start a background process checking all postings for page preview images.
-Again, this was implemented as adebugging aid and you won't usually use this option.
+Again, this was implemented as a debugging aid and you won't usually use this option.
 * `/rp/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
@@ -475,7 +475,7 @@ _Note_ that the search for the term to replace is done case-insensitive while th
 Right at the start I mentioned that I wanted to avoid external dependencies – like databases for example.
 Well, that's not exactly true (or even possible), because there is _one_ "database" that's always already there, regardless of the operating system: the _filesystem_.
 The trick is to figure out how to best use it for our own purposes.
-The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the arcticles, and use part of that very timestamp as ID and name for the directory names as well.
+The solution I came up with here is to use sort of a _timestamp_ as ID and filename for the articles, and use part of that very timestamp as ID and name for the directory names as well.
 
 Both directory- and file-names are automatically handled by the system.
 Each directory can hold up to 52 days worth of articles.
@@ -491,7 +491,7 @@ Under that directory the program expects several sub-directories:
 * `static/` for static files (like e.g. PDF files),
 * `views/` for page templates
 
-Apart from setting that `datadir` option to your liking you don't have to worry about it anymore.
+Apart from setting that `datadir` option to your liking you don't have to worry about it any more.
 
 As mentioned before, it's always advisable to use _absolute pathnames_, not relative one.
 The latter are converted into absolute ones (based on `datadir`) by the system, but they depend on where you are in the filesystem when you start the program or write the commandline options.
@@ -544,6 +544,7 @@ The following external libraries were used building `Nele`:
 * [ApacheLogger](https://github.com/mwat56/apachelogger)
 * [BlackFriday](https://gopkg.in/russross/blackfriday.v2)
 * [Crypto](https://golang.org/x/crypto)
+* [CSSfs](https://github.com/mwat56/cssfs)
 * [ErrorHandler](https://github.com/mwat56/errorhandler)
 * [GzipHandler](https://github.com/NYTimes/gziphandler)
 * [Hashtags](https://github.com/mwat56/hashtags)
@@ -556,7 +557,7 @@ The following external libraries were used building `Nele`:
 
 ## Licence
 
-    Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+    Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                     All rights reserved
                 EMail : <support@mwat.de>
 
