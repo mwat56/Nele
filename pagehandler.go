@@ -39,7 +39,7 @@ type (
 	TPageHandler struct {
 		addr     string                        // listen address ("1.2.3.4:5678")
 		bn       string                        // the blog's name
-		cssFh    http.Handler                  // CSS `static` file handler
+		cssFS    http.Handler                  // CSS file server
 		dataDir  string                        // datadir: base dir for data
 		hashList *hashtags.THashList           // #hashtags/@mentions list
 		imgUp    *uploadhandler.TUploadHandler // `img` upload handler
@@ -48,7 +48,7 @@ type (
 		mfs      int64                         // max. size of uploaded files
 		pageView bool                          // use link page previews
 		realm    string                        // host/domain to secure by BasicAuth
-		staticFh http.Handler                  // `static` file handler
+		staticFS http.Handler                  // `static` file server
 		staticUp *uploadhandler.TUploadHandler // `static` upload handler
 		theme    string                        // `dark` or `light` display theme
 		userList *passlist.TPassList           // user/password list
@@ -137,10 +137,10 @@ func NewPageHandler() (*TPageHandler, error) {
 	}
 	result.dataDir = s
 
-	result.cssFh = cssfs.FileServer(http.Dir(result.dataDir + `/`))
+	result.cssFS = cssfs.FileServer(s + `/`)
+	result.staticFS = jffs.FileServer(http.Dir(s + `/`))
 
-	result.staticFh = jffs.FileServer(http.Dir(result.dataDir + `/`))
-	if result.viewList, err = newViewList(filepath.Join(result.dataDir, "views")); nil != err {
+	if result.viewList, err = newViewList(filepath.Join(s, "views")); nil != err {
 		return nil, err
 	}
 
@@ -343,7 +343,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "css":
-		ph.cssFh.ServeHTTP(aWriter, aRequest)
+		ph.cssFS.ServeHTTP(aWriter, aRequest)
 
 	case "d", "dp": // change date
 		if 0 == len(tail) {
@@ -393,7 +393,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
 
 	case "fonts":
-		ph.staticFh.ServeHTTP(aWriter, aRequest)
+		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
@@ -412,7 +412,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case "img":
-		ph.staticFh.ServeHTTP(aWriter, aRequest)
+		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
 		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
@@ -547,7 +547,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("ss", aWriter, pageData)
 
 	case "static": // deliver a static resource
-		ph.staticFh.ServeHTTP(aWriter, aRequest)
+		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
