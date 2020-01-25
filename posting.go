@@ -36,30 +36,15 @@ import (
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
-	// RegEx to correct wrong/redundant markup created by 'bf';
-	// see MDtoHTML()
+	// RegEx to correct redundant markup created by 'bf';
+	// see `mdToHTML()`
 	poPreCodeRE1 = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
 
 	poPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
-)
 
-// `handlePreCode()` tries to fix the Pre/Code markup.
-func handlePreCode(aMarkdown []byte) (rHTML []byte) {
-	rHTML = poPreCodeRE1.ReplaceAll(aMarkdown, []byte("$1\n$2\n$3"))
-	if i := bytes.Index(rHTML, []byte("<pre><code ")); 0 > i {
-		// no need for the second RegEx execution
-		return
-	}
-	rHTML = poPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
-
-	return
-} // handlePreCode()
-
-// mdToHTML converts the `aMarkdown` data returning HTML data.
-//
-//	`aMarkdown` The raw Markdown text to convert.
-func mdToHTML(aMarkdown []byte) []byte {
-	extensions := bf.WithExtensions(
+	// Instead of creating this objects with every call to `mdToHTML()`
+	// we use some prepared global instances.
+	bfExtensions = bf.WithExtensions(
 		bf.Autolink |
 			bf.BackslashLineBreak |
 			bf.DefinitionLists |
@@ -70,24 +55,42 @@ func mdToHTML(aMarkdown []byte) []byte {
 			bf.SpaceHeadings |
 			bf.Strikethrough |
 			bf.Tables)
-	r := bf.NewHTMLRenderer(bf.HTMLRendererParameters{
-		Flags: bf.FootnoteReturnLinks |
-			bf.Smartypants |
-			bf.SmartypantsFractions |
-			bf.SmartypantsDashes |
-			bf.SmartypantsLatexDashes,
-	})
-	result := bf.Run(aMarkdown, bf.WithRenderer(r), extensions)
 
-	if i := bytes.Index(result, []byte("</pre>")); 0 > i {
-		// no need for RegEx execution
-		return result
-	}
+	bfRenderer = bf.WithRenderer(
+		bf.NewHTMLRenderer(bf.HTMLRendererParameters{
+			Flags: bf.FootnoteReturnLinks |
+				bf.Smartypants |
+				bf.SmartypantsFractions |
+				bf.SmartypantsDashes |
+				bf.SmartypantsLatexDashes,
+		}),
+	)
+
+	bfPre = []byte("</pre>")
+
+	bfPreCode = []byte("<pre><code ")
+)
+
+// `mdToHTML()` converts the `aMarkdown` data returning HTML data.
+//
+//	`aMarkdown` The raw Markdown text to convert.
+func mdToHTML(aMarkdown []byte) (rHTML []byte) {
+	rHTML = bytes.TrimSpace(bf.Run(aMarkdown, bfRenderer, bfExtensions))
+
 	// Testing for PRE first makes this implementation twice as fast
 	// if there's no PRE in the generated HTML and about the same
 	// speed if there actually is a PRE part.
+	if i := bytes.Index(rHTML, bfPre); 0 > i {
+		return // no need for further RegEx execution
+	}
 
-	return handlePreCode(result)
+	// return handlePreCode(rHTML)
+	rHTML = poPreCodeRE1.ReplaceAll(rHTML, []byte("$1\n$2\n$3"))
+
+	if i := bytes.Index(rHTML, bfPreCode); 0 > i {
+		return // no need for the second RegEx execution
+	}
+	return poPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
 } // mdToHTML()
 
 // `newID()` returns an article ID based on `aTime` in hexadecimal notation.
@@ -107,7 +110,7 @@ func newID(aTime time.Time) string {
 
 // NewID returns a new article ID.
 // It is based on the current date/time and given in hexadecimal notation.
-// It's assumend that no more than one ID per nanosecond is required.
+// It's assumed that no more than one ID per nanosecond is required.
 func NewID() string {
 	return newID(time.Now())
 } // NewID()
@@ -354,14 +357,14 @@ func (p *TPosting) Load() error {
 //
 // The directory is created with filemode `0775` (`drwxrwxr-x`).
 func (p *TPosting) makeDir() (string, error) {
-	fmode := os.ModeDir | 0775
+	fMode := os.ModeDir | 0775
 
 	// Using the ID's first three characters leads to
 	// directories worth about 52 days of data.
 	// We need the year to guard against ID overflows.
 	dir := fmt.Sprintf(`%04d%s`, timeID(p.id).Year(), p.id[:3])
 	dirname := path.Join(poPostingBaseDirectory, dir)
-	if err := os.MkdirAll(filepath.FromSlash(dirname), fmode); nil != err {
+	if err := os.MkdirAll(filepath.FromSlash(dirname), fMode); nil != err {
 		return "", err
 	}
 

@@ -13,52 +13,6 @@ import (
 	"time"
 )
 
-func Test_handlePreCode(t *testing.T) {
-	m1 := []byte(`<p>test</p>
-
-	<pre><code>pre
-part</code></pre>
-
-<p>line 2</p>
-`)
-	w1 := []byte(`<p>test</p><pre>
-pre
-part
-</pre><p>line 2</p>
-`)
-	m2 := []byte(`<p>test</p>
-
-	<pre><code class="language-go">pre
-part</code></pre>
-
-<p>line 2</p>
-`)
-	w2 := []byte(`<p>test</p><pre class="language-go">
-pre
-part
-</pre><p>line 2</p>
-`)
-	type args struct {
-		aMarkdown []byte
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantRHTML []byte
-	}{
-		// TODO: Add test cases.
-		{" 1", args{m1}, w1},
-		{" 2", args{m2}, w2},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotRHTML := handlePreCode(tt.args.aMarkdown); !reflect.DeepEqual(gotRHTML, tt.wantRHTML) {
-				t.Errorf("handlePreCode() = %s, want %s", gotRHTML, tt.wantRHTML)
-			}
-		})
-	}
-} // Test_handlePreCode()
-
 func Test_mdToHTML(t *testing.T) {
 	md1 := []byte(`
 ---
@@ -77,8 +31,7 @@ Here is an example of AppleScript:
 tell application &quot;Foo&quot;
 	beep
 end tell
-</pre><hr>
-`)
+</pre><hr>`)
 	md2 := []byte(`
 ---
 
@@ -96,10 +49,9 @@ tell application &quot;Foo&quot;
 end tell
 </pre><p>That&rsquo;s an example of AppleScript</p>
 
-<hr>
-`)
+<hr>`)
 	md3 := []byte("Hello `world`!")
-	ht3 := []byte("<p>Hello <code>world</code>!</p>\n")
+	ht3 := []byte(`<p>Hello <code>world</code>!</p>`)
 
 	md4 := []byte(`# head
 
@@ -127,8 +79,7 @@ text
 <li id="fn:1">the footnote text <a class="footnote-return" href="#fnref:1"><sup>[return]</sup></a></li>
 </ol>
 
-</div>
-`)
+</div>`)
 
 	type args struct {
 		aMarkdown []byte
