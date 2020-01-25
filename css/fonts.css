@@ -4,73 +4,73 @@
 	font-family: "Noto Sans";
 	font-weight: normal;
 	font-style: normal;
-	src: url(/fonts/NotoSans-Regular.ttf);
+	src: url("/fonts/NotoSans-Regular.ttf");
 }
 @font-face {
 	font-family: "Noto Sans Bold";
 	font-style: normal;
 	font-weight: bold;
-	src: url(/fonts/NotoSans-Bold.ttf);
+	src: url("/fonts/NotoSans-Bold.ttf");
 }
 @font-face {
 	font-family: "Noto Sans BoldItal";
 	font-weight: bold;
 	font-style: italic;
-	src: url(/fonts/NotoSans-BoldItalic.ttf);
+	src: url("/fonts/NotoSans-BoldItalic.ttf");
 }
 @font-face {
 	font-family: "Noto Sans Ital";
 	font-weight: normal;
 	font-style: italic;
-	src: url(/fonts/NotoSans-Italic.ttf);
+	src: url("/fonts/NotoSans-Italic.ttf");
 }
 @font-face {
 	font-family: "Noto Serif";
 	font-weight: normal;
 	font-style: normal;
-	src: url(/fonts/NotoSerif-Regular.ttf);
+	src: url("/fonts/NotoSerif-Regular.ttf");
 }
 @font-face {
 	font-family: "Noto Serif Bold";
 	font-style: normal;
 	font-weight: bold;
-	src: url(/fonts/NotoSerif-Bold.ttf);
+	src: url("/fonts/NotoSerif-Bold.ttf");
 }
 @font-face {
 	font-family: "Noto Serif BoldItal";
 	font-weight: bold;
 	font-style: italic;
-	src: url(/fonts/NotoSerif-BoldItalic.ttf);
+	src: url("/fonts/NotoSerif-BoldItalic.ttf");
 }
 @font-face {
 	font-family: "Noto Serif Ital";
 	font-weight: normal;
 	font-style: italic;
-	src: url(/fonts/NotoSerif-Italic.ttf);
+	src: url("/fonts/NotoSerif-Italic.ttf");
 }
 @font-face {
 	font-family: "Hack Mono";
 	font-weight: normal;
 	font-style: normal;
-	src: url(/fonts/Hack-Regular.ttf);
+	src: url("/fonts/Hack-Regular.ttf");
 }
 @font-face {
 	font-family: "Hack Mono Bold";
 	font-style: normal;
 	font-weight: bold;
-	src: url(/fonts/Hack-Bold.ttf);
+	src: url("/fonts/Hack-Bold.ttf");
 }
 @font-face {
 	font-family: "Hack Mono BoldItal";
 	font-weight: bold;
 	font-style: italic;
-	src: url(/fonts/Hack-BoldItalic.ttf);
+	src: url("/fonts/Hack-BoldItalic.ttf");
 }
 @font-face {
 	font-family: "Hack Mono Ital";
 	font-weight: normal;
 	font-style: italic;
-	src: url(/fonts/Hack-Italic.ttf);
+	src: url("/fonts/Hack-Italic.ttf");
 }
 
 html, body {
