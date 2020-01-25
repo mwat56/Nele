@@ -7,6 +7,7 @@ bla.mwat.de.*
 blog.*
 blog_local.sh
 certs/*
+*.css.min
 *.db
 error.*
 .git/
@@ -15,6 +16,7 @@ img/*
 *.log
 Markdown_Syntax.*
 md2htm
+*.min.css
 nele*
 postings/*
 static/*
