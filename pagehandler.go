@@ -843,14 +843,17 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter 
 } // handleSearch()
 
 // `handleShare()` serves the edit page for a shared URL.
+//
+//	`aShare` The URL to share with the new posting.
+//	`aWriter` The writer to respond to the remote user.
 func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
-	p := NewPosting("")
-	p.Set([]byte("\n\n> [ ](" + aShare + ")\n"))
+	p := NewPosting("").Set([]byte("\n\n> [ ](" + aShare + ")\n"))
 	if _, err := p.Store(); nil != err {
 		apachelogger.Err("TPageHandler.handleShare()",
 			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
 
+	go goCreatePreview(aShare)
 	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
 } // handleShare()
 
