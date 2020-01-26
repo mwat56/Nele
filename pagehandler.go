@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -286,17 +286,18 @@ func (ph *TPageHandler) Address() string {
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TemplateData {
 	y, m, d := time.Now().Date()
-	date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
+	now := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 	pageData := NewTemplateData().
 		Set("Blogname", ph.bn).
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("Lang", ph.lang).
-		Set("monthURL", "/m/"+date).
+		Set("monthURL", "/m/"+now).
+		Set("NOW", now).
 		Set("PostingCount", PostingCount()).
 		Set("Robots", "index,follow").
 		Set("Taglist", MarkupCloud(ph.hashList)).
-		Set("Title", ph.realm+": "+date).
-		Set("weekURL", "/w/"+date) // #nosec G203
+		Set("Title", ph.realm+": "+now).
+		Set("weekURL", "/w/"+now) // #nosec G203
 
 	return pageData
 } // basicPageData()
@@ -348,43 +349,48 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "d", "dp": // change date
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
 		}
-		y, mo, d := time.Now().Date()
-		now := fmt.Sprintf("%d-%02d-%02d", y, mo, d)
 		p := NewPosting(tail)
-		txt := p.Markdown()
+		if !p.Exists() {
+			http.NotFound(aWriter, aRequest)
+			return
+		}
 		t := p.Time()
-		y, mo, d = t.Date()
+		date := p.Date()
 		pageData = check4lang(pageData, aRequest).
 			Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
 				t.Hour(), t.Minute(), t.Second())).
 			Set("ID", p.ID()).
-			Set("Manuscript", template.HTML(txt)).
-			Set("NOW", now).
+			Set("Manuscript", template.HTML(p.Markdown())).
+			Set("monthURL", "/m/"+date).
 			Set("Robots", "noindex,nofollow").
-			Set("YMD", fmt.Sprintf("%d-%02d-%02d", y, mo, d)) // #nosec G203
+			Set("weekURL", "/w/"+date).
+			Set("YMD", date) // #nosec G203
 		ph.handleReply("dp", aWriter, pageData)
 
 	case "e", "ep": // edit a single posting
-		if 0 < len(tail) {
-			p := NewPosting(tail)
-			if 0 < p.Len() {
-				t := p.Time()
-				date := p.Date()
-				pageData = check4lang(pageData, aRequest).
-					Set("HMS",
-						fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
-					Set("ID", p.ID()).
-					Set("Manuscript", template.HTML(p.Markdown())).
-					Set("monthURL", "/m/"+date).
-					Set("Robots", "noindex,nofollow").
-					Set("weekURL", "/w/"+date).
-					Set("YMD", date) // #nosec G203
-				ph.handleReply("ep", aWriter, pageData)
-				return
-			}
+		if 0 == len(tail) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		p := NewPosting(tail)
+		if !p.Exists() {
+			http.NotFound(aWriter, aRequest)
+			return
+		}
+		t := p.Time()
+		date := p.Date()
+		pageData = check4lang(pageData, aRequest).
+			Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
+				t.Hour(), t.Minute(), t.Second())).
+			Set("ID", p.ID()).
+			Set("Manuscript", template.HTML(p.Markdown())).
+			Set("monthURL", "/m/"+date).
+			Set("Robots", "noindex,nofollow").
+			Set("weekURL", "/w/"+date).
+			Set("YMD", date) // #nosec G203
+		ph.handleReply("ep", aWriter, pageData)
 
 	case "faq", "faq.html":
 		ph.handleReply("faq", aWriter, check4lang(pageData, aRequest))
@@ -461,21 +467,22 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "p", "pp": // handle a single posting
 		if 0 < len(tail) {
-			p := NewPosting(tail)
-			if err := p.Load(); nil != err {
-				apachelogger.Err("TPageHandler.handleGET()",
-					fmt.Sprintf("TPosting.Load('%s'): %v", p.ID(), err))
-			} else {
-				date := p.Date()
-				pageData = check4lang(pageData, aRequest).
-					Set("Posting", p).
-					Set("monthURL", "/m/"+date).
-					Set("weekURL", "/w/"+date)
-				ph.handleReply("article", aWriter, pageData)
-				return
-			}
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
 		}
-		http.NotFound(aWriter, aRequest)
+		p := NewPosting(tail)
+		if err := p.Load(); nil != err {
+			apachelogger.Err("TPageHandler.handleGET()",
+				fmt.Sprintf("TPosting.Load('%s'): %v", p.ID(), err))
+			http.NotFound(aWriter, aRequest)
+			return
+		}
+		date := p.Date()
+		pageData = check4lang(pageData, aRequest).
+			Set("Posting", p).
+			Set("monthURL", "/m/"+date).
+			Set("weekURL", "/w/"+date)
+		ph.handleReply("article", aWriter, pageData)
 
 	case "postings": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -496,25 +503,27 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
 
 	case "r", "rp": // posting's removal
-		if 0 < len(tail) {
-			p := NewPosting(tail)
-			if 0 < p.Len() {
-				t := p.Time()
-				date := p.Date()
-				pageData = check4lang(pageData, aRequest).
-					Set("HMS",
-						fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
-					Set("Manuscript", template.HTML(p.Markdown())).
-					Set("ID", p.ID()).
-					Set("monthURL", "/m/"+date).
-					Set("weekURL", "/w/"+date).
-					Set("Robots", "noindex,nofollow").
-					Set("YMD", date) // #nosec G203
-				ph.handleReply("rp", aWriter, pageData)
-				return
-			}
+		if 0 == len(tail) {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			return
 		}
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		p := NewPosting(tail)
+		if !p.Exists() {
+			http.NotFound(aWriter, aRequest)
+			return
+		}
+		t := p.Time()
+		date := p.Date()
+		pageData = check4lang(pageData, aRequest).
+			Set("HMS",
+				fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
+			Set("Manuscript", template.HTML(p.Markdown())).
+			Set("ID", p.ID()).
+			Set("monthURL", "/m/"+date).
+			Set("weekURL", "/w/"+date).
+			Set("Robots", "noindex,nofollow").
+			Set("YMD", date) // #nosec G203
+		ph.handleReply("rp", aWriter, pageData)
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
@@ -853,7 +862,7 @@ func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, 
 			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
 
-	go goCreatePreview(aShare)
+	CreatePreview(aShare)
 	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
 } // handleShare()
 
@@ -949,20 +958,22 @@ func (ph *TPageHandler) reDir(aWriter http.ResponseWriter, aRequest *http.Reques
 	ph.handleGET(aWriter, aRequest)
 } // reDir()
 
+func recoverPanic(doLogStack bool) {
+	// make sure a `panic` won't kill the program
+	if err := recover(); err != nil {
+		var msg string
+		if doLogStack {
+			msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
+		} else {
+			msg = fmt.Sprintf("caught panic: %v", err)
+		}
+		apachelogger.Err("TPageHandler.ServeHTTP()", msg)
+	}
+} // recoverPanic()
+
 // ServeHTTP handles the incoming HTTP requests.
 func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
-	defer func() {
-		// make sure a `panic` won't kill the program
-		if err := recover(); err != nil {
-			var msg string
-			if ph.logStack {
-				msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
-			} else {
-				msg = fmt.Sprintf("caught panic: %v", err)
-			}
-			apachelogger.Err("TPageHandler.ServeHTTP()", msg)
-		}
-	}()
+	defer recoverPanic(ph.logStack)
 
 	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	if ph.NeedAuthentication(aRequest) {
