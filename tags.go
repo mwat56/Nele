@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -105,7 +105,7 @@ func InitHashlist(aList *hashtags.THashList) {
 		// by `aID` containing `aHash`.
 		//
 		// The function's result is `false` if (1) the file associated
-		// with `aID` doesnt't exist, or if (2) the file can't be
+		// with `aID` doesn't exist, or if (2) the file can't be
 		// read, or (3) the given `aHash` can't be found in the
 		// posting's text.
 		//
@@ -157,11 +157,6 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 		} else {
 			class = "tc99"
 		}
-		// if '#' == item.Tag[0] {
-		// 	url = "/hl/" + item.Tag[1:]
-		// } else {
-		// 	url = "/ml/" + item.Tag[1:]
-		// }
 
 		tl[idx] = template.HTML(` <a href="` +
 			htListLookup['#' == item.Tag[0]] + item.Tag[1:] +
