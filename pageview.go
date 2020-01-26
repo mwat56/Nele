@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -215,6 +215,14 @@ func setPostingLinkViews(aPosting *TPosting, aImageURLdir string) {
 } // setPostingLinkViews()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// CreatePreview generates a preview of `aURL` in background.
+//
+//	`aURL` The URL for which to create a preview image.
+func CreatePreview(aURL string) {
+	go goCreatePreview(aURL)
+	runtime.Gosched() // get the background operation started
+} // CreatePreview
 
 // PrepareLinkPreviews updates the external link(s) in `aPosting`
 // to include page preview image(s) (if available).
