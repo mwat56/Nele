@@ -101,6 +101,7 @@ func TestURLparts(t *testing.T) {
 		{"12", args{"/ml/antoni_comín"}, "ml", "antoni_comín"},
 		{"13", args{"/s/Änderungen erklären"}, "s", "Änderungen erklären"},
 		{"14", args{"///asterisk/admin/config.php"}, "asterisk", "admin/config.php"},
+		{"15", args{"/p/15ee22f54a6f700e"}, "p", "15ee22f54a6f700e"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

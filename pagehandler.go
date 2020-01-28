@@ -466,7 +466,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleRoot(tail, pageData, aWriter, aRequest)
 
 	case "p", "pp": // handle a single posting
-		if 0 < len(tail) {
+		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
@@ -478,7 +478,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			return
 		}
 		date := p.Date()
+		isAuth := 0
+		if ph.userList.IsAuthenticated(aRequest) {
+			isAuth = 1
+		}
 		pageData = check4lang(pageData, aRequest).
+			Set("isAuth", isAuth).
 			Set("Posting", p).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
