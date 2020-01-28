@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -100,6 +100,7 @@ func TestURLparts(t *testing.T) {
 		{"11", args{"/s/search term"}, "s", "search term"},
 		{"12", args{"/ml/antoni_comín"}, "ml", "antoni_comín"},
 		{"13", args{"/s/Änderungen erklären"}, "s", "Änderungen erklären"},
+		{"14", args{"///asterisk/admin/config.php"}, "asterisk", "admin/config.php"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

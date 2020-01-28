@@ -255,7 +255,7 @@ func replCRLF(aText []byte) []byte {
 var (
 	// RegEx to find path and possible added path components
 	reURLpartsRE = regexp.MustCompile(
-		`(?i)^/?([\p{L}\d_.-]+)?/?([\p{L}\d_§.?!=:;/,@# -]*)?`)
+		`(?i)^/*([\p{L}\d_.-]+)?/*([\p{L}\d_§.?!=:;/,@# -]*)?`)
 	//           1111111111111     222222222222222222222222
 )
 
@@ -524,6 +524,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow").
 			Set("YMD", date) // #nosec G203
 		ph.handleReply("rp", aWriter, pageData)
+
+	case "robots.txt":
+		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
