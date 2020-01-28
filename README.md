@@ -203,12 +203,12 @@ However, to just run the program you'll usually don't need any of those options 
 There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
 
 	$ cat nele.ini
-	# Default configuration file
+	# Nele's default configuration file
 
 	[Default]
 
 	# Name of the optional logfile to write to.
-	# NOTE: A relative path/name will be combined with `datadir` (above).
+	# NOTE: A relative path/name will be combined with `datadir` (below).
 	accessLog = ./access.log
 
 	# Name of this Blog (shown on every page).
@@ -333,7 +333,7 @@ The `-ua` option allows you to add an user/password pair:
         added 'testuser1' to list
     $ _
 
-Again: The password input is not echoed to the console, therefor you don't see it.
+Again: The password input is not echoed to the console, therefore you don't see it.
 
 Since we have the `passfile` setting already in our INI file (see above) we can forget the `-uf` option for the next options.
 
@@ -407,7 +407,7 @@ The system's configuration takes two steps:
 
 1. Prepare the required files and directories.
 2. Customise the INI file and/or prepare a script with all needed commandline arguments.
-3. You most probably want to customise the files [./views/imprint.gohtml](https://github.com/mwat56/nele/blob/master/views/imprint.gohtml#L17), [./views/licence.gohtml](https://github.com/mwat56/nele/blob/master/views/licence.gohtml#L20), and [./views/privacy.gohtml](https://github.com/mwat56/nele/blob/master/views/privacy.gohtml#L17) according to your personal reqirements.
+3. You most probably want to customise the files [./views/imprint.gohtml](https://github.com/mwat56/nele/blob/master/views/imprint.gohtml#L17), [./views/licence.gohtml](https://github.com/mwat56/nele/blob/master/views/licence.gohtml#L20), and [./views/privacy.gohtml](https://github.com/mwat56/nele/blob/master/views/privacy.gohtml#L17) according to your personal requirements.
 
 ## URLs
 
@@ -446,7 +446,7 @@ One can, however, specify the week one is interested in by adding a data part de
 And, third, there's a group of URLs your users won't see or use, because by design they are reserved for you, the author of your postings.
 These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password file comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
-_So don't forget to setup an appropriate password file_.
+_So don't forget to set up an appropriate password file_.
 If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefore the system disables all options that might modify your system.
 
 * `/ap/` add a new posting.
