@@ -191,8 +191,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 1026},
-		{" 2", 1026},
+		{" 1", 1054},
+		{" 2", 1054},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
