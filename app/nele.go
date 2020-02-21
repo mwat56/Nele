@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                All rights reserved
            EMail : <support@mwat.de>
 */
@@ -163,12 +163,12 @@ func main() {
 	// Inspect logging commandline arguments and setup the `ApacheLogger`:
 	if s, err = nele.AppArguments.Get("accessLog"); (nil == err) && (0 < len(s)) {
 		// we assume, an error means: no logfile
-		if s2, err := nele.AppArguments.Get("errorLog"); (nil == err) && (0 < len(s2)) {
+		if s2, err2 := nele.AppArguments.Get("errorLog"); (nil == err2) && (0 < len(s2)) {
 			handler = apachelogger.Wrap(handler, s, s2)
 		} else {
 			handler = apachelogger.Wrap(handler, s, "")
 		}
-		err = nil // for use by test for `apachelogger.SetErrLog()` (below)
+		// err = nil // for use by test for `apachelogger.SetErrLog()` (below)
 	} else if s, err = nele.AppArguments.Get("errorLog"); (nil == err) && (0 < len(s)) {
 		handler = apachelogger.Wrap(handler, "", s)
 	}

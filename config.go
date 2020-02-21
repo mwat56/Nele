@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
                EMail : <support@mwat.de>
 */
@@ -25,16 +25,16 @@ import (
 )
 
 type (
-	// tAguments is the list structure for the cmdline argument values
+	// tArguments is the list structure for the cmdline argument values
 	// merged with the key-value pairs from the INI file.
-	tAguments struct {
+	tArguments struct {
 		ini.TSection // embedded INI section
 	}
 )
 
 var (
 	// AppArguments is the list for the cmdline arguments and INI values.
-	AppArguments tAguments
+	AppArguments tArguments
 
 	// RegEx to match a size value (xxx)
 	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
@@ -43,7 +43,7 @@ var (
 // `set()` adds/sets another key-value pair.
 //
 // If `aValue` is empty then `aKey` gets removed.
-func (al *tAguments) set(aKey, aValue string) {
+func (al *tArguments) set(aKey, aValue string) {
 	if 0 < len(aValue) {
 		al.AddKey(aKey, aValue)
 	} else {
@@ -55,7 +55,7 @@ func (al *tAguments) set(aKey, aValue string) {
 // or an empty string and an error.
 //
 //	`aKey` The key to lookup in the list.
-func (al *tAguments) Get(aKey string) (string, error) {
+func (al *tArguments) Get(aKey string) (string, error) {
 	if result, ok := al.AsString(aKey); ok {
 		return result, nil
 	}
@@ -119,7 +119,7 @@ func readIniData() {
 
 	// (2) /etc/
 	fName = "/etc/nele.ini"
-	if ini2, err := ini.New(fName); nil == err {
+	if ini2, err2 := ini.New(fName); nil == err2 {
 		ini1.Merge(ini2)
 		ini1.AddSectionKey("", "iniFile", fName)
 	}
@@ -128,16 +128,16 @@ func readIniData() {
 	fName, _ = os.UserHomeDir()
 	if 0 < len(fName) {
 		fName, _ = filepath.Abs(filepath.Join(fName, ".nele.ini"))
-		if ini2, err := ini.New(fName); nil == err {
+		if ini2, err2 := ini.New(fName); nil == err2 {
 			ini1.Merge(ini2)
 			ini1.AddSectionKey("", "iniFile", fName)
 		}
 	}
 
 	// (4) ~/.config/
-	if confDir, err := os.UserConfigDir(); nil == err {
+	if confDir, err2 := os.UserConfigDir(); nil == err2 {
 		fName, _ = filepath.Abs(filepath.Join(confDir, "nele.ini"))
-		if ini2, err := ini.New(fName); nil == err {
+		if ini2, err2 := ini.New(fName); nil == err2 {
 			ini1.Merge(ini2)
 			ini1.AddSectionKey("", "iniFile", fName)
 		}
@@ -162,7 +162,7 @@ func readIniData() {
 		}
 	}
 
-	AppArguments = tAguments{*ini1.GetSection("")}
+	AppArguments = tArguments{*ini1.GetSection("")}
 } // readIniData()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -383,6 +383,7 @@ func InitConfig() {
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
 		// Doesn't work with Facebook:
 		pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
 		AppArguments.set("pageView", "true")
 	} else {
 		AppArguments.set("pageView", "")
