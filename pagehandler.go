@@ -478,12 +478,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			return
 		}
 		date := p.Date()
-		isAuth := 0
-		if ph.userList.IsAuthenticated(aRequest) {
-			isAuth = 1
-		}
+		err := ph.userList.IsAuthenticated(aRequest)
+		// if nil != err {
+		// 	apachelogger.Err("TPageHandler.handleGET()",
+		// 		fmt.Sprintf("%v", err))
+		// }
 		pageData = check4lang(pageData, aRequest).
-			Set("isAuth", isAuth).
+			Set("isAuth", nil == err).
 			Set("Posting", p).
 			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
@@ -989,7 +990,7 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 			passlist.Deny(ph.realm, aWriter)
 			return
 		}
-		if !ph.userList.IsAuthenticated(aRequest) {
+		if err := ph.userList.IsAuthenticated(aRequest); nil != err {
 			passlist.Deny(ph.realm, aWriter)
 			return
 		}
