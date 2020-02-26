@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func Test_addExternURLtagets(t *testing.T) {
+func Test_addExternURLtargets(t *testing.T) {
 	t1 := ` bla <a href="https://site/page">bla</a> `
 	p1 := []byte(t1)
 	w1 := []byte(` bla <a target="_extern" href="https://site/page">bla</a> `)
@@ -40,11 +40,11 @@ func Test_addExternURLtagets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := addExternURLtargets(tt.args.aPage); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("addExternURLtagets() = %s,\nwant %s", got, tt.want)
+				t.Errorf("addExternURLtargets() = %s,\nwant %s", got, tt.want)
 			}
 		})
 	}
-} // Test_addExternURLtagets()
+} // Test_addExternURLtargets()
 
 func TestNewView(t *testing.T) {
 	type args struct {
