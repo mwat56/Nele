@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -227,12 +227,12 @@ func storeNewPost(aBaseDir string, aDay, aHour int) {
 	t := time.Date(1970, 1, aDay, aHour, aHour, aHour, 0, time.Local)
 	p := NewPosting(newID(t))
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
-	p.Store()
+	_, _ = p.Store()
 
 	t = time.Date(2018, 12, aDay, aHour, aHour, aHour, 0, time.Local)
 	p = NewPosting(newID(t))
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
-	p.Store()
+	_, _ = p.Store()
 } // storeNewPost()
 
 func prepareTestFiles() {

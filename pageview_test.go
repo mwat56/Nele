@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -61,7 +61,7 @@ func Test_checkForImgURL(t *testing.T) {
 } // Test_checkForImgURL()
 
 func Test_checkPageImages(t *testing.T) {
-	pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	var p1 TPosting
 	p2 := NewPosting("15d9c2334fce3991")
@@ -87,7 +87,7 @@ func Test_checkPageImages(t *testing.T) {
 } // Test_checkPageImages()
 
 func Test_setPostingLinkViews(t *testing.T) {
-	pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	imgURLdir := "/img/"
 	var p0 TPosting
@@ -128,7 +128,7 @@ func Test_setPostingLinkViews(t *testing.T) {
 } // Test_setPostingLinkViews()
 
 func Test_goUpdateAllLinkPreviews(t *testing.T) {
-	pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	type args struct {
 		aPostingBaseDir string
@@ -151,7 +151,7 @@ func Test_goUpdateAllLinkPreviews(t *testing.T) {
 } // Test_goUpdateAllLinkPreviews()
 
 func TestRemovePagePreviews(t *testing.T) {
-	pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDirectory("/tmp/")
 	var t1 TPosting
 	t2 := NewPosting("")
 	t3 := NewPosting("")
