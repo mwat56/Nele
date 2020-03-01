@@ -191,8 +191,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 1068},
-		{" 2", 1068},
+		{" 1", 1113},
+		{" 2", 1113},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -335,7 +335,7 @@ func TestTPosting_Delete(t *testing.T) {
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	p2 := NewPosting(id2).
 		Set([]byte("just a dummy"))
-	_,_ = p2.Store() // create a file
+	_, _ = p2.Store() // create a file
 	type fields struct {
 		p *TPosting
 	}
@@ -398,7 +398,7 @@ func TestTPosting_Exists(t *testing.T) {
 	p2 := NewPosting(id2)
 	id3 := newID(time.Date(2019, 1, 1, 0, 0, 0, 3, time.Local))
 	p3 := NewPosting(id3).Set([]byte("Hello World"))
-	_,_ = p3.Store()
+	_, _ = p3.Store()
 	type fields struct {
 		id       string
 		markdown []byte
@@ -433,7 +433,7 @@ func TestTPosting_Load(t *testing.T) {
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Load: this is more nonsense")
 	p2 := NewPosting(id2).Set(md2)
-	_,_ = p2.Store()
+	_, _ = p2.Store()
 	p2.Clear()
 	type fields struct {
 		p *TPosting
