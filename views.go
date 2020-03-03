@@ -20,6 +20,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+
+	"github.com/mwat56/whitespace"
 )
 
 const (
@@ -65,7 +67,7 @@ func newChange() *tDataChange {
 
 // `htmlSafe()` returns `aText` as template.HTML.
 //
-// _Note_ that this is just a typexast without any tests.
+// _Note_ that this is just a typecast without any tests.
 func htmlSafe(aText string) template.HTML {
 	return template.HTML(aText) // #nosec G203
 } // htmlSafe()
@@ -106,7 +108,7 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 	}
 	files = append(files, bd+`/`+aName+`.gohtml`)
 
-	templ, err := template.New(aName).
+	tpl, err := template.New(aName).
 		Funcs(viewFunctionMap).
 		ParseFiles(files...)
 	if nil != err {
@@ -115,7 +117,7 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 
 	return &TView{
 		tvName: aName,
-		tvTpl:  templ,
+		tvTpl:  tpl,
 	}, nil
 } // NewView()
 
@@ -127,7 +129,7 @@ func (v *TView) render(aWriter io.Writer, aData *TemplateData) (rErr error) {
 	if page, rErr = v.RenderedPage(aData); nil != rErr {
 		return
 	}
-	_, rErr = aWriter.Write(addExternURLtargets(RemoveWhiteSpace(page)))
+	_, rErr = aWriter.Write(addExternURLtargets(whitespace.Remove(page)))
 
 	return
 } // render()

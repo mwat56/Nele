@@ -1,10 +1,12 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
               All rights reserved
           EMail : <support@mwat.de>
 */
 
 package nele
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 import (
 	"io"
