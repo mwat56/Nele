@@ -6,13 +6,75 @@
 
 package nele
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 import (
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/mwat56/pageview"
 )
+
+func Test_pvImageRE(t *testing.T) {
+	// R/O RegEx to extract link-text and link-URL from markup.
+	// Checking for the not-existence of the leading `!` should exclude
+	// embedded image links.
+	pvLinkRE2 := regexp.MustCompile(
+		`(?ms)(?:\s*\>\s*)(?:[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
+	//                                   11111111111       222222222
+	// `[link-text](link-url)`
+	// 1 : link text
+	// 2 : remote page URL
+
+	var t1 string
+	t2 := `bla \n> [„link text one“](https://www.example.org/one/)\n bla`
+	t3 := `bla \n bla [„link text two“](https://www.example.org/two/)\n bla\n > [„link text three“](https://www.example.org/three) bla`
+	t4 := `bla bla [link ext four](https://www.example.org/four/) bla.`
+	t5 := `bla > bla [link ext five](https://www.example.org/five/) bla.`
+	t6 := `bla \n> [![„alt text six“](/img/httpswwwexampleorgsix.png)](https://www.example.org/six/)\n bla`
+	t7 := `bla \n> Hi there! [„link text seven](https://www.example.org/seven/)\n bla`
+	t8 := `bla \n> ![„alt text eight](/img/httpswwwexampleorgeight.png)\n bla`
+	t9 := `bla \n>\n[„link text nine“](https://www.example.org/nine/)\n bla`
+	t10 := `> [„link text ten“]
+	(https://www.example.org/ten/) bla`
+
+	type args struct {
+		aTxt string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		matchNum int
+	}{
+		// TODO: Add test cases.
+		{" 1", args{t1}, 0},
+		{" 2", args{t2}, 1},
+		{" 3", args{t3}, 1},
+		{" 4", args{t4}, 0},
+		{" 5", args{t5}, 0},
+		{" 6", args{t6}, 0},
+		{" 7", args{t7}, 0},
+		{" 8", args{t8}, 0},
+		{" 9", args{t9}, 0},
+		{"10", args{t10}, 1},
+	}
+	var matchLen int
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotMatches := pvLinkRE2.FindAllStringSubmatch(tt.args.aTxt, -1)
+			if nil == gotMatches {
+				matchLen = 0
+			} else {
+				matchLen = len(gotMatches)
+			}
+			if matchLen != tt.matchNum {
+				t.Errorf("Test_pvLinkRE() =\n{%v},\nwant {%v},\n{%v}", matchLen, tt.matchNum, gotMatches)
+			}
+		})
+	}
+} // Test_pvImageRE()
 
 func Test_checkForImgURL(t *testing.T) {
 	var t1 []byte
@@ -90,7 +152,7 @@ func Test_setPostingLinkViews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	imgURLdir := "/img/"
-	var p0 TPosting
+	p0 := &TPosting{}
 	p1 := NewPosting("15d678172cfc527a")
 	_ = p1.Load()
 	p2 := NewPosting("15d9c2334fce3991")
@@ -112,7 +174,7 @@ func Test_setPostingLinkViews(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{" 0", args{&p0, imgURLdir}},
+		{" 0", args{p0, imgURLdir}},
 		{" 1", args{p1, imgURLdir}},
 		{" 2", args{p2, imgURLdir}},
 		{" 3", args{p3, imgURLdir}},
