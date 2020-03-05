@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                All rights reserved
            EMail : <support@mwat.de>
 */
@@ -26,6 +26,8 @@ import (
 
 // `addMarkdown()` saves `aMarkdown` as a new posting,
 // returning the number of bytes written and a possible I/O error.
+//
+//	`aMarkdown` The text to store as a new posting.
 func addMarkdown(aMarkdown []byte) (int64, error) {
 	return NewPosting("").Set(aMarkdown).Store()
 } // addMarkdown()
@@ -33,11 +35,8 @@ func addMarkdown(aMarkdown []byte) (int64, error) {
 // AddConsolePost reads data from `StdIn` and saves it as a new posting,
 // returning the number of bytes written and a possible I/O error.
 func AddConsolePost() (int64, error) {
-	var (
-		err      error
-		markdown []byte
-	)
-	if markdown, err = bufio.NewReader(os.Stdin).ReadBytes(0x03); (nil != err) && (io.EOF != err) {
+	markdown, err := bufio.NewReader(os.Stdin).ReadBytes(0x03)
+	if (nil != err) && (io.EOF != err) {
 		return 0, err
 	}
 
@@ -46,12 +45,11 @@ func AddConsolePost() (int64, error) {
 
 // AddFilePost reads `aFilename` and adds it as a new posting,
 // returning the number of bytes written and a possible I/O error.
+//
+//	`aFilename` The text file to add as a new posting.
 func AddFilePost(aFilename string) (int64, error) {
-	var (
-		err      error
-		markdown []byte
-	)
-	if markdown, err = ioutil.ReadFile(aFilename); /* #nosec G304 */ nil != err {
+	markdown, err := ioutil.ReadFile(aFilename) /* #nosec G304 */
+	if nil != err {
 		return 0, err
 	}
 
@@ -66,9 +64,9 @@ func AddFilePost(aFilename string) (int64, error) {
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
-//	`aUser` the username to add to the password file.
+//	`aUser` The username to add to the password file.
 //
-//	`aFilename` name of the password file to use.
+//	`aFilename` The name of the password file to use.
 func AddUser(aUser, aFilename string) {
 	passlist.AddUser(aUser, aFilename)
 } // AddUser()
@@ -79,9 +77,9 @@ func AddUser(aUser, aFilename string) {
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
-//	`aUser` the username to check in the password file.
+//	`aUser` The username to check in the password file.
 //
-//	`aFilename` name of the password file to use.
+//	`aFilename` The name of the password file to use.
 func CheckUser(aUser, aFilename string) {
 	passlist.CheckUser(aUser, aFilename)
 } // CheckUser()
@@ -92,9 +90,9 @@ func CheckUser(aUser, aFilename string) {
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
-//	`aUser` the username to remove from the password file.
+//	`aUser` The username to remove from the password file.
 //
-//	`aFilename` name of the password file to use.
+//	`aFilename` The name of the password file to use.
 func DeleteUser(aUser, aFilename string) {
 	passlist.DeleteUser(aUser, aFilename)
 } // DeleteUser()
@@ -104,7 +102,7 @@ func DeleteUser(aUser, aFilename string) {
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
-// `aFilename` name of the password file to use.
+//	`aFilename` The name of the password file to use.
 func ListUsers(aFilename string) {
 	passlist.ListUsers(aFilename)
 } // ListUsers()
@@ -115,9 +113,9 @@ func ListUsers(aFilename string) {
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
-// `aUser` the username to remove from the password file.
+// `aUser` The username to remove from the password file.
 //
-// `aFilename` name of the password file to use.
+// `aFilename` The name of the password file to use.
 func UpdateUser(aUser, aFilename string) {
 	passlist.UpdateUser(aUser, aFilename)
 } // UpdateUser()
