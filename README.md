@@ -126,6 +126,7 @@ You can reduce the binary's size by stripping it:
     $ _
 
 As you can see the binary lost about 3MB of its weight.
+Or you can further [compress](https://dev.to/akshaybharambe14/guide-to-compress-golang-binaries-2d95) your Go binary by using [UPX](https://upx.github.io/) which would downsize the `Nele` binary to about 2.5MB.
 
 Let's start with the command line:
 
@@ -388,6 +389,22 @@ First we added (`-ua`) a new user, then we updated the password (`-uu`), and fin
 
 If you set the `pageView` INI- or commandline-option to `true` there will be a preview image generated – by way of calling the external [wkhtmltoimage](https://wkhtmltopdf.org/index.html) commandline utility.
 Those image files are stored locally (in the `./img/` directory) and may be used as often as you want.
+
+> **Note** that preview images are created only for links in a _blockquote_ section:
+>
+>	`> [link text](http://www.example.org/one.html)`
+>
+> will be changed to
+>
+>	`> [![alt text](/httpwwwexampleorgonehtml.png)`](http://www.example.org/one.html)
+>
+> while
+>
+>	`bla [link text](http://www.example.org/one.html) bla`
+>
+> will be left untouched as a normal hyperlink.
+>
+> This curtailment is introduced avoid messing up the overall layout of a posting: It wouldn't look good if every link in a sentence would be replaced by an image.
 
 The commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
 Under Linux this utility is usually part of your distribution.
