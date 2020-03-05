@@ -173,7 +173,7 @@ func main() {
 		handler = apachelogger.Wrap(handler, "", s)
 	}
 
-	// We need a `server` reference to use it in `setupSinals()`
+	// We need a `server` reference to use it in `setupSignals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{
 		Addr:              ph.Address(),
@@ -183,10 +183,10 @@ func main() {
 		ReadTimeout:       1 * time.Minute,
 		WriteTimeout:      5 * time.Minute,
 	}
-	setupSignals(server)
 	if (nil == err) && (0 < len(s)) { // values from logfile test
 		apachelogger.SetErrLog(server)
 	}
+	setupSignals(server)
 
 	ck, _ = nele.AppArguments.Get("certKey")
 	cp, _ = nele.AppArguments.Get("certPem")
