@@ -17,65 +17,6 @@ import (
 	"github.com/mwat56/pageview"
 )
 
-func Test_pvImageRE(t *testing.T) {
-	// R/O RegEx to extract link-text and link-URL from markup.
-	// Checking for the not-existence of the leading `!` should exclude
-	// embedded image links.
-	pvLinkRE2 := regexp.MustCompile(
-		`(?ms)(?:\s*\>\s*)(?:[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
-	//                                   11111111111       222222222
-	// `[link-text](link-url)`
-	// 1 : link text
-	// 2 : remote page URL
-
-	var t1 string
-	t2 := `bla \n> [„link text one“](https://www.example.org/one/)\n bla`
-	t3 := `bla \n bla [„link text two“](https://www.example.org/two/)\n bla\n > [„link text three“](https://www.example.org/three) bla`
-	t4 := `bla bla [link ext four](https://www.example.org/four/) bla.`
-	t5 := `bla > bla [link ext five](https://www.example.org/five/) bla.`
-	t6 := `bla \n> [![„alt text six“](/img/httpswwwexampleorgsix.png)](https://www.example.org/six/)\n bla`
-	t7 := `bla \n> Hi there! [„link text seven](https://www.example.org/seven/)\n bla`
-	t8 := `bla \n> ![„alt text eight](/img/httpswwwexampleorgeight.png)\n bla`
-	t9 := `bla \n>\n[„link text nine“](https://www.example.org/nine/)\n bla`
-	t10 := `> [„link text ten“]
-	(https://www.example.org/ten/) bla`
-
-	type args struct {
-		aTxt string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		matchNum int
-	}{
-		// TODO: Add test cases.
-		{" 1", args{t1}, 0},
-		{" 2", args{t2}, 1},
-		{" 3", args{t3}, 1},
-		{" 4", args{t4}, 0},
-		{" 5", args{t5}, 0},
-		{" 6", args{t6}, 0},
-		{" 7", args{t7}, 0},
-		{" 8", args{t8}, 0},
-		{" 9", args{t9}, 0},
-		{"10", args{t10}, 1},
-	}
-	var matchLen int
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotMatches := pvLinkRE2.FindAllStringSubmatch(tt.args.aTxt, -1)
-			if nil == gotMatches {
-				matchLen = 0
-			} else {
-				matchLen = len(gotMatches)
-			}
-			if matchLen != tt.matchNum {
-				t.Errorf("Test_pvLinkRE() =\n{%v},\nwant {%v},\n{%v}", matchLen, tt.matchNum, gotMatches)
-			}
-		})
-	}
-} // Test_pvImageRE()
-
 func Test_checkForImgURL(t *testing.T) {
 	var t1 []byte
 	var l1 tImgURLlist
@@ -148,6 +89,138 @@ func Test_checkPageImages(t *testing.T) {
 	}
 } // Test_checkPageImages()
 
+func Test_goUpdateAllLinkPreviews(t *testing.T) {
+	_ = pageview.SetImageDirectory("/tmp/")
+	pageview.SetMaxAge(1)
+	type args struct {
+		aPostingBaseDir string
+		aImageURLdir    string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{" 1", args{`/tmp/`, `/img/`}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			goUpdateAllLinkPreviews(tt.args.aPostingBaseDir, tt.args.aImageURLdir)
+			time.Sleep(time.Second)
+		})
+	}
+	time.Sleep(time.Second)
+} // Test_goUpdateAllLinkPreviews()
+
+func Test_prepPostText(t *testing.T) {
+	imageURLdir := `/img/`
+	p1 := []byte(`How the use of words changed over time in German parliament.
+
+> [How has political language and the use of certain words changed over time?](https://mobile.twitter.com/MSchories/status/1235489948876320770)
+
+*@Bundestag @Germany #Language #Parliament*`)
+	i1 := `httpsmobiletwittercomMSchoriesstatus1235489948876320770`
+	w1 := []byte(`How the use of words changed over time in German parliament.
+
+> [![How has political language and the use of certain words changed over time?](` + imageURLdir + i1 + `)](https://mobile.twitter.com/MSchories/status/1235489948876320770)
+
+*@Bundestag @Germany #Language #Parliament*`)
+
+	p2 := []byte("bla \n> [link text two](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
+	i2 := `httpswwwexampleorgtwo`
+	w2 := []byte("bla \n> [![link text two](/img/httpswwwexampleorgtwo)](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
+
+	type args struct {
+		aPosting   []byte
+		aImageName string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantRText []byte
+	}{
+		// TODO: Add test cases.
+		{" 1", args{p1, i1}, w1},
+		{" 2", args{p2, i2}, w2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			linkMatches := pvLinkRE2.FindAllSubmatch(tt.args.aPosting, -1)
+			link := &tLink{
+				link:     string(linkMatches[0][1]),
+				linkText: string(linkMatches[0][2]),
+				linkURL:  string(linkMatches[0][3]),
+			}
+			if gotRText := prepPostText(tt.args.aPosting, link, tt.args.aImageName, imageURLdir); !reflect.DeepEqual(gotRText, tt.wantRText) {
+				t.Errorf("prepPostText() = {%v},\nwant {%v}", string(gotRText), string(tt.wantRText))
+			}
+		})
+	}
+} // Test_prepPostText()
+
+// R/O RegEx to extract link-text and link-URL from markup.
+// Checking for the not-existence of the leading `!` should exclude
+// embedded image links.
+var pvLinkRE2 = regexp.MustCompile(
+	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
+
+//                                            11222222222222222233333333333331
+// `[link-text](link-url)`
+// 0 : complete RegEx match
+// 1 : markdown link markup
+// 2 : link text
+// 3 : remote page URL
+
+func Test_pvImageRE(t *testing.T) {
+	var t1 string
+	t2 := "bla \n> [„link text one“](https://www.example.org/one/)\n bla"
+	t3 := "bla \n bla [„link text two“](https://www.example.org/two/)\n bla\n > [„link text three“](https://www.example.org/three) bla"
+	t4 := `bla bla [link ext four](https://www.example.org/four/) bla.`
+	t5 := `bla > bla [link ext five](https://www.example.org/five/) bla.`
+	t6 := "bla \n> [![„alt text six“](/img/httpswwwexampleorgsix.png)](https://www.example.org/six/)\n bla"
+	t7 := `bla \n> Hi there! [„link text seven](https://www.example.org/seven/)\n bla`
+	t8 := `bla \n> ![„alt text eight](/img/httpswwwexampleorgeight.png)\n bla`
+	t9 := "bla \n>\n[„link text nine“](https://www.example.org/nine/)\n bla"
+	t10 := "\n>	[„link text ten“] (https://www.example.org/ten/) bla"
+	t11 := "> [„link text eleven“](https://www.example.org/eleven/)\n bla"
+
+	type args struct {
+		aTxt string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		matchNum int
+	}{
+		// TODO: Add test cases.
+		{" 1", args{t1}, 0},
+		{" 2", args{t2}, 1},
+		{" 3", args{t3}, 1},
+		{" 4", args{t4}, 0},
+		{" 5", args{t5}, 0},
+		{" 6", args{t6}, 0},
+		{" 7", args{t7}, 0},
+		{" 8", args{t8}, 0},
+		{" 9", args{t9}, 0},
+		{"10", args{t10}, 1},
+		{"11", args{t11}, 1},
+	}
+	var matchLen int
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotMatches := pvLinkRE2.FindAllStringSubmatch(tt.args.aTxt, -1)
+			if nil == gotMatches {
+				matchLen = 0
+			} else {
+				matchLen = len(gotMatches)
+			}
+			if matchLen != tt.matchNum {
+				t.Errorf("Test_pvLinkRE() =\n{%v},\nwant {%v},\n{%v}", matchLen, tt.matchNum, gotMatches)
+			}
+		})
+	}
+} // Test_pvImageRE()
+
 func Test_setPostingLinkViews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
@@ -188,29 +261,6 @@ func Test_setPostingLinkViews(t *testing.T) {
 		})
 	}
 } // Test_setPostingLinkViews()
-
-func Test_goUpdateAllLinkPreviews(t *testing.T) {
-	_ = pageview.SetImageDirectory("/tmp/")
-	pageview.SetMaxAge(1)
-	type args struct {
-		aPostingBaseDir string
-		aImageURLdir    string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-		{" 1", args{`/tmp/`, `/img/`}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			goUpdateAllLinkPreviews(tt.args.aPostingBaseDir, tt.args.aImageURLdir)
-			time.Sleep(time.Second)
-		})
-	}
-	time.Sleep(time.Second)
-} // Test_goUpdateAllLinkPreviews()
 
 func TestRemovePagePreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")

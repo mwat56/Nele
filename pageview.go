@@ -28,16 +28,6 @@ var (
 	// 1 : local image URL
 	// 2 : remote page URL
 
-	// R/O RegEx to extract link-text and link-URL from markup.
-	// Checking for the not-existence of the leading `!` should exclude
-	// embedded image links.
-	pvLinkRE = regexp.MustCompile(
-		`(?ms)(?:\s*\>\s*)(?:[^\!]\s*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\)`)
-	//                                   11111111111       222222222
-	// `[link-text](link-url)`
-	// 1 : link text
-	// 2 : remote page URL
-
 	// R/O simple RegEx to check whether an URL starts with a scheme.
 	pvSchemeRE = regexp.MustCompile(`^\w+://`)
 )
@@ -152,18 +142,29 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	if '/' != aImageURLdir[0] {
 		aImageURLdir = `/` + aImageURLdir
 	}
-
-	// replace `[link-text](link-url)` by
-	// `[![alt-text](image-URL)](link-URL)`
-	search := regexp.QuoteMeta(aLink.link)
-	if re, err := regexp.Compile(search); nil == err {
-		replace := "[![" + aLink.linkText +
-			"](" + filepath.Join(aImageURLdir, imgName) +
-			")](" + aLink.linkURL + ")"
-		txt := re.ReplaceAllLiteral(aPosting.Markdown(), []byte(replace))
+	if txt := prepPostText(aPosting.Markdown(), aLink, imgName, aImageURLdir); 0 < len(txt) {
 		_, _ = aPosting.Set(txt).Store()
 	}
 } // preparePost()
+
+// `prepPostText()` gets called by `preparePost()` to
+// replace `[link-text](link-url)` by
+// `[![alt-text](image-URL)](link-URL)`
+//
+//	`aPosting` The posting the text of which is going to be updated.
+//	`aLink` The link parts to use.
+//	`aImageURLdir` The URL directory for page preview images.
+func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string) (rText []byte) {
+	search := regexp.QuoteMeta(aLink.link)
+	if re, err := regexp.Compile(search); nil == err {
+		replace := "[![" + aLink.linkText +
+			"](" + filepath.Join(aImageURLdir, aImageName) +
+			")](" + aLink.linkURL + ")"
+		rText = re.ReplaceAllLiteral(aPosting, []byte(replace))
+	}
+
+	return
+} // prepPostText
 
 // RemovePagePreviews deletes the images used in `aPosting`.
 //
@@ -183,6 +184,19 @@ func RemovePagePreviews(aPosting *TPosting) {
 	}
 } // RemovePagePreviews()
 
+// R/O RegEx to extract link-text and link-URL from markup.
+// Checking for the not-existence of the leading `!` should exclude
+// embedded image links.
+var pvLinkRE = regexp.MustCompile(
+	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
+
+//                                            11222222222222222233333333333331
+// `[link-text](link-url)`
+// 0 : complete RegEx match
+// 1 : markdown link markup
+// 2 : link text
+// 3 : remote page URL
+
 // `setPostingLinkViews()` changes the external links in the text
 // of `aPosting` to include a page preview image (if available).
 //
@@ -196,14 +210,14 @@ func setPostingLinkViews(aPosting *TPosting, aImageURLdir string) {
 	linkMatches := pvLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
 	if (nil != linkMatches) && (0 < len(linkMatches)) {
 		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
-			url := string(linkMatches[cnt][2])
+			url := string(linkMatches[cnt][3])
 			if !pvSchemeRE.MatchString(url) {
 				continue // skip local links
 			}
 			preparePost(aPosting,
 				&tLink{
-					link:     string(linkMatches[cnt][0]),
-					linkText: string(linkMatches[cnt][1]),
+					link:     string(linkMatches[cnt][1]),
+					linkText: string(linkMatches[cnt][2]),
 					linkURL:  url,
 				},
 				aImageURLdir)
