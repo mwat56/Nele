@@ -138,7 +138,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	result.dataDir = s
 
 	result.cssFS = cssfs.FileServer(s + `/`)
-	result.staticFS = jffs.FileServer(http.Dir(s + `/`))
+	result.staticFS = jffs.FileServer(s + `/`)
 
 	if result.viewList, err = newViewList(filepath.Join(s, "views")); nil != err {
 		return nil, err
