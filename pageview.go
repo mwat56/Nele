@@ -19,19 +19,6 @@ import (
 	"github.com/mwat56/pageview"
 )
 
-var (
-	// R/O RegEx to find an URL for the preview image's.
-	pvImageRE = regexp.MustCompile(
-		`(?s)\[\s*\!\[[^\]]*?\]\s*\(\s*([^\)]+?)\s*\)\s*\]\s*\(\s*([^\)]+?)\s*\)`)
-	//                                 111111111                  222222222
-	// `[![alt-text](image-URL)](link-url)`
-	// 1 : local image URL
-	// 2 : remote page URL
-
-	// R/O simple RegEx to check whether an URL starts with a scheme.
-	pvSchemeRE = regexp.MustCompile(`^\w+://`)
-)
-
 type (
 	// `tImgURL` represents a pair of image name and page URL.
 	tImgURL struct {
@@ -46,6 +33,16 @@ type (
 		linkText string
 		linkURL  string
 	}
+)
+
+var (
+	// R/O RegEx to find an URL for the preview image's.
+	pvImageRE = regexp.MustCompile(
+		`(?s)\[\s*\!\[[^\]]*?\]\s*\(\s*([^\)]+?)\s*\)\s*\]\s*\(\s*([^\)]+?)\s*\)`)
+	//                                 111111111                  222222222
+	// `[![alt-text](image-URL)](link-url)`
+	// 1 : local image URL
+	// 2 : remote page URL
 )
 
 // `checkForImageURL()` tests whether `aTxt` contains an external link with
@@ -164,7 +161,7 @@ func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string
 	}
 
 	return
-} // prepPostText
+} // prepPostText()
 
 // RemovePagePreviews deletes the images used in `aPosting`.
 //
@@ -184,18 +181,23 @@ func RemovePagePreviews(aPosting *TPosting) {
 	}
 } // RemovePagePreviews()
 
-// R/O RegEx to extract link-text and link-URL from markup.
-// Checking for the not-existence of the leading `!` should exclude
-// embedded image links.
-var pvLinkRE = regexp.MustCompile(
-	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
+var (
+	// R/O RegEx to extract link-text and link-URL from markup.
+	// Checking for the not-existence of the leading `!` should exclude
+	// embedded image links.
+	pvLinkRE = regexp.MustCompile(
+		`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
 
-//                                            11222222222222222233333333333331
-// `[link-text](link-url)`
-// 0 : complete RegEx match
-// 1 : markdown link markup
-// 2 : link text
-// 3 : remote page URL
+	//                                            11222222222222222233333333333331
+	// `[link-text](link-url)`
+	// 0 : complete RegEx match
+	// 1 : markdown link markup
+	// 2 : link text
+	// 3 : remote page URL
+
+	// R/O simple RegEx to check whether an URL starts with a scheme.
+	pvSchemeRE = regexp.MustCompile(`^\w+://`)
+)
 
 // `setPostingLinkViews()` changes the external links in the text
 // of `aPosting` to include a page preview image (if available).
