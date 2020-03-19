@@ -22,6 +22,7 @@ import (
 
 	"github.com/mwat56/ini"
 	"github.com/mwat56/pageview"
+	"github.com/mwat56/whitespace"
 )
 
 type (
@@ -35,9 +36,6 @@ type (
 var (
 	// AppArguments is the list for the cmdline arguments and INI values.
 	AppArguments tArguments
-
-	// RegEx to match a size value (xxx)
-	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
 )
 
 // `set()` adds/sets another key-value pair.
@@ -78,6 +76,11 @@ func absolute(aBaseDir, aDir string) string {
 	s, _ := filepath.Abs(filepath.Join(aBaseDir, aDir))
 	return s
 } // absolute()
+
+var (
+	// RegEx to match a size value (xxx)
+	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
+)
 
 // `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
 func kmg2Num(aString string) (rInt int) {
@@ -294,6 +297,10 @@ func InitConfig() {
 	flag.StringVar(&userUpdate, "uu", userUpdate,
 		"<userName> (optional) user update: update a username in the password file")
 
+	delWhitespace, _ := AppArguments.AsBool("delWhitespace")
+	flag.BoolVar(&delWhitespace, "delWhitespace", delWhitespace,
+		"(optional) Delete superfluous whitespace in generated pages")
+
 	flag.Usage = ShowHelp
 	flag.Parse() // // // // // // // // // // // // // // // // // // //
 
@@ -335,6 +342,8 @@ func InitConfig() {
 		}
 	}
 	AppArguments.set("certPem", certPem)
+
+	whitespace.UseRemoveWhitespace = delWhitespace
 
 	if 0 < len(errorLog) {
 		errorLog = absolute(dataDir, errorLog)
@@ -382,7 +391,9 @@ func InitConfig() {
 		pageview.SetMaxAge(0)
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
 		// Doesn't work with Facebook:
-		pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		// pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		pageview.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		// see: https://lynx.invisible-island.net/current/CHANGES.html
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
 		AppArguments.set("pageView", "true")
 	} else {
