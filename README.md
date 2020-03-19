@@ -132,26 +132,26 @@ Let's start with the command line:
 
 	$ ./nele -h
 
-	Usage: bin/nele-linux-386 [OPTIONS]
+	Usage: ./nele [OPTIONS]
 
 	-accessLog string
-			<filename> Name of the access logfile to write to
-			(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/access.log")
+		<filename> Name of the access logfile to write to
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/access.bla.mwat.de")
 	-blogName string
-			Name of this Blog (shown on every page)
+		Name of this Blog (shown on every page)
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
 		<fileName> the name of the TLS certificate's private key
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/certs/server.key")
+
 	-certPem string
 		<fileName> the name of the TLS certificate PEM
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/certs/server.pem")
+
 	-dataDir string
 		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/bin")
 	-errorLog string
 		<filename> Name of the error logfile to write to
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/error.log")
+		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/error.bla.mwat.de")
 	-gzip
 		(optional) use gzip compression for server responses (default true)
 	-hashFile string
@@ -159,7 +159,7 @@ Let's start with the command line:
 		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/hashfile.db")
 	-ini string
 		<fileName> the path/filename of the INI file to use
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/nele.ini")
+		(default "/home/matthias/.nele.ini")
 	-lang string
 		(optional) the default language to use  (default "de")
 	-listen string
@@ -178,7 +178,7 @@ Let's start with the command line:
 		<portNumber> the IP port to listen to  (default 8181)
 	-realm string
 		(optional) <hostName> name of host/domain to secure by BasicAuth
-		(default "This Host")
+		(default "Matthias' Bla")
 	-theme string
 		<name> the display theme to use ('light' or 'dark')
 		(default "dark")
@@ -229,6 +229,9 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	# "static", and "views" sub-directories.
 	# NOTE: This should be an _absolute_ path name.
 	dataDir = ./
+
+	# Delete superfluous whitespace in generated pages.
+	delWhitespace = yes
 
 	# Name of the optional logfile to write to.
 	# NOTE: A relative path/name will be combined with `datadir` (above).
@@ -570,6 +573,7 @@ The following external libraries were used building `Nele`:
 * [PageView](https://github.com/mwat56/pageview)
 * [PassList](https://github.com/mwat56/passlist)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
+* [WhiteSpace](https://github.com/mwat56/whitespace)
 * [wkHtmlToImage](https://wkhtmltopdf.org/)
 
 ## Licence

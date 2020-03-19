@@ -214,6 +214,10 @@ func InitConfig() {
 	flag.StringVar(&certPem, "certPem", certPem,
 		"<fileName> the name of the TLS certificate PEM\n")
 
+	delWhitespace, _ := AppArguments.AsBool("delWhitespace")
+	flag.BoolVar(&delWhitespace, "delWhitespace", delWhitespace,
+		"(optional) Delete superfluous whitespace in generated pages")
+
 	s, _ = AppArguments.Get("errorLog")
 	errorLog := absolute(dataDir, s)
 	flag.StringVar(&errorLog, "errorLog", errorLog,
@@ -296,10 +300,6 @@ func InitConfig() {
 	userUpdate := ""
 	flag.StringVar(&userUpdate, "uu", userUpdate,
 		"<userName> (optional) user update: update a username in the password file")
-
-	delWhitespace, _ := AppArguments.AsBool("delWhitespace")
-	flag.BoolVar(&delWhitespace, "delWhitespace", delWhitespace,
-		"(optional) Delete superfluous whitespace in generated pages")
 
 	flag.Usage = ShowHelp
 	flag.Parse() // // // // // // // // // // // // // // // // // // //
