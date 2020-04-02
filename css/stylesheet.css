@@ -326,9 +326,11 @@ p.matches {
 	padding: 0.5ex 1ex 0.5ex 1ex;
 }
 p.PostingCount {
+	font-size: 89%;
+	font-style: italic;
+	line-height: 1.2;
 	margin: 1.5em 0.3ex 1ex 0;
 	text-align: right;
-	font-style: italic;
 }
 .right {
 	text-align: right;

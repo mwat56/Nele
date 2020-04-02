@@ -8,6 +8,22 @@
 		{{- else -}}
 			postings
 		{{- end -}}
+		{{- if .HashCount -}}
+			<br>{{.HashCount}}&nbsp;
+			{{- if eq $lang "de" -}}
+				Hashtags
+			{{- else -}}
+				hashtags
+			{{- end -}}
+		{{- end -}}
+		{{- if .MentionCount -}}
+			<br>{{.MentionCount}}&nbsp;
+			{{- if eq $lang "de" -}}
+				Erwähnungen
+			{{- else -}}
+				mentions
+			{{- end -}}
+		{{- end -}}
 		</p>
 	{{- end -}}
 	{{- if .Taglist -}}

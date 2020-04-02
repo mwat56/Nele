@@ -290,7 +290,9 @@ func (ph *TPageHandler) basicPageData() *TemplateData {
 	pageData := NewTemplateData().
 		Set("Blogname", ph.bn).
 		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
+		Set("HashCount", ph.hashList.HashCount()).
 		Set("Lang", ph.lang).
+		Set("MentionCount", ph.hashList.MentionCount()).
 		Set("monthURL", "/m/"+now).
 		Set("NOW", now).
 		Set("PostingCount", PostingCount()).
