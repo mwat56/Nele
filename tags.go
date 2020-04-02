@@ -216,9 +216,9 @@ func MarkupTags(aPage []byte) []byte {
 						return aString
 					}
 				}
-				url = "/hl/" + hash[1:]
+				url = "/hl/" + strings.ToLower(hash[1:])
 			} else {
-				url = "/ml/" + hash[1:]
+				url = "/ml/" + strings.ToLower(hash[1:])
 			}
 			if 0 < len(sub[2]) {
 				suffix += string(sub[2])
