@@ -24,6 +24,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -69,12 +70,19 @@ var (
 	bfPre = []byte("</pre>")
 
 	bfPreCode = []byte("<pre><code ")
+
+	// Guard against race conditions in `mdToHTML()` when running
+	// `blackfriday`.
+	bfMtx = new(sync.Mutex)
 )
 
 // `mdToHTML()` converts the `aMarkdown` data returning HTML data.
 //
 //	`aMarkdown` The raw Markdown text to convert.
 func mdToHTML(aMarkdown []byte) (rHTML []byte) {
+	bfMtx.Lock()
+	defer bfMtx.Unlock()
+
 	rHTML = bytes.TrimSpace(bf.Run(aMarkdown, bfRenderer, bfExtensions))
 
 	// Testing for PRE first makes this implementation twice as fast
@@ -90,6 +98,7 @@ func mdToHTML(aMarkdown []byte) (rHTML []byte) {
 	if i := bytes.Index(rHTML, bfPreCode); 0 > i {
 		return // no need for the second RegEx execution
 	}
+
 	return poPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
 } // mdToHTML()
 
