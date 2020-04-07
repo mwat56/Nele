@@ -10,7 +10,7 @@ require (
 	github.com/mwat56/hashtags v0.5.1
 	github.com/mwat56/ini v1.3.8
 	github.com/mwat56/jffs v0.1.0
-	github.com/mwat56/pageview v0.4.3
+	github.com/mwat56/pageview v0.4.4
 	github.com/mwat56/passlist v1.3.1
 	github.com/mwat56/uploadhandler v1.1.3
 	github.com/mwat56/whitespace v0.2.1
