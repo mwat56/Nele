@@ -126,9 +126,9 @@ func Test_prepPostText(t *testing.T) {
 
 *@Bundestag @Germany #Language #Parliament*`)
 
-	p2 := []byte("bla \n> [link text two](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
+	p2 := []byte("bla \n> [link text two (a)](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
 	i2 := `httpswwwexampleorgtwo`
-	w2 := []byte("bla \n> [![link text two](/img/httpswwwexampleorgtwo)](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
+	w2 := []byte("bla \n> [![link text two (a)](/img/httpswwwexampleorgtwo)](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
 
 	type args struct {
 		aPosting   []byte
@@ -162,9 +162,9 @@ func Test_prepPostText(t *testing.T) {
 // Checking for the not-existence of the leading `!` should exclude
 // embedded image links.
 var pvLinkRE2 = regexp.MustCompile(
-	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
+	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[]+?)\]\s*\(([^\]]+?)\))`)
 
-//                                            11222222222222222233333333333331
+//                                              122222222111111133333333311
 // `[link-text](link-url)`
 // 0 : complete RegEx match
 // 1 : markdown link markup
@@ -183,6 +183,7 @@ func Test_pvImageRE(t *testing.T) {
 	t9 := "bla \n>\n[„link text nine“](https://www.example.org/nine/)\n bla"
 	t10 := "\n>	[„link text ten“] (https://www.example.org/ten/) bla"
 	t11 := "> [„link text eleven“](https://www.example.org/eleven/)\n bla"
+	t12 := "> [„link text eleven“ (b)](https://www.example.org/eleven/)\n bla"
 
 	type args struct {
 		aTxt string
@@ -204,6 +205,7 @@ func Test_pvImageRE(t *testing.T) {
 		{" 9", args{t9}, 0},
 		{"10", args{t10}, 1},
 		{"11", args{t11}, 1},
+		{"12", args{t12}, 1},
 	}
 	var matchLen int
 	for _, tt := range tests {

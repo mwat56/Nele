@@ -186,9 +186,8 @@ var (
 	// Checking for the not-existence of the leading `!` should exclude
 	// embedded image links.
 	pvLinkRE = regexp.MustCompile(
-		`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[\)]+?)\]\s*\(([^\]]+?)\))`)
-
-	//                                            11222222222222222233333333333331
+		`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[]+?)\]\s*\(([^\]]+?)\))`)
+	//                                            11222222222111111133333333311
 	// `[link-text](link-url)`
 	// 0 : complete RegEx match
 	// 1 : markdown link markup
