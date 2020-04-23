@@ -436,7 +436,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "licence", "license", "lizenz":
 		ph.handleReply("licence", aWriter, check4lang(pageData, aRequest))
 
-	case "m", "mm": // handle a given month
+	case "m", "mw": // handle a given month
 		var y, d int
 		var m time.Month
 		if 0 == len(tail) {

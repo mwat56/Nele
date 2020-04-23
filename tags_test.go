@@ -21,7 +21,7 @@ func Test_MarkupTags(t *testing.T) {
 	p2 := []byte(`
 *@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Spain*`)
 	w2 := []byte(`
-*<a href="/ml/Antoni_Comín" class="smaller">@Antoni_Comín</a> <a href="/ml/Carles_Puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/Catalonia" class="smaller">@Catalonia</a> <a href="/ml/EU" class="smaller">@EU</a> <a href="/ml/Immunity" class="smaller">@Immunity</a> <a href="/ml/Oriol_Junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/Spain" class="smaller">@Spain</a>*`)
+*<a href="/ml/antoni_comín" class="smaller">@Antoni_Comín</a> <a href="/ml/carles_puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/catalonia" class="smaller">@Catalonia</a> <a href="/ml/eu" class="smaller">@EU</a> <a href="/ml/immunity" class="smaller">@Immunity</a> <a href="/ml/oriol_junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/spain" class="smaller">@Spain</a>*`)
 	type args struct {
 		aPage []byte
 	}
