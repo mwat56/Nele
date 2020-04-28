@@ -157,11 +157,11 @@ func Test_newID(t *testing.T) {
 
 func Test_newPost(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	var bs []byte
+	var md []byte
 	id1 := "12345678"
-	rp1 := &TPosting{
-		id1,
-		bs,
+	wp1 := &TPosting{
+		id:       id1,
+		markdown: md,
 	}
 	type args struct {
 		aID string
@@ -172,12 +172,14 @@ func Test_newPost(t *testing.T) {
 		want *TPosting
 	}{
 		// TODO: Add test cases.
-		{" 1", args{id1}, rp1},
+		{" 1", args{id1}, wp1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewPosting(tt.args.aID); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewPost() = %v, want %v", got, tt.want)
+			got := NewPosting(tt.args.aID)
+			if (got.id != tt.want.id) ||
+				(!reflect.DeepEqual(got.markdown, tt.want.markdown)) {
+				t.Errorf("NewPost() = %v,\nwant %v", got, tt.want)
 			}
 		})
 	}
@@ -191,8 +193,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount int
 	}{
 		// TODO: Add test cases.
-		{" 1", 1294},
-		{" 2", 1294},
+		{" 1", 1306},
+		{" 2", 1306},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -292,8 +294,9 @@ func TestTPosting_Clear(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := tt.fields.p
-			if got := p.Clear(); !reflect.DeepEqual(got, tt.want) {
+			got := tt.fields.p.Clear()
+			if (got.id != tt.want.id) ||
+				!reflect.DeepEqual(got.markdown, tt.want.markdown) {
 				t.Errorf("TPosting.Clear() = '%v',\n\t\t\twant '%v'", got, tt.want)
 			}
 		})

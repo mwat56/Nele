@@ -66,9 +66,8 @@ func Test_checkForImgURL(t *testing.T) {
 func Test_checkPageImages(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
-	var p1 TPosting
-	p2 := NewPosting("15d9c2334fce3991")
-	p3 := NewPosting("15d9393f4f5f3bb4")
+	p1 := NewPosting("15d9c2334fce3991")
+	p2 := NewPosting("15d9393f4f5f3bb4")
 
 	type args struct {
 		aPosting *TPosting
@@ -78,9 +77,8 @@ func Test_checkPageImages(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{" 1", args{&p1}},
+		{" 1", args{p1}},
 		{" 2", args{p2}},
-		{" 3", args{p3}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -227,7 +225,6 @@ func Test_setPostingLinkViews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	imgURLdir := "/img/"
-	p0 := &TPosting{}
 	p1 := NewPosting("15d678172cfc527a")
 	_ = p1.Load()
 	p2 := NewPosting("15d9c2334fce3991")
@@ -249,7 +246,6 @@ func Test_setPostingLinkViews(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{" 0", args{p0, imgURLdir}},
 		{" 1", args{p1, imgURLdir}},
 		{" 2", args{p2, imgURLdir}},
 		{" 3", args{p3, imgURLdir}},
@@ -266,9 +262,8 @@ func Test_setPostingLinkViews(t *testing.T) {
 
 func TestRemovePagePreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
-	var t1 TPosting
+	t1 := NewPosting("")
 	t2 := NewPosting("")
-	t3 := NewPosting("")
 	type args struct {
 		aPosting *TPosting
 	}
@@ -277,9 +272,8 @@ func TestRemovePagePreviews(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{" 1", args{&t1}},
+		{" 1", args{t1}},
 		{" 2", args{t2}},
-		{" 3", args{t3}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

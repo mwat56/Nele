@@ -201,10 +201,11 @@ func SetPostingBaseDirectory(aBaseDir string) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 type (
-	// TPosting is a single article/posting to be used by a template.
+	// TPosting is a single article/posting..
 	TPosting struct {
 		id       string // hex. representation of date/time
 		markdown []byte // (article-/file-)contents in Markdown markup
+		mtx      *sync.RWMutex
 	}
 )
 
@@ -217,7 +218,10 @@ func NewPosting(aID string) *TPosting {
 		aID = NewID()
 	}
 
-	return &TPosting{id: aID}
+	return &TPosting{
+		id:  aID,
+		mtx: new(sync.RWMutex),
+	}
 } // NewPosting()
 
 // After reports whether this posting is younger than the one
@@ -241,18 +245,23 @@ func (p *TPosting) Before(aID string) bool {
 // This method does NOT remove the file (if any) associated with this
 // posting/article; for that call the `Delete()` method.
 func (p *TPosting) Clear() *TPosting {
-	// p.markdown = []byte(``) // doesn't pass the equality test :-((
-	var bs []byte
-	p.markdown = bs
+	if nil == p {
+		return p
+	}
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
+
+	p.markdown = nil
 
 	return p
 } // Clear()
 
-// clone() returns a copy of this posting/article.
+// `clone()` returns a copy of this posting/article.
 func (p *TPosting) clone() *TPosting {
 	return &TPosting{
 		id:       p.id,
-		markdown: p.markdown,
+		markdown: bytes.TrimSpace(p.markdown),
+		mtx:      new(sync.RWMutex),
 	}
 } // clone()
 
@@ -295,6 +304,17 @@ func (p *TPosting) Delete() error {
 	return delFile(&fName)
 } // Delete()
 
+// `dir()` returns the fully qualified name of the directory where this
+// posting is stored.
+func (p *TPosting) dir() string {
+	// Using the article ID's first three characters leads to
+	// directories worth about 52 days of data.
+	// We use the year to guard against ID overflows.
+	dir := fmt.Sprintf(`%04d%s`, timeID(p.id).Year(), p.id[:3])
+
+	return path.Join(poPostingBaseDirectory, dir)
+} // dir()
+
 // Equal reports whether this posting is of the same time as `aID`.
 //
 //	`aID` The ID of the posting to compare with this one.
@@ -304,7 +324,7 @@ func (p *TPosting) Equal(aID string) bool {
 
 // Exists returns whether there is a file with more than zero bytes.
 func (p *TPosting) Exists() bool {
-	fi, err := os.Stat(pathname(p.id))
+	fi, err := os.Stat(p.PathFileName())
 	if (nil != err) || fi.IsDir() {
 		return false
 	}
@@ -328,6 +348,12 @@ func (p *TPosting) ID() string {
 // If the markup is not already in memory this methods calls
 // `TPosting.Load()` to read the text data from the filesystem.
 func (p *TPosting) Len() int {
+	if nil == p {
+		return 0
+	}
+	p.mtx.RLock()
+	defer p.mtx.RUnlock()
+
 	if result := len(p.markdown); 0 < result {
 		return result
 	}
@@ -367,12 +393,7 @@ func (p *TPosting) Load() error {
 // The directory is created with filemode `0775` (`drwxrwxr-x`).
 func (p *TPosting) makeDir() (string, error) {
 	fMode := os.ModeDir | 0775
-
-	// Using the ID's first three characters leads to
-	// directories worth about 52 days of data.
-	// We need the year to guard against ID overflows.
-	dir := fmt.Sprintf(`%04d%s`, timeID(p.id).Year(), p.id[:3])
-	dirname := path.Join(poPostingBaseDirectory, dir)
+	dirname := p.dir()
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fMode); nil != err {
 		return "", err
 	}
@@ -385,6 +406,12 @@ func (p *TPosting) makeDir() (string, error) {
 // If the markup is not already in memory this methods calls
 // `TPosting.Load()` to read the text data from the filesystem.
 func (p *TPosting) Markdown() []byte {
+	if nil == p {
+		return []byte(``)
+	}
+	p.mtx.RLock()
+	defer p.mtx.RUnlock()
+
 	if 0 < len(p.markdown) {
 		// that's the easy path …
 		return p.markdown
@@ -401,34 +428,36 @@ func (p *TPosting) Markdown() []byte {
 // `pathname()` returns the complete article path-/filename.
 func pathname(aID string) string {
 	if 0 == len(aID) {
-		return ""
+		return ``
+	}
+	p := &TPosting{
+		id: aID,
 	}
 
-	// Using the ID's first three characters leads to
-	// directories worth about 52 days of data.
-	// We need the year to guard against ID overflows.
-	dir := fmt.Sprintf(`%04d%s`, timeID(aID).Year(), aID[:3])
-
-	return path.Join(poPostingBaseDirectory, dir, aID+`.md`)
+	return p.PathFileName()
 } // pathname()
 
 // PathFileName returns the article's complete path-/filename.
 func (p *TPosting) PathFileName() string {
-	return pathname(p.id)
+	return path.Join(p.dir(), p.id+`.md`)
 } // PathFileName()
 
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
-	p.Markdown()
-
-	return template.HTML(MarkupTags(mdToHTML(p.markdown))) // #nosec G203
+	return template.HTML(MarkupTags(mdToHTML(p.Markdown())))
 } // Post()
 
 // Set assigns the article's Markdown text.
 //
 //	`aMarkdown` is the actual Markdown text of the article to assign.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
+	if nil == p {
+		return p
+	}
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
+
 	if 0 < len(aMarkdown) {
 		if p.markdown = bytes.TrimSpace(aMarkdown); nil == p.markdown {
 			p.markdown = []byte(``)
@@ -474,40 +503,12 @@ func (p *TPosting) Store() (int64, error) {
 //
 // Note: This is mainly for debugging purposes and has no real life use.
 func (p *TPosting) String() string {
-	return p.id + `: [[` + string(p.markdown) + `]]`
+	return p.id + `: [[` + string(p.Markdown()) + `]]`
 } // String()
 
 // Time returns the posting's date/time.
 func (p *TPosting) Time() time.Time {
 	return timeID(p.id)
 } // Time()
-
-/*
-func updatePostDirs() {
-	dirnames, err := filepath.Glob(poPostingBaseDirectory + "/*")
-	if nil != err {
-		return
-	}
-	for _, dirname := range dirnames {
-		filenames, err := filepath.Glob(dirname + "/*.md")
-		if nil != err {
-			continue // it might be a file (not a directory) …
-		}
-		if 0 >= len(filenames) {
-			continue // skip empty directory
-		}
-		for _, fName := range filenames {
-			pName := strings.TrimPrefix(fName, dirname+"/")
-			id := pName[:len(pName)-3]
-			newName := pathname(id)
-
-			dir := fmt.Sprintf("%04d%s", timeID(id).Year(), id[:3])
-			dirname := path.Join(poPostingBaseDirectory, dir)
-			os.MkdirAll(filepath.FromSlash(dirname), os.ModeDir|0775)
-			os.Rename(fName, newName)
-		}
-	}
-} // updatePostDirs()
-*/
 
 /* _EoF_ */
