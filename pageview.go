@@ -242,18 +242,19 @@ func CreatePreview(aURL string) {
 // PrepareLinkPreviews updates the external link(s) in `aPosting`
 // to include page preview image(s) (if available).
 //
-//	`aPosting` is the posting the text of which is going to be processed.
-//	`aImageURLdir` is the URL directory for page preview images.
+//	`aPosting` The posting the text of which is going to be processed.
+//	`aImageURLdir`The URL directory for page preview images.
 func PrepareLinkPreviews(aPosting *TPosting, aImageURLdir string) {
 	go setPostingLinkViews(aPosting, aImageURLdir)
+	runtime.Gosched() // get the background operation started
 } // PrepareLinkPreviews()
 
 // UpdatePreviews starts the process to update the preview images
 // in all postings.
 //
-//	`aPostingBaseDir` is the base directory used for storing
+//	`aPostingBaseDir` The base directory used for storing
 // articles/postings.
-//	`aImageURLdir` is the URL directory for page preview images.
+//	`aImageURLdir` The URL directory for page preview images.
 func UpdatePreviews(aPostingBaseDir, aImgURLdir string) {
 	go goUpdateAllLinkPreviews(aPostingBaseDir, aImgURLdir)
 	runtime.Gosched() // get the background operation started
