@@ -416,7 +416,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set("Robots", "noindex,nofollow")
 			ph.handleReply("il", aWriter, pageData)
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
 	case "img":
