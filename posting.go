@@ -21,7 +21,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,77 +29,7 @@ import (
 	"time"
 
 	"github.com/mwat56/apachelogger"
-	// bf "github.com/russross/blackfriday/v2"
-	bf "gopkg.in/russross/blackfriday.v2"
 )
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-var (
-	// RegEx to correct redundant markup created by 'bf';
-	// see `mdToHTML()`
-	poPreCodeRE1 = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
-
-	poPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
-
-	// Instead of creating this objects with every call to `mdToHTML()`
-	// we use some prepared global instances.
-	bfExtensions = bf.WithExtensions(
-		bf.Autolink |
-			bf.BackslashLineBreak |
-			bf.DefinitionLists |
-			bf.FencedCode |
-			bf.Footnotes |
-			bf.HeadingIDs |
-			bf.NoIntraEmphasis |
-			bf.SpaceHeadings |
-			bf.Strikethrough |
-			bf.Tables)
-
-	bfRenderer = bf.WithRenderer(
-		bf.NewHTMLRenderer(bf.HTMLRendererParameters{
-			Flags: bf.FootnoteReturnLinks |
-				bf.Smartypants |
-				bf.SmartypantsFractions |
-				bf.SmartypantsDashes |
-				bf.SmartypantsLatexDashes,
-		}),
-	)
-
-	bfPre = []byte("</pre>")
-
-	bfPreCode = []byte("<pre><code ")
-
-	// Guard against race conditions in `mdToHTML()` when running
-	// `blackfriday`.
-	bfMtx = new(sync.Mutex)
-)
-
-// `mdToHTML()` converts the `aMarkdown` data returning HTML data.
-//
-//	`aMarkdown` The raw Markdown text to convert.
-func mdToHTML(aMarkdown []byte) (rHTML []byte) {
-	bfMtx.Lock()
-	defer bfMtx.Unlock()
-
-	rHTML = bytes.TrimSpace(bf.Run(aMarkdown, bfRenderer, bfExtensions))
-
-	// Testing for PRE first makes this implementation twice as fast
-	// if there's no PRE in the generated HTML and about the same
-	// speed if there actually is a PRE part.
-	if i := bytes.Index(rHTML, bfPre); 0 > i {
-		return // no need for further RegEx execution
-	}
-
-	// return handlePreCode(rHTML)
-	rHTML = poPreCodeRE1.ReplaceAll(rHTML, []byte("$1\n$2\n$3"))
-
-	if i := bytes.Index(rHTML, bfPreCode); 0 > i {
-		return // no need for the second RegEx execution
-	}
-
-	return poPreCodeRE2.ReplaceAll(rHTML, []byte("$1 $2>\n$3\n$4"))
-} // mdToHTML()
 
 // `newID()` returns an article ID based on `aTime` in hexadecimal notation.
 //
@@ -445,7 +374,7 @@ func (p *TPosting) PathFileName() string {
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
-	return template.HTML(MarkupTags(mdToHTML(p.Markdown())))
+	return template.HTML(MarkupTags(MDtoHTML(p.Markdown())))
 } // Post()
 
 // Set assigns the article's Markdown text.
