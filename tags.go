@@ -13,7 +13,6 @@ package nele
  */
 
 import (
-	"bytes"
 	"fmt"
 	"html/template"
 	"path/filepath"
@@ -32,12 +31,12 @@ type (
 	tWalkPostFunc func(aList *hashtags.THashList, aPosting *TPosting)
 )
 
-// `walkAllPosts()` visits all existing postings and calling `aWalkFunc`
+// `goWalkAllPosts()` visits all existing postings and calling `aWalkFunc`
 // for each article.
 //
 //	`aList` The hashlist to use/update.
 //	`aWalkFunc` The function to call for each posting.
-func walkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
+func goWalkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
 	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
@@ -51,12 +50,12 @@ func walkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
 			continue // skip empty directory
 		}
 		for _, postName := range filesnames {
-			fName := strings.TrimPrefix(postName, mdName+"/")
-			aWalkFunc(aList, NewPosting(fName[:len(fName)-3])) // strip name extension
+			id := strings.TrimPrefix(postName, mdName+"/")
+			aWalkFunc(aList, NewPosting(id[:len(id)-3])) // strip name extension
 		}
 	}
 	_, _ = aList.Store()
-} // walkAllPosts()
+} // goWalkAllPosts()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -82,6 +81,7 @@ func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
 	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
+/*
 // `initHashlist()` initialises the hash list.
 //
 //	`aList` The list of #hashtags/@mentions to update.
@@ -95,40 +95,50 @@ func initHashlist(aList *hashtags.THashList) {
 	go walkAllPosts(aList, doInitHashlist)
 	runtime.Gosched() // get the background operation started
 } // initHashlist()
+ */
 
 // InitHashlist initialises the hash list.
 //
 //	`aList` The list of #hashtags/@mentions to update.
 func InitHashlist(aList *hashtags.THashList) {
-	if _, err := aList.Load(); (nil == err) && (0 < aList.Len()) {
-		// `doCheckPost()` returns whether there is a file identified
-		// by `aID` containing `aHash`.
-		//
-		// The function's result is `false` if (1) the file associated
-		// with `aID` doesn't exist, or if (2) the file can't be
-		// read, or (3) the given `aHash` can't be found in the
-		// posting's text.
-		//
-		//	`aHash` The hashtag to check for.
-		//	`aID` The ID of the posting to handle.
-		doCheckPost := func(aHash, aID string) bool {
-			p := NewPosting(aID)
-			if !p.Exists() {
-				return false
-			}
-			if err := p.Load(); nil != err {
-				return false
-			}
-			txt := bytes.ToLower(p.Markdown())
+	/*
+		if hl, err := aList.Load(); (nil == err) && (0 < hl.Len()) {
+			// `doCheckPost()` returns whether there is a file identified
+			// by `aID` containing `aHash`.
+			//
+			// The function's result is `false` if (1) the file associated
+			// with `aID` doesn't exist, or if (2) the file can't be
+			// read, or (3) the given `aHash` can't be found in the
+			// posting's text.
+			//
+			//	`aHash` The hashtag to check for.
+			//	`aID` The ID of the posting to handle.
+			doCheckPost := func(aHash, aID string) bool {
+				p := NewPosting(aID)
+				if !p.Exists() {
+					return false
+				}
+				if err := p.Load(); nil != err {
+					return false
+				}
+				txt := bytes.ToLower(p.Markdown())
 
-			return (0 <= bytes.Index(txt, []byte(aHash)))
-		} // doCheckPost()
+				return (0 <= bytes.Index(txt, []byte(aHash)))
+			} // doCheckPost()
 
-		go aList.Walk(doCheckPost)
-		return // assume everything is up-to-date
-	}
+			go aList.Walk(doCheckPost)
+			return // assume everything is up-to-date
+		}
+	*/
+	// initHashlist(aList)
+	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
+		if 0 < aPosting.Len() {
+			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
+		}
+	} // doInitHashlist()
 
-	initHashlist(aList)
+	go goWalkAllPosts(aList, doInitHashlist)
+	runtime.Gosched() // get the background operation started
 } // InitHashlist()
 
 var (
@@ -243,7 +253,7 @@ func MarkupTags(aPage []byte) []byte {
 //
 //	`aList` The list of #hashtags/@mentions to build.
 func ReadHashlist(aList *hashtags.THashList) {
-	initHashlist(aList.Clear())
+	InitHashlist(aList.Clear())
 } // ReadHashlist()
 
 // RemoveIDTags removes `aID` from `aList's` items.
@@ -303,7 +313,7 @@ func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 		aHL.IDremove(aPosting.ID()).IDparse(aPosting.ID(), txt)
 	} // doReplaceTag()
 
-	go walkAllPosts(aList, doReplaceTag)
+	go goWalkAllPosts(aList, doReplaceTag)
 	runtime.Gosched() // get the background operation started
 } // ReplaceTag()
 
