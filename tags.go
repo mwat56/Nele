@@ -81,56 +81,10 @@ func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
 	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
-/*
-// `initHashlist()` initialises the hash list.
-//
-//	`aList` The list of #hashtags/@mentions to update.
-func initHashlist(aList *hashtags.THashList) {
-	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
-		if 0 < aPosting.Len() {
-			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
-		}
-	} // doInitHashlist()
-
-	go walkAllPosts(aList, doInitHashlist)
-	runtime.Gosched() // get the background operation started
-} // initHashlist()
- */
-
 // InitHashlist initialises the hash list.
 //
 //	`aList` The list of #hashtags/@mentions to update.
 func InitHashlist(aList *hashtags.THashList) {
-	/*
-		if hl, err := aList.Load(); (nil == err) && (0 < hl.Len()) {
-			// `doCheckPost()` returns whether there is a file identified
-			// by `aID` containing `aHash`.
-			//
-			// The function's result is `false` if (1) the file associated
-			// with `aID` doesn't exist, or if (2) the file can't be
-			// read, or (3) the given `aHash` can't be found in the
-			// posting's text.
-			//
-			//	`aHash` The hashtag to check for.
-			//	`aID` The ID of the posting to handle.
-			doCheckPost := func(aHash, aID string) bool {
-				p := NewPosting(aID)
-				if !p.Exists() {
-					return false
-				}
-				if err := p.Load(); nil != err {
-					return false
-				}
-				txt := bytes.ToLower(p.Markdown())
-
-				return (0 <= bytes.Index(txt, []byte(aHash)))
-			} // doCheckPost()
-
-			go aList.Walk(doCheckPost)
-			return // assume everything is up-to-date
-		}
-	*/
-	// initHashlist(aList)
 	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
 		if 0 < aPosting.Len() {
 			aHL.IDparse(aPosting.ID(), aPosting.Markdown())

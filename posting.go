@@ -374,7 +374,7 @@ func (p *TPosting) PathFileName() string {
 // Post returns the article's HTML markup.
 func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
-	return template.HTML(MarkupTags(MDtoHTML(p.Markdown())))
+	return template.HTML(MarkupTags(MDtoHTML(p.Markdown()))) // #nosec G203
 } // Post()
 
 // Set assigns the article's Markdown text.

@@ -17,8 +17,8 @@ require (
 	// gopkg.in/russross/blackfriday.v2 v2.0.1
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79 // indirect
-	golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f // indirect
+	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
+	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 // indirect
 )
 
 // replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
