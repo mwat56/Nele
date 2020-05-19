@@ -248,6 +248,7 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	lang = de
 
 	# The host's IP number to listen at.
+	# An empty value means: listen on all interfaces.
 	listen = 127.0.0.1
 
 	# Whether or not log a stack trace for recovered runtime errors.
