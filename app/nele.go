@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -75,6 +76,28 @@ func fatal(aMessage string) {
 	apachelogger.Close()
 	log.Fatalln(aMessage)
 } // fatal()
+
+// `redirHTTP()` sends HTTP clients to HTTPS server.
+//
+// see: https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
+func redirHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
+	// copy the original URL and replace the scheme:
+	targetURL := url.URL{
+		Scheme:     `https`,
+		Opaque:     aRequest.URL.Opaque,
+		User:       aRequest.URL.User,
+		Host:       aRequest.URL.Host,
+		Path:       aRequest.URL.Path,
+		RawPath:    aRequest.URL.RawPath,
+		ForceQuery: aRequest.URL.ForceQuery,
+		RawQuery:   aRequest.URL.RawQuery,
+		Fragment:   aRequest.URL.Fragment,
+	}
+	target := targetURL.String()
+
+	apachelogger.Err(`Nele/main`, `redirecting to: `+target)
+	http.Redirect(aWriter, aRequest, target, http.StatusMovedPermanently)
+} // redirHTTP()
 
 // `setupSignals()` configures the capture of the interrupts `SIGINT`
 // `and `SIGTERM` to terminate the program gracefully.
@@ -161,27 +184,32 @@ func main() {
 	}
 
 	// Inspect logging commandline arguments and setup the `ApacheLogger`:
-	if s, err = nele.AppArguments.Get("accessLog"); (nil == err) && (0 < len(s)) {
+	if s, err = nele.AppArguments.Get("accessLog"); (nil == err) &&
+		(0 < len(s)) {
 		// we assume, an error means: no logfile
-		if s2, err2 := nele.AppArguments.Get("errorLog"); (nil == err2) && (0 < len(s2)) {
+		if s2, err2 := nele.AppArguments.Get("errorLog"); (nil == err2) &&
+			(0 < len(s2)) {
 			handler = apachelogger.Wrap(handler, s, s2)
 		} else {
 			handler = apachelogger.Wrap(handler, s, "")
 		}
 		// err = nil // for use by test for `apachelogger.SetErrLog()` (below)
-	} else if s, err = nele.AppArguments.Get("errorLog"); (nil == err) && (0 < len(s)) {
+	} else if s, err = nele.AppArguments.Get("errorLog"); (nil == err) &&
+		(0 < len(s)) {
 		handler = apachelogger.Wrap(handler, "", s)
 	}
 
 	// We need a `server` reference to use it in `setupSignals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{
-		Addr:              ph.Address(),
-		Handler:           handler,
-		IdleTimeout:       2 * time.Minute,
-		ReadHeaderTimeout: 20 * time.Second,
-		ReadTimeout:       1 * time.Minute,
-		WriteTimeout:      5 * time.Minute,
+		Addr:    ph.Address(),
+		Handler: handler,
+		// Set timeouts so that a slow or malicious client
+		// doesn't hold resources forever
+		IdleTimeout:       1 * time.Minute,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 	}
 	if (nil == err) && (0 < len(s)) { // values from logfile test
 		apachelogger.SetErrLog(server)
@@ -191,6 +219,9 @@ func main() {
 	ck, _ = nele.AppArguments.Get("certKey")
 	cp, _ = nele.AppArguments.Get("certPem")
 	if 0 < len(ck) && (0 < len(cp)) {
+		// start the HTTP to HTTPS redirector:
+		go http.ListenAndServe(ph.Address(), http.HandlerFunc(redirHTTP))
+
 		s = fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
