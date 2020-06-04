@@ -1,5 +1,6 @@
 [Unit]
 Description=Nele Blogging Server
+Documentation=https://github.com/mwat56/nele/
 After=network.target
 
 [Service]
