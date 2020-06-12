@@ -272,7 +272,7 @@ ul li {
 	text-indent: 0;
 }
 #leftbar {
-	max-width: 30%;
+	max-width: 25%;
 	text-align: left;
 }
 #main {
@@ -293,8 +293,8 @@ pre#preview {
 #rightbar {
 	border-left: thin dotted #ccc;
 	float: right;
-	max-width: 26%;
-	min-width: 24%;
+	max-width: 27%;
+	min-width: 25%;
 	text-align: right;
 }
 
