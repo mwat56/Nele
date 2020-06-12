@@ -136,34 +136,34 @@ Let's start with the command line:
 
 	-accessLog string
 		<filename> Name of the access logfile to write to
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/access.bla.mwat.de")
+		(default "/home/matthias/nele/access.bla.mwat.de")
 	-blogName string
 		Name of this Blog (shown on every page)
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
 		<fileName> the name of the TLS certificate's private key
-
 	-certPem string
 		<fileName> the name of the TLS certificate PEM
-
 	-dataDir string
 		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/bin")
+		(default "/home/matthias/nele")
+	-delWhitespace
+		(optional) Delete superfluous whitespace in generated pages (default true)
 	-errorLog string
 		<filename> Name of the error logfile to write to
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/error.bla.mwat.de")
+		(default "/home/matthias/nele/error.bla.mwat.de")
 	-gzip
 		(optional) use gzip compression for server responses (default true)
 	-hashFile string
 		<fileName> (optional) the name of a file storing #hashtags and @mentions
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/hashfile.db")
+		(default "/home/matthias/nele/hashfile.db")
 	-ini string
 		<fileName> the path/filename of the INI file to use
 		(default "/home/matthias/.nele.ini")
 	-lang string
 		(optional) the default language to use  (default "de")
 	-listen string
-		the host's IP to listen at  (default "127.0.0.1")
+		the host's IP to listen at
 	-logStack
 		<boolean> Log a stack trace for recovered runtime errors  (default true)
 	-maxfilesize string
@@ -190,7 +190,7 @@ Let's start with the command line:
 		<userName> (optional) user delete: remove a username from the password file
 	-uf string
 		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
-		(default "/home/matthias/devel/Go/src/github.com/mwat56/nele/pwaccess.db")
+		(default "/home/matthias/nele/pwaccess.db")
 	-ul
 		(optional) user list: show all users in the password file
 	-uu string
@@ -202,6 +202,8 @@ Let's start with the command line:
 
 However, to just run the program you'll usually don't need any of those options to input on the commandline.
 There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
+
+> Please _note_ that the default values shown above vary depending on the system where `nele` is called and especially on the contents of the INI file (it's read before the help text is produced).
 
 	$ cat nele.ini
 	# Nele's default configuration file
