@@ -32,7 +32,7 @@ import (
 func doConsole(aMe string) {
 	var (
 		err error
-		i64 int64
+		i   int
 		s   string
 	)
 	if !nele.AppArgs.PostAdd {
@@ -40,10 +40,10 @@ func doConsole(aMe string) {
 		return
 	}
 	if "true" == s {
-		if i64, err = nele.AddConsolePost(); nil != err {
+		if i, err = nele.AddConsolePost(); nil != err {
 			log.Fatalf("%s: %v", aMe, err)
 		}
-		log.Printf("\n\t%s wrote %d bytes in a new posting", aMe, i64)
+		log.Printf("\n\t%s wrote %d bytes in a new posting", aMe, i)
 		os.Exit(0)
 	}
 } // doConsole()
@@ -53,17 +53,17 @@ func doConsole(aMe string) {
 func doFile(aMe string) {
 	var (
 		err error
-		i64 int64
+		i   int
 		s   string
 	)
 	if 0 == len(nele.AppArgs.PostFile) {
 		// no posting file
 		return
 	}
-	if i64, err = nele.AddFilePost(s); nil != err {
+	if i, err = nele.AddFilePost(s); nil != err {
 		log.Fatalf("%s: %v", aMe, err)
 	}
-	log.Printf("\n\t%s stored %d bytes in a new posting", aMe, i64)
+	log.Printf("\n\t%s stored %d bytes in a new posting", aMe, i)
 	os.Exit(0)
 } // doFile()
 

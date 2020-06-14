@@ -680,7 +680,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			old = p.Markdown()
 		}
 		if bw, err := p.Set(txt).Store(); nil != err {
-			if bw < int64(len(txt)) {
+			if bw < len(txt) {
 				// let's hope for the best …
 				_, _ = p.Set(old).Store()
 			}

@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
               All rights reserved
           EMail : <support@mwat.de>
 */
@@ -402,8 +402,13 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 // the number of bytes written and a possible I/O error.
 //
 // The file is created on disk with mode `0640` (`-rw-r-----`).
-func (p *TPosting) Store() (int64, error) {
-	if _, err := p.makeDir(); nil != err {
+func (p *TPosting) Store() (int, error) {
+	var (
+		err    error
+		fName  string
+		mdFile *os.File
+	)
+	if _, err = p.makeDir(); nil != err {
 		// without an appropriate directory we can't save anything …
 		return 0, err
 	}
@@ -411,21 +416,16 @@ func (p *TPosting) Store() (int64, error) {
 		return 0, p.Delete()
 	}
 
-	fName := p.PathFileName()
-	if 0 == len(fName) {
+	if fName = p.PathFileName(); 0 == len(fName) {
 		return 0, fmt.Errorf("No filename for posting '%s'", p.id)
 	}
-	if err := ioutil.WriteFile(fName, p.markdown, 0640); nil != err {
+
+	if mdFile, err = os.OpenFile(fName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0640); /* #nosec G302 */ err != nil {
 		return 0, err
 	}
+	defer mdFile.Close()
 
-	fi, err := os.Stat(fName)
-	if nil != err {
-		return 0, err
-	}
-	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-
-	return fi.Size(), nil
+	return mdFile.Write(p.markdown)
 } // Store()
 
 // String returns a stringified version of the posting object.

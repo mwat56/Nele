@@ -511,21 +511,21 @@ func TestTPosting_Set(t *testing.T) {
 
 func TestTPosting_Store(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	var len1 int64
+	var len1 int
 	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	p1 := NewPosting(id1)
 	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
 	md2 := []byte("Store: this is more nonsense")
 	p2 := NewPosting(id2).
 		Set(md2)
-	len2 := int64(len(md2))
+	len2 := len(md2)
 	type fields struct {
 		p *TPosting
 	}
 	tests := []struct {
 		name    string
 		fields  fields
-		want    int64
+		want    int
 		wantErr bool
 	}{
 		// TODO: Add test cases.

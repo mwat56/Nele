@@ -28,13 +28,13 @@ import (
 // returning the number of bytes written and a possible I/O error.
 //
 //	`aMarkdown` The text to store as a new posting.
-func addMarkdown(aMarkdown []byte) (int64, error) {
+func addMarkdown(aMarkdown []byte) (int, error) {
 	return NewPosting("").Set(aMarkdown).Store()
 } // addMarkdown()
 
 // AddConsolePost reads data from `StdIn` and saves it as a new posting,
 // returning the number of bytes written and a possible I/O error.
-func AddConsolePost() (int64, error) {
+func AddConsolePost() (int, error) {
 	markdown, err := bufio.NewReader(os.Stdin).ReadBytes(0x03)
 	if (nil != err) && (io.EOF != err) {
 		return 0, err
@@ -47,7 +47,7 @@ func AddConsolePost() (int64, error) {
 // returning the number of bytes written and a possible I/O error.
 //
 //	`aFilename` The text file to add as a new posting.
-func AddFilePost(aFilename string) (int64, error) {
+func AddFilePost(aFilename string) (int, error) {
 	markdown, err := ioutil.ReadFile(aFilename) /* #nosec G304 */
 	if nil != err {
 		return 0, err
