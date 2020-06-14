@@ -6,7 +6,6 @@
 
 package nele
 
-//lint:file-ignore ST1005 - capitalisation wanted
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 import (
@@ -18,7 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mwat56/ini"
 	"github.com/mwat56/pageview"
@@ -26,6 +24,41 @@ import (
 )
 
 type (
+	// TAppArgs Collection of commandline arguments and INI values.
+	TAppArgs struct {
+		AccessLog     string // (optional) name of page access logfile
+		Addr          string // listen address ("1.2.3.4:5678")
+		BlogName      string // name/description of this blog
+		CertKey       string // TLS certificate key
+		CertPem       string // private TLS certificate
+		DataDir       string // base directory of application's data
+		delWhitespace bool   // remove whitespace from generated pages
+		dump          bool   // Debug: dump this structure to `StdOut`
+		ErrorLog      string // (optional) name of page error logfile
+		GZip          bool   // send compressed data to remote browser
+		HashFile      string // file with hashtag/mention database
+		// Intl       string // path/filename of the localisation file
+		Lang     string // default GUI language
+		listen   string // IP of host to listen at
+		LogStack bool   // log stack trace in case of errors
+
+		MaxFileSize int64  // max. upload file size
+		mfs         string // max. upload file size
+
+		PageView   bool   // wether to use page previews or not
+		PostAdd    bool   // whether to write a posting from commandline
+		PostFile   string // name of file to post
+		port       int    // port to listen to
+		Realm      string // host/domain to secure by BasicAuth
+		Theme      string // `dark` or `light` display theme
+		UserAdd    string // username to add to password list
+		UserCheck  string // username to check in password list
+		UserDelete string // username to delete from password list
+		UserFile   string // (optional) name of page access logfile
+		UserList   bool   // print out a list of current users
+		UserUpdate string // username to update in password list
+	}
+
 	// tArguments is the list structure for the cmdline argument values
 	// merged with the key-value pairs from the INI file.
 	tArguments struct {
@@ -34,69 +67,83 @@ type (
 )
 
 var (
-	// AppArguments is the list for the cmdline arguments and INI values.
-	AppArguments tArguments
+	// AppArgs holds the commandline arguments and INI values.
+	//
+	// This structure should be considered R/O after it was
+	// set up by a call to `InitConfig()`.
+	AppArgs TAppArgs
+
+	// iniValues is the list for the cmdline arguments and INI values.
+	iniValues tArguments
 )
 
-// `set()` adds/sets another key-value pair.
-//
-// If `aValue` is empty then `aKey` gets removed.
-func (al *tArguments) set(aKey, aValue string) {
-	if 0 < len(aValue) {
-		al.AddKey(aKey, aValue)
-	} else {
-		al.RemoveKey(aKey)
-	}
-} // set()
-
-// Get returns the value associated with `aKey` and `nil` if found,
-// or an empty string and an error.
-//
-//	`aKey` The key to lookup in the list.
-func (al *tArguments) Get(aKey string) (string, error) {
-	if result, ok := al.AsString(aKey); ok {
-		return result, nil
-	}
-
-	return "", fmt.Errorf("Missing config value: %s", aKey)
-} // Get()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // `absolute()` returns `aDir` as an absolute path.
+//
+// If `aDir` is an empty string the current directory (`./`) gets returned.
+//
+// If `aDir` starts with a slash (`/`) it's returned after cleaning.
+//
+// If `aBaseDir` is an empty string the current directory (`./`) is used.
+//
+// Otherwise `aBaseDir` gets prepended to `aDir` and returned after cleaning.
+//
+//	`aBaseDir` The base directory to prepend to `aDir`.
+//	`aDir` The directory to make absolute.
 func absolute(aBaseDir, aDir string) string {
 	if 0 == len(aDir) {
+		aDir, _ = filepath.Abs(`./`)
 		return aDir
 	}
 	if '/' == aDir[0] {
-		s, _ := filepath.Abs(aDir)
-		return s
+		return filepath.Clean(aDir)
+	}
+	if 0 == len(aBaseDir) {
+		aBaseDir, _ = filepath.Abs(`./`)
 	}
 
-	s, _ := filepath.Abs(filepath.Join(aBaseDir, aDir))
-	return s
+	return filepath.Join(aBaseDir, aDir)
 } // absolute()
+
+// String implements the `Stringer` interface returning a (pretty printed)
+// string representation of the current `TAppArgs` instance.
+//
+// NOTE: This method is meant mostly for debugging purposes.
+func (aa TAppArgs) String() string {
+	return strings.Replace(
+		strings.Replace(
+			strings.Replace(
+				strings.Replace(
+					fmt.Sprintf("%#v", aa),
+					`, `, ",\n\t", -1),
+				`{`, "{\n\t", -1),
+			`}`, ",\n}", -1),
+		`:`, ` : `, -1) //FIXME this affects property values as well!
+} // String()
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
 	// RegEx to match a size value (xxx)
 	cfKmgRE = regexp.MustCompile(`(?i)\s*(\d+)\s*([bgkm]+)?`)
 )
 
-// `kmg2Num()` returns a 'KB|MB|GB` string as an integer.
-func kmg2Num(aString string) (rInt int) {
+// `kmg2Num()` returns a 'B|KB|MB|GB` string as an integer.
+func kmg2Num(aString string) (rInt int64) {
 	matches := cfKmgRE.FindStringSubmatch(aString)
 	if 2 < len(matches) {
 		// The RegEx only matches digits so we can
-		// safely ignore all Atoi() errors.
-		rInt, _ = strconv.Atoi(matches[1])
+		// safely ignore all ParseInt() errors.
+		rInt, _ = strconv.ParseInt(matches[1], 10, 64)
 		switch strings.ToLower(matches[2]) {
-		case "", "b":
+		case ``, `b`:
 			return
-		case "kb":
+		case `kb`:
 			rInt *= 1024
-		case "mb":
+		case `mb`:
 			rInt *= 1024 * 1024
-		case "gb":
+		case `gb`:
 			rInt *= 1024 * 1024 * 1024
 		}
 	}
@@ -104,71 +151,7 @@ func kmg2Num(aString string) (rInt int) {
 	return
 } // kmg2Num()
 
-// `readIniData()` returns the config values read from INI file(s).
-//
-//	The steps here are:
-//	(1) read the local `./.nele.ini`,
-//	(2) read the global `/etc/nele.ini`,
-//	(3) read the user-local `~/.nele.ini`,
-//	(4) read the user-local `~/.config/nele.ini`,
-//	(5) read the `-ini` commandline argument.
-func readIniData() {
-	// (1) ./
-	fName, _ := filepath.Abs("./nele.ini")
-	ini1, err := ini.New(fName)
-	if nil == err {
-		ini1.AddSectionKey("", "iniFile", fName)
-	}
-
-	// (2) /etc/
-	fName = "/etc/nele.ini"
-	if ini2, err2 := ini.New(fName); nil == err2 {
-		ini1.Merge(ini2)
-		ini1.AddSectionKey("", "iniFile", fName)
-	}
-
-	// (3) ~user/
-	fName, _ = os.UserHomeDir()
-	if 0 < len(fName) {
-		fName, _ = filepath.Abs(filepath.Join(fName, ".nele.ini"))
-		if ini2, err2 := ini.New(fName); nil == err2 {
-			ini1.Merge(ini2)
-			ini1.AddSectionKey("", "iniFile", fName)
-		}
-	}
-
-	// (4) ~/.config/
-	if confDir, err2 := os.UserConfigDir(); nil == err2 {
-		fName, _ = filepath.Abs(filepath.Join(confDir, "nele.ini"))
-		if ini2, err2 := ini.New(fName); nil == err2 {
-			ini1.Merge(ini2)
-			ini1.AddSectionKey("", "iniFile", fName)
-		}
-	}
-
-	// (5) cmdline
-	aLen := len(os.Args)
-	for i := 1; i < aLen; i++ {
-		if `-ini` == os.Args[i] {
-			//XXX Note that this works only if `-ini` and
-			// filename are two separate arguments. It will
-			// fail if it's given in the form `-ini=filename`.
-			i++
-			if i < aLen {
-				fName, _ = filepath.Abs(os.Args[i])
-				if ini2, _ := ini.New(fName); nil == err {
-					ini1.Merge(ini2)
-					ini1.AddSectionKey("", "iniFile", fName)
-				}
-			}
-			break
-		}
-	}
-
-	AppArguments = tArguments{*ini1.GetSection("")}
-} // readIniData()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
 func init() {
@@ -178,214 +161,108 @@ func init() {
 } // init()
 */
 
-// InitConfig reads the commandline arguments into a list
-// structure merging it with key-value pairs read from INI file(s).
+// InitConfig reads both the INI values and the commandline arguments.
 //
 // The steps here are:
-// (1) read the INI file(s),
-// (2) merge the commandline arguments the INI values
-// into the global `AppArguments` variable.
 //
-// This function is meant to be called first thing in the program's `main()`.
+// (1) read the INI file(s):
+//	(a) read the local `./.nele.ini`,
+//	(b) read the global `/etc/nele.ini`,
+//	(c) read the user-local `~/.nele.ini`,
+//	(d) read the user-local `~/.config/nele.ini`,
+// (2) merge the commandline arguments with the INI values into
+// the global `AppArgs` variable.
+//
+// This function is meant to be called first thing in the application's
+// `main()` function.
 func InitConfig() {
-	readIniData()
+	flag.CommandLine = flag.NewFlagSet(`Kaliber`, flag.ExitOnError)
+	iniValues = tArguments{*ini.ReadIniData(`nele`)}
 
-	blogName, _ := AppArguments.Get("blogName")
-	flag.StringVar(&blogName, "blogName", blogName,
-		"Name of this Blog (shown on every page)\n")
+	setAppArgs()
+	parseAppArgs()
+	readAppArgs()
+} // InitConfig()
 
-	s, _ := AppArguments.Get("dataDir")
-	dataDir, _ := filepath.Abs(s)
-	flag.StringVar(&dataDir, "dataDir", dataDir,
-		"<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories\n")
+// `parseAppArgs()` parsed the actual commandline arguments.
+func parseAppArgs() {
+	flag.CommandLine.Usage = ShowHelp
+	_ = flag.CommandLine.Parse(os.Args[1:])
+} // parseAppArgs()
 
-	s, _ = AppArguments.Get("accessLog")
-	accessLog := absolute(dataDir, s)
-	flag.StringVar(&accessLog, "accessLog", accessLog,
-		"<filename> Name of the access logfile to write to\n")
-
-	s, _ = AppArguments.Get("certKey")
-	certKey := absolute(dataDir, s)
-	flag.StringVar(&certKey, "certKey", certKey,
-		"<fileName> the name of the TLS certificate's private key\n")
-
-	s, _ = AppArguments.Get("certPem")
-	certPem := absolute(dataDir, s)
-	flag.StringVar(&certPem, "certPem", certPem,
-		"<fileName> the name of the TLS certificate PEM\n")
-
-	delWhitespace, _ := AppArguments.AsBool("delWhitespace")
-	flag.BoolVar(&delWhitespace, "delWhitespace", delWhitespace,
-		"(optional) Delete superfluous whitespace in generated pages")
-
-	s, _ = AppArguments.Get("errorLog")
-	errorLog := absolute(dataDir, s)
-	flag.StringVar(&errorLog, "errorLog", errorLog,
-		"<filename> Name of the error logfile to write to\n")
-
-	gzip, _ := AppArguments.AsBool("gzip")
-	flag.BoolVar(&gzip, "gzip", gzip,
-		"(optional) use gzip compression for server responses")
-
-	s, _ = AppArguments.Get("hashFile")
-	hashFile := absolute(dataDir, s)
-	flag.StringVar(&hashFile, "hashFile", hashFile,
-		"<fileName> (optional) the name of a file storing #hashtags and @mentions\n")
-
-	iniFile, _ := AppArguments.Get("iniFile")
-	flag.StringVar(&iniFile, "ini", iniFile,
-		"<fileName> the path/filename of the INI file to use\n")
-
-	language, _ := AppArguments.Get("lang")
-	flag.StringVar(&language, "lang", language,
-		"(optional) the default language to use ")
-
-	listenStr, _ := AppArguments.Get("listen")
-	flag.StringVar(&listenStr, "listen", listenStr,
-		"the host's IP to listen at ")
-
-	logStack, _ := AppArguments.AsBool("logStack")
-	flag.BoolVar(&logStack, "logStack", logStack,
-		"<boolean> Log a stack trace for recovered runtime errors ")
-
-	maxFileSize, _ := AppArguments.Get("maxfilesize")
-	flag.StringVar(&maxFileSize, "maxfilesize", maxFileSize,
-		"max. accepted size of uploaded files")
-
-	pageView, _ := AppArguments.AsBool("pageView")
-	flag.BoolVar(&pageView, "pageView", pageView,
-		"(optional) use page preview images for links")
-
-	portInt, _ := AppArguments.AsInt("port")
-	flag.IntVar(&portInt, "port", portInt,
-		"<portNumber> the IP port to listen to ")
-
-	postAdd := false
-	flag.BoolVar(&postAdd, "pa", postAdd,
-		"(optional) posting add: write a posting from the commandline")
-
-	postFile := ""
-	flag.StringVar(&postFile, "pf", postFile,
-		"<fileName> (optional) post file: name of a file to add as new posting")
-
-	realmStr, _ := AppArguments.Get("realm")
-	flag.StringVar(&realmStr, "realm", realmStr,
-		"(optional) <hostName> name of host/domain to secure by BasicAuth\n")
-
-	themeStr, _ := AppArguments.Get("theme")
-	flag.StringVar(&themeStr, "theme", themeStr,
-		"<name> the display theme to use ('light' or 'dark')\n")
-
-	userAdd := ""
-	flag.StringVar(&userAdd, "ua", userAdd,
-		"<userName> (optional) user add: add a username to the password file")
-
-	userChange := ""
-	flag.StringVar(&userChange, "uc", userChange,
-		"<userName> (optional) user check: check a username in the password file")
-
-	s, _ = AppArguments.Get("passFile")
-	userFile := absolute(dataDir, s)
-	flag.StringVar(&userFile, "uf", userFile,
-		"<fileName> (optional) user passwords file storing user/passwords for BasicAuth\n")
-
-	userList := false
-	flag.BoolVar(&userList, "ul", userList,
-		"(optional) user list: show all users in the password file")
-
-	userName := ""
-	flag.StringVar(&userName, "ud", userName,
-		"<userName> (optional) user delete: remove a username from the password file")
-
-	userUpdate := ""
-	flag.StringVar(&userUpdate, "uu", userUpdate,
-		"<userName> (optional) user update: update a username in the password file")
-
-	flag.Usage = ShowHelp
-	flag.Parse() // // // // // // // // // // // // // // // // // // //
-
-	if 0 == len(blogName) {
-		blogName = time.Now().Format("2006:01:02:15:04:05")
+// `readAppArgs()` copies the commandline values into the `TAppArgs` instance.
+func readAppArgs() {
+	if 0 == len(AppArgs.BlogName) {
+		// AppArgs.BlogName = time.Now().Format("2006:01:02:15:04:05")
+		AppArgs.BlogName = `<! BlogName not configured !>`
 	}
-	AppArguments.set("blogName", blogName)
 
-	if 0 < len(dataDir) {
-		dataDir, _ = filepath.Abs(dataDir)
+	if 0 == len(AppArgs.DataDir) {
+		AppArgs.DataDir = `./`
 	}
-	if f, err := os.Stat(dataDir); nil != err {
-		log.Fatalf("datadir == %s` problem: %v", dataDir, err)
+	AppArgs.DataDir, _ = filepath.Abs(AppArgs.DataDir)
+	if f, err := os.Stat(AppArgs.DataDir); nil != err {
+		log.Fatalf("`dataDir` == `%s` problem: %v", AppArgs.DataDir, err)
 	} else if !f.IsDir() {
-		log.Fatalf("Error: Not a directory `%s`", dataDir)
+		log.Fatalf("Error: `dataDir` not a directory `%s`", AppArgs.DataDir)
 	}
-	AppArguments.set("dataDir", dataDir)
-
 	// `postingBaseDirectory` defined in `posting.go`:
-	SetPostingBaseDirectory(filepath.Join(dataDir, "./postings"))
+	SetPostingBaseDirectory(filepath.Join(AppArgs.DataDir, "./postings"))
 
-	if 0 < len(accessLog) {
-		accessLog = absolute(dataDir, accessLog)
+	if 0 < len(AppArgs.AccessLog) {
+		AppArgs.AccessLog = absolute(AppArgs.DataDir, AppArgs.AccessLog)
 	}
-	AppArguments.set("accessLog", accessLog)
 
-	if 0 < len(certKey) {
-		certKey = absolute(dataDir, certKey)
-		if fi, err := os.Stat(certKey); (nil != err) || (0 == fi.Size()) {
-			certKey = ""
+	if 0 < len(AppArgs.CertKey) {
+		AppArgs.CertKey = absolute(AppArgs.DataDir, AppArgs.CertKey)
+		if fi, err := os.Stat(AppArgs.CertKey); (nil != err) || (0 >= fi.Size()) {
+			AppArgs.CertKey = ``
 		}
 	}
-	AppArguments.set("certKey", certKey)
 
-	if 0 < len(certPem) {
-		certPem = absolute(dataDir, certPem)
-		if fi, err := os.Stat(certPem); (nil != err) || (0 == fi.Size()) {
-			certPem = ""
+	if 0 < len(AppArgs.CertPem) {
+		AppArgs.CertPem = absolute(AppArgs.DataDir, AppArgs.CertPem)
+		if fi, err := os.Stat(AppArgs.CertPem); (nil != err) || (0 >= fi.Size()) {
+			AppArgs.CertPem = ``
 		}
 	}
-	AppArguments.set("certPem", certPem)
 
-	whitespace.UseRemoveWhitespace = delWhitespace
+	whitespace.UseRemoveWhitespace = AppArgs.delWhitespace
 
-	if 0 < len(errorLog) {
-		errorLog = absolute(dataDir, errorLog)
+	if 0 < len(AppArgs.ErrorLog) {
+		AppArgs.ErrorLog = absolute(AppArgs.DataDir, AppArgs.ErrorLog)
 	}
-	AppArguments.set("errorLog", errorLog)
 
-	if gzip {
-		AppArguments.set("gzip", "true")
+	if 0 < len(AppArgs.HashFile) {
+		AppArgs.HashFile = absolute(AppArgs.DataDir, AppArgs.HashFile)
+	}
+
+	if 0 < len(AppArgs.Lang) {
+		AppArgs.Lang = strings.ToLower(AppArgs.Lang)
+	}
+	switch AppArgs.Lang {
+	case `de`, `en`:
+	default:
+		AppArgs.Lang = `en`
+	}
+
+	if `0` == AppArgs.listen {
+		AppArgs.listen = ``
+	}
+	if 0 >= AppArgs.port {
+		AppArgs.port = 8181
+	}
+	// an empty `listen` value means: listen on all interfaces
+	AppArgs.Addr = fmt.Sprintf("%s:%d", AppArgs.listen, AppArgs.port)
+
+	if 0 == len(AppArgs.mfs) {
+		AppArgs.MaxFileSize = 10485760 // 10 MB
 	} else {
-		AppArguments.set("gzip", "")
+		AppArgs.MaxFileSize = kmg2Num(AppArgs.mfs)
 	}
 
-	if 0 < len(hashFile) {
-		hashFile = absolute(dataDir, hashFile)
-	}
-	AppArguments.set("hashFile", hashFile)
-
-	if 0 == len(language) {
-		language = "en"
-	}
-	AppArguments.set("lang", language)
-
-	if "0" == listenStr {
-		listenStr = ""
-	}
-	AppArguments.set("listen", listenStr)
-
-	if logStack {
-		AppArguments.set("logStack", "true")
-	} else {
-		AppArguments.set("logStack", "")
-	}
-
-	if 0 == len(maxFileSize) {
-		maxFileSize = "10485760" // 10 MB
-	} else {
-		maxFileSize = fmt.Sprintf("%d", kmg2Num(maxFileSize))
-	}
-	AppArguments.set("mfs", maxFileSize)
-
-	if pageView {
-		_ = pageview.SetImageDirectory(absolute(dataDir, "img"))
+	if AppArgs.PageView {
+		_ = pageview.SetImageDirectory(absolute(AppArgs.DataDir, `img`))
 		pageview.SetImageFileType(`png`)
 		pageview.SetJavaScript(false)
 		pageview.SetMaxAge(0)
@@ -395,47 +272,195 @@ func InitConfig() {
 		pageview.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
 		// see: https://lynx.invisible-island.net/current/CHANGES.html
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
-		AppArguments.set("pageView", "true")
+	}
+
+	if 0 < len(AppArgs.PostFile) {
+		AppArgs.PostFile = absolute(AppArgs.DataDir, AppArgs.PostFile)
+	}
+
+	if 0 == len(AppArgs.Realm) {
+		AppArgs.Realm = `My Blog`
+	}
+
+	if 0 < len(AppArgs.Theme) {
+		AppArgs.Theme = strings.ToLower(AppArgs.Theme)
+	}
+	switch AppArgs.Theme {
+	case `dark`, `light`:
+		// accepted values
+	default:
+		AppArgs.Theme = `dark`
+	}
+
+	if 0 < len(AppArgs.UserFile) {
+		AppArgs.UserFile = absolute(AppArgs.DataDir, AppArgs.UserFile)
+	}
+
+	if AppArgs.dump {
+		// Print out the arguments and terminate:
+		log.Fatalf("runtime arguments:\n%s", AppArgs.String())
+	}
+
+	flag.CommandLine = nil // free unneeded memory
+} // readAppArgs()
+
+// `setAppArgs()` reads the commandline arguments into a list
+// structure merging it with key-value pairs read from INI file(s).
+func setAppArgs() {
+	var (
+		ok bool
+		s  string // temp. value
+	)
+
+	if s, ok = iniValues.AsString(`dataDir`); (ok) && (0 < len(s)) {
+		AppArgs.DataDir, _ = filepath.Abs(s)
 	} else {
-		AppArguments.set("pageView", "")
+		AppArgs.DataDir, _ = filepath.Abs(`./`)
 	}
+	flag.CommandLine.StringVar(&AppArgs.DataDir, `dataDir`, AppArgs.DataDir,
+		"<dirName> Directory with CSS, FONTS, IMG, SESSIONS, and VIEWS sub-directories\n")
 
-	AppArguments.set("port", fmt.Sprintf("%d", portInt))
+	if AppArgs.BlogName, ok = iniValues.AsString(`blogName`); (!ok) || (0 == len(AppArgs.BlogName)) {
+		AppArgs.BlogName = `<! BlogName not configured !>`
+	}
+	flag.CommandLine.StringVar(&AppArgs.BlogName, `blogName`, AppArgs.BlogName,
+		"<string> Name of this Blog (shown on every page)\n")
 
-	if postAdd {
-		AppArguments.set("pa", "true")
+	if s, ok = iniValues.AsString(`accessLog`); (ok) && (0 < len(s)) {
+		AppArgs.AccessLog = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.AccessLog, `accessLog`, AppArgs.AccessLog,
+		"<filename> Name of the access logfile to write to\n")
+
+	if s, ok = iniValues.AsString(`certKey`); (ok) && (0 < len(s)) {
+		AppArgs.CertKey = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.CertKey, `certKey`, AppArgs.CertKey,
+		"<fileName> Name of the TLS certificate key\n")
+
+	if s, ok = iniValues.AsString(`certPem`); (ok) && (0 < len(s)) {
+		AppArgs.CertPem = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.CertPem, `certPem`, AppArgs.CertPem,
+		"<fileName> Name of the TLS certificate PEM\n")
+
+	if AppArgs.delWhitespace, ok = iniValues.AsBool(`delWhitespace`); !ok {
+		AppArgs.delWhitespace = true
+	}
+	flag.CommandLine.BoolVar(&AppArgs.delWhitespace, `delWhitespace`, AppArgs.delWhitespace,
+		"<boolean> Delete superfluous whitespace in generated pages")
+
+	// Debug aid:
+	flag.CommandLine.BoolVar(&AppArgs.dump, `d`, AppArgs.dump, `dump`)
+
+	if s, ok = iniValues.AsString(`errorLog`); (ok) && (0 < len(s)) {
+		AppArgs.ErrorLog = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.ErrorLog, `errorlog`, AppArgs.ErrorLog,
+		"<filename> Name of the error logfile to write to\n")
+
+	if AppArgs.GZip, ok = iniValues.AsBool(`gzip`); !ok {
+		AppArgs.GZip = true
+	}
+	flag.CommandLine.BoolVar(&AppArgs.GZip, `gzip`, AppArgs.GZip,
+		"<boolean> use gzip compression for server responses")
+
+	if s, ok = iniValues.AsString(`hashFile`); (ok) && (0 < len(s)) {
+		AppArgs.HashFile = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.HashFile, `hashFile`, AppArgs.HashFile,
+		"<fileName> Name of the file storing #hashtags and @mentions\n")
+
+	iniFile, _ := iniValues.AsString(`iniFile`)
+	flag.CommandLine.StringVar(&iniFile, `ini`, iniFile,
+		"<fileName> the path/filename of the INI file to use\n")
+
+	if AppArgs.Lang, ok = iniValues.AsString(`lang`); (!ok) || (0 == len(AppArgs.Lang)) {
+		AppArgs.Lang = `en`
+	}
+	flag.CommandLine.StringVar(&AppArgs.Lang, `lang`, AppArgs.Lang,
+		"<de|en> Default language to use ")
+
+	if AppArgs.listen, ok = iniValues.AsString(`listen`); (!ok) || (0 == len(AppArgs.listen)) {
+		AppArgs.listen = `127.0.0.1`
+	}
+	flag.CommandLine.StringVar(&AppArgs.listen, `listen`, AppArgs.listen,
+		"<IP number> The host's IP to listen at ")
+
+	AppArgs.LogStack, _ = iniValues.AsBool(`logStack`)
+	flag.CommandLine.BoolVar(&AppArgs.LogStack, "lst", AppArgs.LogStack,
+		"<boolean> Log a stack trace for recovered runtime errors ")
+
+	if AppArgs.mfs, ok = iniValues.AsString(`maxfilesize`); ok && (0 < len(AppArgs.mfs)) {
+		AppArgs.mfs = strings.ToLower(AppArgs.mfs)
 	} else {
-		AppArguments.set("pa", "")
+		AppArgs.mfs = `10485760` // 10 MB
 	}
+	flag.CommandLine.StringVar(&AppArgs.mfs, `mfs`, AppArgs.mfs,
+		"<filesize> Max. accepted size of uploaded files")
 
-	if 0 < len(postFile) {
-		postFile = absolute(dataDir, postFile)
+	if AppArgs.port, ok = iniValues.AsInt(`port`); (!ok) || (0 == AppArgs.port) {
+		AppArgs.port = 8181
 	}
-	AppArguments.set("pf", postFile)
-	AppArguments.set("realm", realmStr)
-	AppArguments.set("theme", themeStr)
-	AppArguments.set("ua", userAdd)
-	AppArguments.set("uc", userChange)
-	AppArguments.set("ud", userName)
+	flag.CommandLine.IntVar(&AppArgs.port, `port`, AppArgs.port,
+		"<port number> The IP port to listen to ")
 
-	if 0 < len(userFile) {
-		userFile = absolute(dataDir, userFile)
+	flag.CommandLine.BoolVar(&AppArgs.PostAdd, `pa`, AppArgs.PostAdd,
+		"<boolean> (optional) posting add: write a posting from the commandline")
+
+	flag.CommandLine.StringVar(&AppArgs.PostFile, `pf`, AppArgs.PostFile,
+		"<fileName> (optional) post file: name of a file to add as new posting")
+
+	AppArgs.PageView, _ = iniValues.AsBool(`pageView`)
+	flag.CommandLine.BoolVar(&AppArgs.PageView, `pv`, AppArgs.PageView,
+		"<boolean> Use page preview images for links")
+
+	if AppArgs.Realm, ok = iniValues.AsString(`realm`); (!ok) || (0 == len(AppArgs.Realm)) {
+		AppArgs.Realm = `My Blog`
 	}
-	AppArguments.set("uf", userFile)
+	flag.CommandLine.StringVar(&AppArgs.Realm, `realm`, AppArgs.Realm,
+		"<hostName> Name of host/domain to secure by BasicAuth\n")
 
-	if userList {
-		AppArguments.set("ul", "true")
-	} else {
-		AppArguments.set("ul", "")
+	if AppArgs.Theme, _ = iniValues.AsString(`theme`); 0 < len(AppArgs.Theme) {
+		AppArgs.Theme = strings.ToLower(AppArgs.Theme)
 	}
+	switch AppArgs.Theme {
+	case `dark`, `light`:
+	default:
+		AppArgs.Theme = `dark`
+	}
+	flag.CommandLine.StringVar(&AppArgs.Theme, `theme`, AppArgs.Theme,
+		"<name> The display theme to use ('light' or 'dark')\n")
 
-	AppArguments.set("uu", userUpdate)
-} // InitConfig()
+	flag.CommandLine.StringVar(&AppArgs.UserAdd, `ua`, AppArgs.UserAdd,
+		"<userName> User add: add a username to the password file")
+
+	flag.CommandLine.StringVar(&AppArgs.UserCheck, `uc`, AppArgs.UserCheck,
+		"<userName> User check: check a username in the password file")
+
+	flag.CommandLine.StringVar(&AppArgs.UserDelete, `ud`, AppArgs.UserDelete,
+		"<userName> User delete: remove a username from the password file")
+
+	if s, ok = iniValues.AsString(`passFile`); ok && (0 < len(s)) {
+		AppArgs.UserFile = absolute(AppArgs.DataDir, s)
+	}
+	flag.CommandLine.StringVar(&AppArgs.UserFile, `uf`, AppArgs.UserFile,
+		"<fileName> Passwords file storing user/passwords for BasicAuth\n")
+
+	flag.CommandLine.BoolVar(&AppArgs.UserList, `ul`, AppArgs.UserList,
+		"<boolean> User list: show all users in the password file")
+
+	flag.CommandLine.StringVar(&AppArgs.UserUpdate, `uu`, AppArgs.UserUpdate,
+		"<userName> User update: update a username in the password file")
+
+	iniValues.Clear()           // release unneeded memory
+	iniValues = tArguments{nil} // dito
+} // setAppArgs()()
 
 // ShowHelp lists the commandline options to `Stderr`.
 func ShowHelp() {
 	fmt.Fprintf(os.Stderr, "\n  Usage: %s [OPTIONS]\n\n", os.Args[0])
-	flag.PrintDefaults()
+	flag.CommandLine.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\n  Most options can be set in an INI file to keep the command-line short ;-)")
 } // ShowHelp()
 

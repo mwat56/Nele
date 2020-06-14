@@ -35,8 +35,8 @@ func doConsole(aMe string) {
 		i64 int64
 		s   string
 	)
-	if s, err = nele.AppArguments.Get("pa"); nil != err {
-		// we assume, an error means: no cmd line action
+	if !nele.AppArgs.PostAdd {
+		// no cmd line action
 		return
 	}
 	if "true" == s {
@@ -56,17 +56,15 @@ func doFile(aMe string) {
 		i64 int64
 		s   string
 	)
-	if s, err = nele.AppArguments.Get("pf"); nil != err {
-		// we assume, an error means: no cmd line action
+	if 0 == len(nele.AppArgs.PostFile) {
+		// no posting file
 		return
 	}
-	if 0 < len(s) {
-		if i64, err = nele.AddFilePost(s); nil != err {
-			log.Fatalf("%s: %v", aMe, err)
-		}
-		log.Printf("\n\t%s stored %d bytes in a new posting", aMe, i64)
-		os.Exit(0)
+	if i64, err = nele.AddFilePost(s); nil != err {
+		log.Fatalf("%s: %v", aMe, err)
 	}
+	log.Printf("\n\t%s stored %d bytes in a new posting", aMe, i64)
+	os.Exit(0)
 } // doFile()
 
 // `fatal()` logs `aMessage` and terminates the program.
@@ -123,39 +121,34 @@ func setupSignals(aServer *http.Server) {
 
 // `userCmdline()` checks for and executes password file commandline actions.
 func userCmdline() {
-	var (
-		err   error
-		fn, s string
-	)
-	if fn, err = nele.AppArguments.Get("uf"); (nil != err) || (0 == len(fn)) {
+	if 0 == len(nele.AppArgs.UserFile) {
 		return // without file no user handling
 	}
-	// All the following `nele.*` function calls will
+	// All the following `nele.UserXxx` function calls will
 	// terminate the program.
-	if s, err = nele.AppArguments.Get("ua"); (nil == err) && (0 < len(s)) {
-		nele.AddUser(s, fn)
+	if 0 < len(nele.AppArgs.UserAdd) {
+		nele.AddUser(nele.AppArgs.UserAdd, nele.AppArgs.UserFile)
 	}
-	if s, err = nele.AppArguments.Get("uc"); (nil == err) && (0 < len(s)) {
-		nele.CheckUser(s, fn)
+	if 0 < len(nele.AppArgs.UserCheck) {
+		nele.CheckUser(nele.AppArgs.UserCheck, nele.AppArgs.UserFile)
 	}
-	if s, err = nele.AppArguments.Get("ud"); (nil == err) && (0 < len(s)) {
-		nele.DeleteUser(s, fn)
+	if 0 < len(nele.AppArgs.UserDelete) {
+		nele.DeleteUser(nele.AppArgs.UserDelete, nele.AppArgs.UserFile)
 	}
-	if s, err = nele.AppArguments.Get("ul"); (nil == err) && (0 < len(s)) {
-		nele.ListUsers(fn)
+	if nele.AppArgs.UserList {
+		nele.ListUsers(nele.AppArgs.UserFile)
 	}
-	if s, err = nele.AppArguments.Get("uu"); (nil == err) && (0 < len(s)) {
-		nele.UpdateUser(s, fn)
+	if 0 < len(nele.AppArgs.UserUpdate) {
+		nele.UpdateUser(nele.AppArgs.UserUpdate, nele.AppArgs.UserFile)
 	}
 } // userCmdline()
 
 // Actually run the program …
 func main() {
 	var (
-		err       error
-		handler   http.Handler
-		ph        *nele.TPageHandler
-		ck, cp, s string
+		err     error
+		handler http.Handler
+		ph      *nele.TPageHandler
 	)
 	Me, _ := filepath.Abs(os.Args[0])
 
@@ -179,24 +172,21 @@ func main() {
 	handler = errorhandler.Wrap(ph, ph)
 
 	// Inspect `gzip` commandline argument and setup the Gzip handler:
-	if s, err = nele.AppArguments.Get("gzip"); (nil == err) && ("true" == s) {
+	if nele.AppArgs.GZip {
 		handler = gziphandler.GzipHandler(handler)
 	}
 
 	// Inspect logging commandline arguments and setup the `ApacheLogger`:
-	if s, err = nele.AppArguments.Get("accessLog"); (nil == err) &&
-		(0 < len(s)) {
+	if 0 < len(nele.AppArgs.AccessLog) {
 		// we assume, an error means: no logfile
-		if s2, err2 := nele.AppArguments.Get("errorLog"); (nil == err2) &&
-			(0 < len(s2)) {
-			handler = apachelogger.Wrap(handler, s, s2)
+		if 0 < len(nele.AppArgs.ErrorLog) {
+			handler = apachelogger.Wrap(handler, nele.AppArgs.AccessLog, nele.AppArgs.ErrorLog)
 		} else {
-			handler = apachelogger.Wrap(handler, s, "")
+			handler = apachelogger.Wrap(handler, nele.AppArgs.AccessLog, ``)
 		}
 		// err = nil // for use by test for `apachelogger.SetErrLog()` (below)
-	} else if s, err = nele.AppArguments.Get("errorLog"); (nil == err) &&
-		(0 < len(s)) {
-		handler = apachelogger.Wrap(handler, "", s)
+	} else if 0 < len(nele.AppArgs.ErrorLog) {
+		handler = apachelogger.Wrap(handler, ``, nele.AppArgs.ErrorLog)
 	}
 
 	// We need a `server` reference to use it in `setupSignals()`
@@ -211,32 +201,27 @@ func main() {
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
 	}
-	if (nil == err) && (0 < len(s)) { // values from logfile test
+	if 0 < len(nele.AppArgs.ErrorLog) {
 		apachelogger.SetErrLog(server)
 	}
 	setupSignals(server)
 
-	ck, _ = nele.AppArguments.Get("certKey")
-	cp, _ = nele.AppArguments.Get("certPem")
-	if 0 < len(ck) && (0 < len(cp)) {
+	if 0 < len(nele.AppArgs.CertKey) && (0 < len(nele.AppArgs.CertPem)) {
 		// start the HTTP to HTTPS redirector:
 		go http.ListenAndServe(ph.Address(), http.HandlerFunc(redirHTTP))
 
-		s = fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
+		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
-		if err = server.ListenAndServeTLS(cp, ck); nil != err {
-			fatal(fmt.Sprintf("%s: %v", Me, err))
-		}
+		fatal(fmt.Sprintf("%s: %v", Me,
+			server.ListenAndServeTLS(nele.AppArgs.CertPem, nele.AppArgs.CertKey)))
 		return
 	}
 
-	s = fmt.Sprintf("%s listening HTTP at: %s", Me, ph.Address())
+	s := fmt.Sprintf("%s listening HTTP at: %s", Me, ph.Address())
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
-	if err = server.ListenAndServe(); nil != err {
-		fatal(fmt.Sprintf("%s: %v", Me, err))
-	}
+	fatal(fmt.Sprintf("%s: %v", Me, server.ListenAndServe()))
 } // main()
 
 /* _EoF_ */

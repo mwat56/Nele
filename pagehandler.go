@@ -128,74 +128,46 @@ func NewPageHandler() (*TPageHandler, error) {
 	)
 	result := new(TPageHandler)
 
-	if s, err = AppArguments.Get("blogName"); nil == err {
-		result.bn = s
-	}
+	result.bn = AppArgs.BlogName
 
-	if s, err = AppArguments.Get("dataDir"); nil != err {
-		return nil, err
-	}
-	result.dataDir = s
+	result.dataDir = AppArgs.DataDir
 
 	result.cssFS = cssfs.FileServer(s + `/`)
 	result.staticFS = jffs.FileServer(s + `/`)
 
-	if result.viewList, err = newViewList(filepath.Join(s, "views")); nil != err {
+	if result.viewList, err = newViewList(filepath.Join(AppArgs.DataDir, "views")); nil != err {
 		return nil, err
 	}
 
-	if s, err = AppArguments.Get("hashFile"); nil == err {
+	if 0 < len(AppArgs.HashFile) {
 		result.hashList, _ = hashtags.New(s)
 		// hashtags.UseBinaryStorage = false //TODO REMOVE
 		InitHashlist(result.hashList) // background operation
 	}
 
-	if s, err = AppArguments.Get("lang"); nil == err {
-		result.lang = s
+	result.lang = AppArgs.Lang
+
+	result.addr = AppArgs.Addr
+
+	result.logStack = AppArgs.LogStack
+
+	result.mfs = AppArgs.MaxFileSize
+
+	if AppArgs.PageView {
+		result.pageView = true
+		UpdatePreviews(PostingBaseDirectory(), "/img/") // background operation
 	}
 
-	// an empty value means: listen on all interfaces:
-	result.addr, _ = AppArguments.Get("listen")
-
-	if s, err = AppArguments.Get("logStack"); nil == err {
-		result.logStack = ("true" == s)
-	}
-
-	s, _ = AppArguments.Get("mfs")
-	if mfs, _ := strconv.Atoi(s); 0 < mfs {
-		result.mfs = int64(mfs)
-	} else {
-		result.mfs = 10485760 // 10 MB
-	}
-
-	if s, err = AppArguments.Get("pageView"); nil == err {
-		if pv := ("true" == s); pv {
-			result.pageView = true
-			UpdatePreviews(PostingBaseDirectory(), "/img/") // background operation
-		}
-	}
-
-	if s, err = AppArguments.Get("port"); nil != err {
-		return nil, err
-	}
-	result.addr += ":" + s
-
-	if s, err = AppArguments.Get("uf"); nil != err {
-		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-	} else if result.userList, err = passlist.LoadPasswords(s); nil != err {
+	if 0 == len(AppArgs.UserFile) {
+		log.Println("NewPageHandler(): missing password file\nAUTHENTICATION DISABLED!")
+	} else if result.userList, err = passlist.LoadPasswords(AppArgs.UserFile); nil != err {
 		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
 		result.userList = nil
 	}
 
-	if s, err = AppArguments.Get("realm"); nil == err {
-		result.realm = s
-	}
+	result.realm = AppArgs.Realm
 
-	if s, err = AppArguments.Get("theme"); (nil == err) && (0 < len(s)) {
-		result.theme = s
-	} else {
-		result.theme = "dark"
-	}
+	result.theme = AppArgs.Theme
 
 	return result, nil
 } // NewPageHandler()

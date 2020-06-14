@@ -14,7 +14,9 @@ import (
 )
 
 func TestNewPageHandler(t *testing.T) {
-	InitConfig()
+	// `InitConfig()` calls `flag.parse()` which in turn will cause
+	// errors when run with `go test …`.
+	readAppArgs()
 	SetPostingBaseDirectory("/tmp/postings/")
 	prepareTestFiles()
 	tests := []struct {

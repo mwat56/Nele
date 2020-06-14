@@ -37,7 +37,7 @@
 
 The purpose of this package/application was twofold initially. On one hand I needed a project to learn the (then to me new) `Go` language, and on the other hand I wanted a project, that lead me into different domains, like user authentication, configuration, data formats, error handling, filesystem access, data logging, os, network, regex, templating etc. –
 And, I wanted no external dependencies (like databases etc.). –
-And, I didn't care for Windows(tm) compatibility since I left the MS-platform about 25 years ago after using it in the 80s and early 90s of the last century.
+And, I didn't care for Windows<sup>(tm) </sup> compatibility since I left the MS-platform about 25 years ago after using it in the 80s and early 90s of the last century.
 (But who, in his right mind, would want to run a web-service on such a platform anyway?)
 
 That's how I ended up with this little blog-system (for lack of a better word; or: diary, notes, …).
@@ -48,7 +48,8 @@ If you don't like the styles coming with the package you can, of course, change 
 
 The articles you write are then available on the net as _web-pages_.
 
-It is not, however, a discussion platform. It's supposed to be used as a publication platform, not some kind of _social media_.
+It is not, however, a discussion platform.
+It's supposed to be used as a publication platform, not some kind of _social media_.
 So I intentionally didn't bother with comments or discussion threading.
 
 ## Features
@@ -138,72 +139,73 @@ Let's start with the command line:
 		<filename> Name of the access logfile to write to
 		(default "/home/matthias/nele/access.bla.mwat.de")
 	-blogName string
-		Name of this Blog (shown on every page)
+		<string> Name of this Blog (shown on every page)
 		(default "Meine Güte, was für'n Blah!")
 	-certKey string
-		<fileName> the name of the TLS certificate's private key
+		<fileName> Name of the TLS certificate key
 	-certPem string
-		<fileName> the name of the TLS certificate PEM
+		<fileName> Name of the TLS certificate PEM
+	-d	dump
 	-dataDir string
-		<dirName> the directory with CSS, IMG, JS, POSTINGS, STATIC, VIEWS sub-directories
+		<dirName> Directory with CSS, FONTS, IMG, SESSIONS, and VIEWS sub-directories
 		(default "/home/matthias/nele")
 	-delWhitespace
-		(optional) Delete superfluous whitespace in generated pages (default true)
-	-errorLog string
+		<boolean> Delete superfluous whitespace in generated pages (default true)
+	-errorlog string
 		<filename> Name of the error logfile to write to
-		(default "/home/matthias/nele/error.bla.mwat.de")
+		(default "/home/matthias/error.bla.mwat.de")
 	-gzip
-		(optional) use gzip compression for server responses (default true)
+		<boolean> use gzip compression for server responses (default true)
 	-hashFile string
-		<fileName> (optional) the name of a file storing #hashtags and @mentions
+		<fileName> Name of the file storing #hashtags and @mentions
 		(default "/home/matthias/nele/hashfile.db")
 	-ini string
 		<fileName> the path/filename of the INI file to use
 		(default "/home/matthias/.nele.ini")
 	-lang string
-		(optional) the default language to use  (default "de")
+		<de|en> Default language to use  (default "de")
 	-listen string
-		the host's IP to listen at
-	-logStack
+		<IP number> The host's IP to listen at  (default "127.0.0.1")
+	-lst
 		<boolean> Log a stack trace for recovered runtime errors  (default true)
-	-maxfilesize string
-		max. accepted size of uploaded files (default "10MB")
+	-mfs string
+		<filesize> Max. accepted size of uploaded files (default "10mb")
 	-pa
-		(optional) posting add: write a posting from the commandline
-	-pageView
-		(optional) use page preview images for links (default true)
+		<boolean> (optional) posting add: write a posting from the commandline
 	-pf string
 		<fileName> (optional) post file: name of a file to add as new posting
 	-port int
-		<portNumber> the IP port to listen to  (default 8181)
+		<port number> The IP port to listen to  (default 8181)
+	-pv
+		<boolean> Use page preview images for links (default true)
 	-realm string
-		(optional) <hostName> name of host/domain to secure by BasicAuth
+		<hostName> Name of host/domain to secure by BasicAuth
 		(default "Matthias' Bla")
 	-theme string
-		<name> the display theme to use ('light' or 'dark')
+		<name> The display theme to use ('light' or 'dark')
 		(default "dark")
 	-ua string
-		<userName> (optional) user add: add a username to the password file
+		<userName> User add: add a username to the password file
 	-uc string
-		<userName> (optional) user check: check a username in the password file
+		<userName> User check: check a username in the password file
 	-ud string
-		<userName> (optional) user delete: remove a username from the password file
+		<userName> User delete: remove a username from the password file
 	-uf string
-		<fileName> (optional) user passwords file storing user/passwords for BasicAuth
+		<fileName> Passwords file storing user/passwords for BasicAuth
 		(default "/home/matthias/nele/pwaccess.db")
 	-ul
-		(optional) user list: show all users in the password file
+		<boolean> User list: show all users in the password file
 	-uu string
-		<userName> (optional) user update: update a username in the password file
+		<userName> User update: update a username in the password file
 
 	Most options can be set in an INI file to keep the command-line short ;-)
 
 	$ _
 
-However, to just run the program you'll usually don't need any of those options to input on the commandline.
-There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
-
 > Please _note_ that the default values shown above vary depending on the system where `nele` is called and especially on the contents of the INI file (it's read before the help text is produced).
+
+To just run the program, however, you'll usually don't need any of those options to input on the commandline.
+There is an INI file called `nele.ini` coming with the package, where you can store the most common settings:
 
 	$ cat nele.ini
 	# Nele's default configuration file
