@@ -124,22 +124,23 @@ func userCmdline() {
 	if 0 == len(nele.AppArgs.UserFile) {
 		return // without file no user handling
 	}
-	// All the following `nele.UserXxx` function calls will
+
+	// All the following `nele.UserXxx()` function calls will
 	// terminate the program.
 	if 0 < len(nele.AppArgs.UserAdd) {
-		nele.AddUser(nele.AppArgs.UserAdd, nele.AppArgs.UserFile)
+		nele.UserAdd(nele.AppArgs.UserAdd, nele.AppArgs.UserFile)
 	}
 	if 0 < len(nele.AppArgs.UserCheck) {
-		nele.CheckUser(nele.AppArgs.UserCheck, nele.AppArgs.UserFile)
+		nele.UserCheck(nele.AppArgs.UserCheck, nele.AppArgs.UserFile)
 	}
 	if 0 < len(nele.AppArgs.UserDelete) {
-		nele.DeleteUser(nele.AppArgs.UserDelete, nele.AppArgs.UserFile)
+		nele.UserDelete(nele.AppArgs.UserDelete, nele.AppArgs.UserFile)
 	}
 	if nele.AppArgs.UserList {
-		nele.ListUsers(nele.AppArgs.UserFile)
+		nele.UserList(nele.AppArgs.UserFile)
 	}
 	if 0 < len(nele.AppArgs.UserUpdate) {
-		nele.UpdateUser(nele.AppArgs.UserUpdate, nele.AppArgs.UserFile)
+		nele.UserUpdate(nele.AppArgs.UserUpdate, nele.AppArgs.UserFile)
 	}
 } // userCmdline()
 

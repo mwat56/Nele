@@ -58,56 +58,53 @@ func AddFilePost(aFilename string) (int64, error) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// AddUser reads a password for `aUser` from the commandline
+// UserAdd reads a password for `aUser` from the commandline
 // and adds it to `aFilename`.
 //
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
 //	`aUser` The username to add to the password file.
-//
 //	`aFilename` The name of the password file to use.
-func AddUser(aUser, aFilename string) {
+func UserAdd(aUser, aFilename string) {
 	passlist.AddUser(aUser, aFilename)
-} // AddUser()
+} // UserAdd()
 
-// CheckUser reads a password for `aUser` from the commandline
+// UserCheck reads a password for `aUser` from the commandline
 // and compares it with the one stored in `aFilename`.
 //
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
 //	`aUser` The username to check in the password file.
-//
 //	`aFilename` The name of the password file to use.
-func CheckUser(aUser, aFilename string) {
+func UserCheck(aUser, aFilename string) {
 	passlist.CheckUser(aUser, aFilename)
-} // CheckUser()
+} // UserCheck()
 
-// DeleteUser removes the entry for `aUser` from the password
+// UserDelete removes the entry for `aUser` from the password
 // list `aFilename`.
 //
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
 //	`aUser` The username to remove from the password file.
-//
 //	`aFilename` The name of the password file to use.
-func DeleteUser(aUser, aFilename string) {
+func UserDelete(aUser, aFilename string) {
 	passlist.DeleteUser(aUser, aFilename)
-} // DeleteUser()
+} // UserDelete()
 
-// ListUsers reads `aFilename` and lists all users stored in there.
+// UserList reads `aFilename` and lists all users stored in there.
 //
 // NOTE: This function does not return but terminates the program
 // with error code `0` (zero) if successful, or `1` (one) otherwise.
 //
 //	`aFilename` The name of the password file to use.
-func ListUsers(aFilename string) {
+func UserList(aFilename string) {
 	passlist.ListUsers(aFilename)
-} // ListUsers()
+} // UserList()
 
-// UpdateUser reads a password for `aUser` from the commandline
+// UserUpdate reads a password for `aUser` from the commandline
 // and updates the entry in the password list `aFilename`.
 //
 // NOTE: This function does not return but terminates the program
@@ -116,8 +113,8 @@ func ListUsers(aFilename string) {
 // `aUser` The username to remove from the password file.
 //
 // `aFilename` The name of the password file to use.
-func UpdateUser(aUser, aFilename string) {
+func UserUpdate(aUser, aFilename string) {
 	passlist.UpdateUser(aUser, aFilename)
-} // UpdateUser()
+} // UserUpdate()
 
 /* _EoF_ */
