@@ -192,7 +192,7 @@ func main() {
 	// We need a `server` reference to use it in `setupSignals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{
-		Addr:    ph.Address(),
+		Addr:    nele.AppArgs.Addr,
 		Handler: handler,
 		// Set timeouts so that a slow or malicious client
 		// doesn't hold resources forever
@@ -208,9 +208,9 @@ func main() {
 
 	if 0 < len(nele.AppArgs.CertKey) && (0 < len(nele.AppArgs.CertPem)) {
 		// start the HTTP to HTTPS redirector:
-		go http.ListenAndServe(ph.Address(), http.HandlerFunc(redirHTTP))
+		go http.ListenAndServe(nele.AppArgs.Addr, http.HandlerFunc(redirHTTP))
 
-		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, ph.Address())
+		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, nele.AppArgs.Addr)
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
 		fatal(fmt.Sprintf("%s: %v", Me,
@@ -218,7 +218,7 @@ func main() {
 		return
 	}
 
-	s := fmt.Sprintf("%s listening HTTP at: %s", Me, ph.Address())
+	s := fmt.Sprintf("%s listening HTTP at: %s", Me, nele.AppArgs.Addr)
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
 	fatal(fmt.Sprintf("%s: %v", Me, server.ListenAndServe()))

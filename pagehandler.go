@@ -37,20 +37,11 @@ import (
 type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
-		addr     string                        // listen address ("1.2.3.4:5678")
-		bn       string                        // the blog's name
 		cssFS    http.Handler                  // CSS file server
-		dataDir  string                        // datadir: base dir for data
 		hashList *hashtags.THashList           // #hashtags/@mentions list
 		imgUp    *uploadhandler.TUploadHandler // `img` upload handler
-		lang     string                        // default language
-		logStack bool                          // log stack trace
-		mfs      int64                         // max. size of uploaded files
-		pageView bool                          // use link page previews
-		realm    string                        // host/domain to secure by BasicAuth
 		staticFS http.Handler                  // `static` file server
 		staticUp *uploadhandler.TUploadHandler // `static` upload handler
-		theme    string                        // `dark` or `light` display theme
 		userList *passlist.TPassList           // user/password list
 		viewList *TViewList                    // list of template/views
 	}
@@ -121,41 +112,35 @@ func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // NewPageHandler returns a new `TPageHandler` instance.
+//
+// The returned object implements the `errorhandler.TErrorPager`,
+// `http.Handler`, `and `passlist.TAuthDecider` interfaces.
 func NewPageHandler() (*TPageHandler, error) {
 	var (
 		err error
-		s   string
 	)
 	result := new(TPageHandler)
 
-	result.bn = AppArgs.BlogName
-
-	result.dataDir = AppArgs.DataDir
-
-	result.cssFS = cssfs.FileServer(s + `/`)
-	result.staticFS = jffs.FileServer(s + `/`)
-
 	if result.viewList, err = newViewList(filepath.Join(AppArgs.DataDir, "views")); nil != err {
+		// Without our views we can't generate any web-page.
 		return nil, err
 	}
 
+	result.cssFS = cssfs.FileServer(AppArgs.DataDir + `/`)
+
 	if 0 < len(AppArgs.HashFile) {
-		result.hashList, _ = hashtags.New(s)
 		// hashtags.UseBinaryStorage = false //TODO REMOVE
-		InitHashlist(result.hashList) // background operation
+		if result.hashList, err = hashtags.New(AppArgs.HashFile); nil == err {
+			InitHashlist(result.hashList) // background operation
+		} else {
+			result.hashList = nil
+		}
 	}
 
-	result.lang = AppArgs.Lang
-
-	result.addr = AppArgs.Addr
-
-	result.logStack = AppArgs.LogStack
-
-	result.mfs = AppArgs.MaxFileSize
+	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
 
 	if AppArgs.PageView {
-		result.pageView = true
-		UpdatePreviews(PostingBaseDirectory(), "/img/") // background operation
+		UpdatePreviews(PostingBaseDirectory(), `/img/`) // background operation
 	}
 
 	if 0 == len(AppArgs.UserFile) {
@@ -164,10 +149,6 @@ func NewPageHandler() (*TPageHandler, error) {
 		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
 		result.userList = nil
 	}
-
-	result.realm = AppArgs.Realm
-
-	result.theme = AppArgs.Theme
 
 	return result, nil
 } // NewPageHandler()
@@ -250,27 +231,22 @@ func URLparts(aURL string) (rDir, rPath string) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// Address returns the configured `IP:Port` address to use for listening.
-func (ph *TPageHandler) Address() string {
-	return ph.addr
-} // Address()
-
 // `basicPageData()` returns a list of common Head entries.
 func (ph *TPageHandler) basicPageData() *TemplateData {
 	y, m, d := time.Now().Date()
 	now := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 	pageData := NewTemplateData().
-		Set("Blogname", ph.bn).
-		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+ph.theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
+		Set("Blogname", AppArgs.BlogName).
+		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+AppArgs.Theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("HashCount", ph.hashList.HashCount()).
-		Set("Lang", ph.lang).
+		Set("Lang", AppArgs.Lang).
 		Set("MentionCount", ph.hashList.MentionCount()).
 		Set("monthURL", "/m/"+now).
 		Set("NOW", now).
 		Set("PostingCount", PostingCount()).
 		Set("Robots", "index,follow").
 		Set("Taglist", MarkupCloud(ph.hashList)).
-		Set("Title", ph.realm+": "+now).
+		Set("Title", AppArgs.Realm+": "+now).
 		Set("weekURL", "/w/"+now) // #nosec G203
 
 	return pageData
@@ -471,7 +447,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("privacy", aWriter, check4lang(pageData, aRequest))
 
 	case `pv`, `v`: // update the pageView images
-		if ph.pageView {
+		if AppArgs.PageView {
 			pageData = check4lang(pageData, aRequest).
 				Set("Robots", "noindex,nofollow")
 			ph.handleReply("pv", aWriter, pageData)
@@ -638,7 +614,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				apachelogger.Err("TPageHandler.handlePOST('a')",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
-			if ph.pageView {
+			if AppArgs.PageView {
 				PrepareLinkPreviews(p, "/img/")
 			}
 			AddTagID(ph.hashList, p)
@@ -680,7 +656,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
 		RenameIDTags(ph.hashList, op.ID(), np.ID())
-		if ph.pageView {
+		if AppArgs.PageView {
 			PrepareLinkPreviews(np, "/img/")
 		}
 
@@ -709,7 +685,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				_, _ = p.Set(old).Store()
 			}
 		}
-		if ph.pageView {
+		if AppArgs.PageView {
 			PrepareLinkPreviews(p, "/img/")
 		}
 		UpdateTags(ph.hashList, p)
@@ -730,7 +706,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case `pv`: // update page preViews
-		if ph.pageView {
+		if AppArgs.PageView {
 			if a := aRequest.FormValue("abort"); 0 < len(a) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 				return
@@ -765,8 +741,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if nil == ph.imgUp { // lazy initialisation
-			ph.imgUp = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/img/"),
-				"imgFile", ph.mfs)
+			ph.imgUp = uploadhandler.NewHandler(filepath.Join(AppArgs.DataDir, "/img/"),
+				"imgFile", AppArgs.MaxFileSize)
 		}
 		ph.handleUpload(aWriter, aRequest, true)
 
@@ -776,8 +752,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			return
 		}
 		if nil == ph.staticUp { // lazy initialisation
-			ph.staticUp = uploadhandler.NewHandler(filepath.Join(ph.dataDir, "/static/"),
-				"statFile", ph.mfs)
+			ph.staticUp = uploadhandler.NewHandler(filepath.Join(AppArgs.DataDir, "/static/"),
+				"statFile", AppArgs.MaxFileSize)
 		}
 		ph.handleUpload(aWriter, aRequest, false)
 
@@ -879,8 +855,8 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, a
 // `handleUpload()` processes a file upload.
 func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http.Request, isImage bool) {
 	var (
-		status          int
-		fName, img, txt string
+		status   int
+		img, txt string
 	)
 	if isImage {
 		img = "!"
@@ -890,8 +866,8 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 	}
 
 	if 200 == status {
-		fName = strings.TrimPrefix(txt, ph.dataDir)
-		p := NewPosting("")
+		fName := strings.TrimPrefix(txt, AppArgs.DataDir)
+		p := NewPosting(``)
 		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
 		if _, err := p.Store(); nil != err {
 			apachelogger.Err("TPageHandler.handleUpload()",
@@ -947,31 +923,28 @@ func (ph *TPageHandler) reDir(aWriter http.ResponseWriter, aRequest *http.Reques
 	ph.handleGET(aWriter, aRequest)
 } // reDir()
 
-func recoverPanic(doLogStack bool) {
-	// make sure a `panic` won't kill the program
-	if err := recover(); err != nil {
-		var msg string
-		if doLogStack {
-			msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
-		} else {
-			msg = fmt.Sprintf("caught panic: %v", err)
-		}
-		apachelogger.Err("TPageHandler.ServeHTTP()", msg)
-	}
-} // recoverPanic()
-
 // ServeHTTP handles the incoming HTTP requests.
 func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
-	defer recoverPanic(ph.logStack)
+	defer func() { // make sure a `panic` won't kill the program
+		if err := recover(); err != nil {
+			var msg string
+			if AppArgs.LogStack {
+				msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
+			} else {
+				msg = fmt.Sprintf("caught panic: %v", err)
+			}
+			apachelogger.Err("TPageHandler.ServeHTTP()", msg)
+		}
+	}()
 
 	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	if ph.NeedAuthentication(aRequest) {
 		if nil == ph.userList {
-			passlist.Deny(ph.realm, aWriter)
+			passlist.Deny(AppArgs.Realm, aWriter)
 			return
 		}
 		if err := ph.userList.IsAuthenticated(aRequest); nil != err {
-			passlist.Deny(ph.realm, aWriter)
+			passlist.Deny(AppArgs.Realm, aWriter)
 			return
 		}
 	}
