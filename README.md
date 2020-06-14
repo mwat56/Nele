@@ -402,7 +402,7 @@ Those image files are stored locally (in the `./img/` directory) and may be used
 >
 > will be changed to
 >
->	`> [![alt text](/httpwwwexampleorgonehtml.png)`](http://www.example.org/one.html)
+>	`> [![alt text](/httpwwwexampleorgonehtml.png)](http://www.example.org/one.html)`
 >
 > while
 >
@@ -410,7 +410,7 @@ Those image files are stored locally (in the `./img/` directory) and may be used
 >
 > will be left untouched as a normal hyperlink.
 >
-> This curtailment is introduced avoid messing up the overall layout of a posting: It wouldn't look good if every link in a sentence would be replaced by an image.
+> This restriction was introduced to avoid messing up the overall layout of a posting: It wouldn't look good if every link in a sentence would be replaced by an image.
 
 The commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
 Under Linux this utility is usually part of your distribution.

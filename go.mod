@@ -8,7 +8,7 @@ require (
 	github.com/mwat56/cssfs v0.2.3
 	github.com/mwat56/errorhandler v1.1.7
 	github.com/mwat56/hashtags v0.5.2
-	github.com/mwat56/ini v1.4.1
+	github.com/mwat56/ini v1.5.0
 	github.com/mwat56/jffs v0.1.2
 	github.com/mwat56/pageview v0.4.5
 	github.com/mwat56/passlist v1.3.2
