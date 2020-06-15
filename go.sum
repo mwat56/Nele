@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/mwat56/apachelogger v1.4.10 h1:4G18UZkEITSBD2r3PZFjuXaO+8dJtKorzkQXUpTJNlg=
 github.com/mwat56/apachelogger v1.4.10/go.mod h1:LuMqFj0QkyaN01qlqYt5qnwb2r8yYEcyfBbbhcJKFZ4=
-github.com/mwat56/cssfs v0.2.3 h1:Hj1zuDaxV3xnxkQ5pF8E5EMGIQ7B+gDPa7kVhiVh71g=
-github.com/mwat56/cssfs v0.2.3/go.mod h1:5+bUfTWjvDTI2hDKRPlANGUuNAdd4FC6ndTvarF+bY4=
+github.com/mwat56/cssfs v0.2.4 h1:Ll5tCL2SVHjkf1PCWHs6DcYIqRTSeTLY3YSAtI0X6eg=
+github.com/mwat56/cssfs v0.2.4/go.mod h1:5+bUfTWjvDTI2hDKRPlANGUuNAdd4FC6ndTvarF+bY4=
 github.com/mwat56/errorhandler v1.1.7 h1:Abyd1s3HbiXf/PA/kNq7Stbfs7fRK130h8bRphklmg8=
 github.com/mwat56/errorhandler v1.1.7/go.mod h1:Cm2shh7ECbjtxv68hb2QZ1XIRpVSW0Pkr4QzFyRVqfY=
 github.com/mwat56/hashtags v0.5.2 h1:QYIlXFaOEQdPIc3Cfeis8ucJ99slvUojpBkmsv+typ8=
