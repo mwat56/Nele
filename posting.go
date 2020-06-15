@@ -81,7 +81,7 @@ var (
 	}()
 
 	// Cache of last/current posting count.
-	// see `PostingCount()`, `delFile()`, `goCount()`, `TPosting.Store()`
+	// see `delFile()`, `PostingCount()`, `TPosting.Store()`
 	µCountCache uint32
 )
 
@@ -94,9 +94,9 @@ func PostingBaseDirectory() string {
 // PostingCount returns the number of postings currently available.
 //
 // In case of I/O errors the return value will be `-1`.
-func PostingCount() (rCount int) {
-	if result := atomic.LoadUint32(&µCountCache); 0 < result {
-		return int(result)
+func PostingCount() (rCount uint32) {
+	if rCount = atomic.LoadUint32(&µCountCache); 0 < rCount {
+		return
 	}
 	// Apparently there's no current value ready so we compute a new one.
 	// Instead of doing this in _one_ glob we actually do it in two
@@ -108,10 +108,10 @@ func PostingCount() (rCount int) {
 	}
 	for _, mdName := range dirnames {
 		if filesnames, err := filepath.Glob(mdName + `/*.md`); nil == err {
-			rCount += len(filesnames)
+			rCount += uint32(len(filesnames))
 		}
 	}
-	atomic.StoreUint32(&µCountCache, uint32(rCount))
+	atomic.StoreUint32(&µCountCache, rCount)
 
 	return
 } // PostingCount()
@@ -424,6 +424,8 @@ func (p *TPosting) Store() (int, error) {
 		return 0, err
 	}
 	defer mdFile.Close()
+
+	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 
 	return mdFile.Write(p.markdown)
 } // Store()
