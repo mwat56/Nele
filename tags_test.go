@@ -14,14 +14,25 @@ import (
 )
 
 func Test_MarkupTags(t *testing.T) {
-	p1 := []byte(`bla #hash1 bla _@mention1_ bla&#39; <a href="page#fragment">bla</a>
+	p1 := []byte(`bla #hash1 bla _@mention1_ bla&#39; <a href="page#fragment">bla</a>&nbsp;
 	[link text](http://host.com/page#frag2) #hash2`)
-	w1 := []byte(`bla <a href="/hl/hash1" class="smaller">#hash1</a> bla _<a href="/ml/mention1" class="smaller">@mention1</a>_ bla&#39; <a href="page#fragment">bla</a>
-	[link text](http://host.com/page<a href="/hl/frag2" class="smaller">#frag2</a>) <a href="/hl/hash2" class="smaller">#hash2</a>`)
+
+	w1 := []byte(`bla <a href="/hl/hash1" class="smaller">#hash1</a> bla _<a href="/ml/mention1" class="smaller">@mention1</a>_ bla&#39; <a href="page#fragment">bla</a>&nbsp;
+	[link text](http://host.com/page#frag2) <a href="/hl/hash2" class="smaller">#hash2</a>`)
+	if string(p1) == string(w1) {
+		p1 = []byte(``)
+	}
+
 	p2 := []byte(`
-*@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Spain*`)
+#-------------
+*@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Spain*
+#-------------`)
+
 	w2 := []byte(`
-*<a href="/ml/antoni_comín" class="smaller">@Antoni_Comín</a> <a href="/ml/carles_puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/catalonia" class="smaller">@Catalonia</a> <a href="/ml/eu" class="smaller">@EU</a> <a href="/ml/immunity" class="smaller">@Immunity</a> <a href="/ml/oriol_junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/spain" class="smaller">@Spain</a>*`)
+#-------------
+*<a href="/ml/antoni_comín" class="smaller">@Antoni_Comín</a> <a href="/ml/carles_puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/catalonia" class="smaller">@Catalonia</a> <a href="/ml/eu" class="smaller">@EU</a> <a href="/ml/immunity" class="smaller">@Immunity</a> <a href="/ml/oriol_junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/spain" class="smaller">@Spain</a>*
+#-------------`)
+
 	type args struct {
 		aPage []byte
 	}

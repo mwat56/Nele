@@ -68,6 +68,7 @@ var (
 
 	// match: #hashtag|@mention
 	htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}\d_§-]+)(.?|$)`)
+	//                                         11111111111111111  2222
 )
 
 // AddTagID checks a newly added `aPosting` for #hashtags and @mentions.
@@ -75,9 +76,8 @@ var (
 //	`aList` The hashlist to use (update).
 //	`aPosting` The new posting to handle.
 func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
-	go func() {
-		aList.IDparse(aPosting.ID(), aPosting.Markdown())
-	}()
+	go aList.IDparse(aPosting.ID(), aPosting.Markdown())
+
 	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
@@ -96,6 +96,9 @@ func InitHashlist(aList *hashtags.THashList) {
 } // InitHashlist()
 
 var (
+	// RegEx to match texts like `#----`.
+	htHyphenRE = regexp.MustCompile(`#[^-]*--`)
+
 	// Lookup table for URL to use in `MarkupCloud()`.
 	htListLookup = map[bool]string{
 		true:  `/hl/`,
@@ -122,11 +125,11 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 			class = "tc99"
 		}
 
-		tl[idx] = template.HTML(` <a href="` +
+		tl[idx] = template.HTML(`<a href="` +
 			htListLookup['#' == item.Tag[0]] + item.Tag[1:] +
 			`" class="` + class + `" title=" ` +
 			fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) +
-			` ">` + item.Tag + `</a> `) // #nosec G203
+			` ">` + item.Tag + `</a>`) // #nosec G203
 	}
 
 	return tl
@@ -155,7 +158,7 @@ func MarkupTags(aPage []byte) []byte {
 	result := htHashMentionRE.ReplaceAllStringFunc(string(aPage),
 		func(aString string) string {
 			sub := htHashMentionRE.FindSubmatch([]byte(aString))
-			if (nil == sub) || (0 >= len(sub)) || (0 >= len(sub[1])) {
+			if (nil == sub) || (0 == len(sub)) || (0 == len(sub[1])) {
 				return aString
 			}
 
@@ -170,15 +173,26 @@ func MarkupTags(aPage []byte) []byte {
 			}
 			if '#' == hash[0] {
 				if 0 < len(sub[2]) {
-					if '"' == sub[2][0] {
+					switch sub[2][0] {
+					case '"':
 						// double quote following a possible hashtag: most
 						// probably an URL#fragment, hence leave it as is
 						return aString
-					}
-					if (';' == sub[2][0]) && htEntityRE.MatchString(aString) {
-						// leave HTML entities as is
+					case ')':
+						// This is a tricky one: it can either be a
+						// normal right round bracket or the end of
+						// a Markdown link. Here we assume that it's
+						// the latter one and ignore this match:
 						return aString
+					case ';':
+						if htEntityRE.MatchString(aString) {
+							// leave HTML entities as is
+							return aString
+						}
 					}
+				}
+				if htHyphenRE.MatchString(hash) {
+					return aString
 				}
 				url = "/hl/" + strings.ToLower(hash[1:])
 			} else {
