@@ -97,15 +97,15 @@ func Test_newPost(t *testing.T) {
 } // Test_newPost()
 
 func TestPostingCount(t *testing.T) {
-	SetPostingBaseDirectory("./postings/")
+	SetPostingBaseDirectory(`./postings/`)
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 	tests := []struct {
 		name       string
-		wantRCount int
+		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 1403},
-		{" 2", 1403},
+		{" 1", 1420},
+		{" 2", 1420},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
