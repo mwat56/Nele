@@ -76,7 +76,7 @@
 }
 
 html, body, p {
-	font-family: "Noto Serif", serif, sans-serif;
+	font-family: "Noto Serif Regular", serif, sans-serif;
 	font-size: 13pt;
 }
 b, .bold, strong, .strong, .strong p {
@@ -84,15 +84,16 @@ b, .bold, strong, .strong, .strong p {
 	font-weight: bold;
 }
 code, .code, input, kbd, pre, textarea {
-	font-family: "Hack Mono", monospace;
+	font-family: "Hack Mono Regular", monospace;
 }
 div#search_box {
-	font-family: "Noto Sans", sans-serif;
+	font-family: "Noto Sans Regular", sans-serif;
 }
 em, .em, i, .italic {
 	font-family: "Noto Serif Italic", serif;
 	font-style: italic;
 }
+
 h1, h2, h3, h4, h5, h6 {
 	font-family: "Noto Serif Bold", serif;
 	font-weight: bold;
@@ -102,10 +103,12 @@ h5 {
 	font-style: italic;
 	font-weight: bold;
 }
+
 p.PostingCount {
 	font-family: "Noto Serif Italic", serif;
 	font-style: italic;
 }
+
 pre em, pre .em, pre i, pre.italic {
 	font-family: "Hack Mono Italic", monospace;
 	font-style: italic;
@@ -116,7 +119,7 @@ pre b, pre.bold, pre strong, pre.strong {
 }
 
 .tc5, .tc25, .tc50, .tc99 {
-	font-family: "Noto Sans", monospace;
+	font-family: "Noto Sans Regular", monospace;
 }
 .tc25 {
 	font-family: "Noto Sans Italic", monospace;
