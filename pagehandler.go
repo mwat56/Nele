@@ -7,12 +7,14 @@
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
+//lint:file-ignore ST1005 - I prefer capitalisation
 
 /*
  * This file provides functions and methods to handle HTTP requests.
  */
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -118,10 +120,14 @@ func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
 func NewPageHandler() (*TPageHandler, error) {
 	var (
 		err error
+		msg string
 	)
 	result := new(TPageHandler)
 
 	if result.viewList, err = newViewList(filepath.Join(AppArgs.DataDir, "views")); nil != err {
+		msg = fmt.Sprintf("Error: views problem: %v", err)
+		log.Println(`NewPageHandler()`, msg)
+
 		// Without our views we can't generate any web-page.
 		return nil, err
 	}
@@ -130,11 +136,19 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	if 0 < len(AppArgs.HashFile) {
 		// hashtags.UseBinaryStorage = false //TODO REMOVE
-		if result.hashList, err = hashtags.New(AppArgs.HashFile); nil == err {
-			InitHashlist(result.hashList) // background operation
-		} else {
+		if result.hashList, err = hashtags.New(AppArgs.HashFile); nil != err {
 			result.hashList = nil
+		} else {
+			InitHashlist(result.hashList) // background operation
 		}
+	}
+	if nil == result.hashList {
+		if nil == err {
+			err = errors.New(`Error: missing hashFile`)
+		}
+		msg = fmt.Sprintf("%v", err)
+		log.Println(`NewPageHandler()`, msg)
+		return nil, err
 	}
 
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)

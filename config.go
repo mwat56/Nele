@@ -235,6 +235,8 @@ func readAppArgs() {
 
 	if 0 < len(AppArgs.HashFile) {
 		AppArgs.HashFile = absolute(AppArgs.DataDir, AppArgs.HashFile)
+	} else {
+		log.Fatalln("Error: `hashFile` argument missing")
 	}
 
 	if 0 < len(AppArgs.Lang) {
@@ -367,6 +369,8 @@ func setAppArgs() {
 
 	if s, ok = iniValues.AsString(`hashFile`); (ok) && (0 < len(s)) {
 		AppArgs.HashFile = absolute(AppArgs.DataDir, s)
+	} else {
+		AppArgs.HashFile = absolute(AppArgs.DataDir, `HashFile.db`)
 	}
 	flag.CommandLine.StringVar(&AppArgs.HashFile, `hashFile`, AppArgs.HashFile,
 		"<fileName> Name of the file storing #hashtags and @mentions\n")
