@@ -10,6 +10,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -79,7 +80,7 @@ func fatal(aMessage string) {
 //
 // see: https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
 func redirHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
-	// copy the original URL and replace the scheme:
+	// Copy the original URL and replace the scheme:
 	targetURL := url.URL{
 		Scheme:     `https`,
 		Opaque:     aRequest.URL.Opaque,
@@ -94,7 +95,7 @@ func redirHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
 	target := targetURL.String()
 
 	apachelogger.Err(`Nele/main`, `redirecting to: `+target)
-	http.Redirect(aWriter, aRequest, target, http.StatusMovedPermanently)
+	http.Redirect(aWriter, aRequest, target, http.StatusTemporaryRedirect)
 } // redirHTTP()
 
 // `setupSignals()` configures the capture of the interrupts `SIGINT`
@@ -104,7 +105,7 @@ func setupSignals(aServer *http.Server) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
-	catcher := func() {
+	go func() {
 		for signal := range c {
 			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
 			apachelogger.Err(`Nele/catchSignals`, msg)
@@ -114,9 +115,7 @@ func setupSignals(aServer *http.Server) {
 				fatal(fmt.Sprintf("%s: %v", os.Args[0], err))
 			}
 		}
-	} // catcher()
-
-	go catcher()
+	}()
 } // setupSignals()
 
 // `userCmdline()` checks for and executes password file commandline actions.
@@ -210,6 +209,38 @@ func main() {
 	if 0 < len(nele.AppArgs.CertKey) && (0 < len(nele.AppArgs.CertPem)) {
 		// start the HTTP to HTTPS redirector:
 		go http.ListenAndServe(nele.AppArgs.Addr, http.HandlerFunc(redirHTTP))
+
+		// see:
+		// https://ssl-config.mozilla.org/#server=golang&version=1.14.1&config=old&guideline=5.4
+		server.TLSConfig = &tls.Config{
+			MinVersion:               tls.VersionTLS10,
+			PreferServerCipherSuites: true,
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+				tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+				tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+				tls.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_RSA_WITH_AES_128_CBC_SHA256,
+				tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+				tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+				tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+				tls.TLS_RSA_WITH_RC4_128_SHA,
+				tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256, // #nosec G402
+			},
+		} // #nosec G402
+		server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 
 		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, nele.AppArgs.Addr)
 		log.Println(s)
