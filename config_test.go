@@ -44,6 +44,7 @@ func readAppArgsDebug() *TAppArgs {
 	flag.CommandLine = flag.NewFlagSet(`Nele`, flag.ExitOnError)
 	AppArgs = TAppArgs{}
 
+	setAppArgs()
 	readAppArgs()
 
 	return &AppArgs
@@ -144,14 +145,19 @@ func Test_parseAppArgsDebug(t *testing.T) {
 
 func Test_readAppArgsDebug(t *testing.T) {
 	expected := &TAppArgs{
-		Addr:        `:8181`,
-		BlogName:    `<! BlogName not configured !>`,
-		DataDir:     `/home/matthias/devel/Go/src/github.com/mwat56/nele`,
-		Lang:        `en`,
-		MaxFileSize: 10485760,
-		port:        8181,
-		Realm:       `My Blog`,
-		Theme:       `dark`,
+		Addr:          `127.0.0.1:8181`,
+		BlogName:      `<! BlogName not configured !>`,
+		DataDir:       `/home/matthias/devel/Go/src/github.com/mwat56/nele`,
+		delWhitespace: true,
+		GZip:          true,
+		HashFile:      "/home/matthias/devel/Go/src/github.com/mwat56/nele/HashFile.db",
+		Lang:          `en`,
+		listen:        `127.0.0.1`,
+		MaxFileSize:   10485760,
+		mfs:           `10485760`,
+		port:          8181,
+		Realm:         `My Blog`,
+		Theme:         `dark`,
 	}
 	tests := []struct {
 		name string
@@ -175,9 +181,10 @@ func Test_setAppArgsDebug(t *testing.T) {
 		DataDir:       `/home/matthias/devel/Go/src/github.com/mwat56/nele`,
 		delWhitespace: true,
 		GZip:          true,
+		HashFile:      "/home/matthias/devel/Go/src/github.com/mwat56/nele/HashFile.db",
 		Lang:          `en`,
-		listen:        "127.0.0.1",
-		mfs:           "10485760",
+		listen:        `127.0.0.1`,
+		mfs:           `10485760`,
 		port:          8181,
 		Realm:         `My Blog`,
 		Theme:         `dark`,
