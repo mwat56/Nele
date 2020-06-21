@@ -24,16 +24,14 @@ dl dd {
 	background: #f9f9f0;
 }
 dl.posting dd {
-	border: thin inset #960;
-	border-left: 0;
-	border-right: 0;
+	border-color: #960;
 }
 dl.posting dd blockquote {
 	background: #f6f6ec;
-	border: thin solid #f0f0e0;
+	border-color: #f0f0e0;
 }
 footer {
-	border-top: thin solid #333;
+	border-top-color: #333;
 }
 h1, h2, h3, h4, h5, h6 {
 	color: #033;
@@ -43,7 +41,7 @@ h3, h2, h1 {
 }
 header {
 	background: #f9f9f6;
-	border-bottom: thin solid #ccc;
+	border-bottom-color: #ccc;
 	color: #000;
 }
 hr {
@@ -55,21 +53,18 @@ input {
 	color: #333;
 }
 pre, xmp {
-	border-left: thick solid #999;
+	border-left-color: #999;
 }
 p.matches {
 	background: #ebebeb;
-	border: thin solid #ccc;
+	border-color: #ccc;
 }
 p#next a {
-	border-bottom: thin dotted #03c;
+	border-bottom-color: #03c;
 }
 a.tc5, a.tc25, a.tc50, a.tc99 {
 	background: #036;
-	border: 0.3ex outset #69c;
+	border-color: #69c;
 	color: #ffe;
-}
-a.tc5:hover, a.tc25:hover, a.tc50:hover, a.tc99:hover {
-	border: 0.3ex inset #69c;
 }
 /* _EoF_ */

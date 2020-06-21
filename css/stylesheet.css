@@ -87,9 +87,12 @@ dl.posting dt {
 	text-align: right;
 }
 dl.posting dd {
+	border: thin outset transparent;
+	border-left: 0;
+	border-right: 0;
 	border-radius: 1ex;
 	margin: 1ex 0 2ex 0;
-	max-height: 26ex;
+	max-height: 21ex;
 	max-width: 99.88%;
 	overflow: auto;
 	padding: 0.3ex 0.3ex 0.5ex 0.5ex;
@@ -99,6 +102,7 @@ dl.posting dd#manuscript {
 	max-height: 90%;
 }
 dl.posting dd blockquote {
+	border: thin solid transparent;
 	border-radius: 1ex;
 	margin-left: 2ex;
 }
@@ -107,6 +111,7 @@ em, .em, i, .italic {
 	font-style: italic;
 }
 footer {
+	border: thin solid transparent;
 	border-radius: 1ex;
 	clear: both;
 	margin: 1em 0 0 0;
@@ -160,6 +165,7 @@ h1+h2, h2+h3, h3+h4, h4+h5, h5+h6 {
 	margin-top: -1ex;
 }
 header {
+	border: thin solid transparent;
 	border-radius: 1ex;
 	clear: both;
 	float: none;
@@ -230,6 +236,7 @@ pre, textarea, xmp {
 	white-space: pre-wrap;
 }
 pre, xmp {
+	border-left: thick solid transparent;
 	overflow: scroll;
 	white-space: pre;
 }
@@ -291,6 +298,7 @@ p#next {
 	text-align: right;
 }
 p#next a {
+	border-bottom: thin dotted transparent;
 	font-size: 89%;
 }
 pre#preview {
@@ -331,6 +339,7 @@ a.idlink {
 	text-align: left;
 }
 p.matches {
+	border: thin solid transparent;
 	border-radius: 1ex;
 	clear: left;
 	float: left;
@@ -357,6 +366,7 @@ p.PostingCount {
 a.smaller {
 	hyphens: none;
 }
+
 p.tc {
 	hyphens: none;
 	line-height: 1.3;
@@ -364,33 +374,40 @@ p.tc {
 	text-indent: 0;
 }
 .tc5, .tc25, .tc50, .tc99 {
+	border: 0.3ex outset transparent;
 	border-radius: 0.5ex;
 	display: inline-block;
 	hyphens: none;
 }
 .tc5 {
-	font-size: 63%;
-	/*font-style: normal;/* */
+	font-size: 64%;
+	font-style: normal;
 }
 .tc25 {
-	font-size: 74%;
-	/*font-style: italic;
-	font-weight: bold;/* */
+	font-size: 76%;
+	font-style: italic;
+	font-weight: bold;
 }
 .tc50 {
-	font-size: 83%;
-	/*font-style: normal;
-	font-weight: bold;/* */
+	font-size: 82%;
+	font-style: normal;
+	font-weight: bold;
 }
 .tc99 {
-	font-size: 92%;
-	/*font-style: italic;
-	font-weight: bold;/* */
+	font-size: 90%;
+	font-style: italic;
+	font-weight: bold;
 }
 .tc5, .tc25, .tc50, .tc99 {
 	/* we set this values only _after_ the font-sizes */
-	margin: 0 0.1ex 0 0;
+	margin: 0.1ex 0.2ex;
 	padding: 0 0.2ex 0.1ex 0.2ex;
+}
+X.tc99 {
+	margin-top: 0.3ex;
+}
+a.tc5:hover, a.tc25:hover, a.tc50:hover, a.tc99:hover {
+	border-style: inset;
 }
 
 @media print {
