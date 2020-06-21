@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
                All rights reserved
            EMail : <support@mwat.de>
 */
@@ -87,9 +87,7 @@ var (
 // to the list.
 //
 //	`aActDir` the root directory for the traversal.
-//
 //	`aLo` is the earliest ID time to use.
-//
 //	`aHi` is the latest ID time to use.
 func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 	// We ignore all possible errors since we can't do anything about
@@ -152,7 +150,6 @@ func (pl *TPostList) Len() int {
 //
 //	`aYear` the year to lookup; if `0` (zero) the current year
 // is used.
-//
 //	`aMonth` the year's month to lookup; if `0` (zero) the
 // current month is used.
 func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
@@ -185,7 +182,6 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 // with at most `aNumber` posts.
 //
 //	`aNumber` The number of articles to show.
-//
 //	`aStart` The start number to use.
 func (pl *TPostList) Newest(aNumber, aStart int) error {
 	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
@@ -232,7 +228,6 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 // prepareWalk() computes the first and last directory to process.
 //
 //	`aLo` is the earliest ID time to use.
-//
 //	`aHi` is the latest ID time to use.
 func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
 	tn := time.Now()
@@ -269,10 +264,8 @@ func (pl *TPostList) Sort() *TPostList {
 //
 //	`aYear` the year to lookup; if `0` (zero) the current year
 // is used.
-//
 //	`aMonth` the year's month to lookup; if `0` (zero) the current
 // month is used.
-//
 //	`aDay` the month's day to lookup; if `0` (zero) the current day is used.
 func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	var y, d int
@@ -312,7 +305,6 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 // `bgAddPosting()` is a function adding a new posting to `aPostList`.
 //
 //	`aPostList` is the `TPostList` instance to add to.
-//
 //	`aID` is the identifier of the new posting to add;
 // the associated file's contents are loaded from storage.
 func bgAddPosting(aPostList *TPostList, aID string) {
@@ -335,12 +327,12 @@ func NewPostList() *TPostList {
 	return &result
 } // NewPostList()
 
-// SearchPostings traverses the sub-directories of `aBaseDir` looking
-// for `aText` in all posting files.
+// SearchPostings traverses the directories holding the postings
+// looking for `aText` in all article files.
 //
-// The returned `TPostList` can be empty because (a) `aText` could not be
-// compiled into a regular expression, (b) no files to search were found,
-// or (c) no files matched `aText`.
+// The returned `TPostList` can be empty because (a) `aText` could
+// not be compiled into a regular expression, (b) no files to
+// search were found, or (c) no files matched `aText`.
 //
 //	`aText` is the text to look for in the postings.
 func SearchPostings(aText string) *TPostList {
