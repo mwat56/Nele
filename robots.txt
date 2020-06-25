@@ -1,0 +1,10 @@
+
+User-agent: *
+Disallow: /a*/
+Disallow: /d*/
+Disallow: /e*/
+Disallow: /i*/
+Disallow: /r*/
+Disallow: /s*/
+Disallow: /v*/
+Disallow: /x*/
