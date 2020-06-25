@@ -49,15 +49,6 @@ type (
 	}
 )
 
-// `check4lang()` looks for a CGI value of `lang` and adds it to `aData` if found.
-func check4lang(aData *TemplateData, aRequest *http.Request) *TemplateData {
-	if l := aRequest.FormValue("lang"); 0 < len(l) {
-		return aData.Set("Lang", l)
-	}
-
-	return aData
-} // check4lang()
-
 var (
 	// RegEx to match hh:mm:ss
 	reHmsRE = regexp.MustCompile(`^(([01]?[0-9])|(2[0-3]))[^0-9](([0-5]?[0-9])([^0-9]([0-5]?[0-9]))?)?[^0-9]?|$`)
@@ -245,15 +236,32 @@ func URLparts(aURL string) (rDir, rPath string) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// `basicPageData()` returns a list of common Head entries.
-func (ph *TPageHandler) basicPageData() *TemplateData {
+// `basicPageData()` returns a list of data to be inserted into the
+// `view`/templates.
+func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
+	lang, theme := AppArgs.Lang, AppArgs.Theme
+	if nil != aRequest {
+		if l := strings.ToLower(aRequest.FormValue(`lang`)); 0 < len(l) {
+			switch l {
+			case `de`, `en`:
+				lang = l
+			}
+		}
+		if t := strings.ToLower(aRequest.FormValue(`theme`)); 0 < len(t) {
+			switch t {
+			case `dark`, `light`:
+				theme = t
+			}
+		}
+	}
+
 	y, m, d := time.Now().Date()
 	now := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 	pageData := NewTemplateData().
 		Set("Blogname", AppArgs.BlogName).
-		Set("CSS", template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+AppArgs.Theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
+		Set(`CSS`, template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("HashCount", ph.hashList.HashCount()).
-		Set("Lang", AppArgs.Lang).
+		Set(`Lang`, lang).
 		Set("MentionCount", ph.hashList.MentionCount()).
 		Set("monthURL", "/m/"+now).
 		Set("NOW", now).
@@ -271,8 +279,7 @@ func (ph *TPageHandler) basicPageData() *TemplateData {
 func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	var empty []byte
 
-	pageData := ph.basicPageData().
-		Set("Robots", "noindex,follow")
+	pageData := ph.basicPageData(nil).Set(`Robots`, `noindex,follow`)
 
 	switch aStatus {
 	case 404:
@@ -294,15 +301,13 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 
 // `handleGET()` processes the HTTP GET requests.
 func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Request) {
-
-	pageData := ph.basicPageData()
+	pageData := ph.basicPageData(aRequest)
 	path, tail := URLparts(aRequest.URL.Path)
 	switch strings.ToLower(path) { // handle URLs case-insensitive
 
 	case "a", "ap": // add a new post
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,nofollow")
-		ph.handleReply("ap", aWriter, pageData)
+		ph.handleReply(`ap`, aWriter,
+			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "certs": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -322,9 +327,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		t := p.Time()
 		date := p.Date()
-		pageData = check4lang(pageData, aRequest).
-			Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
-				t.Hour(), t.Minute(), t.Second())).
+		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
+			t.Hour(), t.Minute(), t.Second())).
 			Set("ID", p.ID()).
 			Set("Manuscript", template.HTML(p.Markdown())).
 			Set("monthURL", "/m/"+date).
@@ -345,9 +349,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		t := p.Time()
 		date := p.Date()
-		pageData = check4lang(pageData, aRequest).
-			Set("HMS", fmt.Sprintf("%02d:%02d:%02d",
-				t.Hour(), t.Minute(), t.Second())).
+		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
+			t.Hour(), t.Minute(), t.Second())).
 			Set("ID", p.ID()).
 			Set("Manuscript", template.HTML(p.Markdown())).
 			Set("monthURL", "/m/"+date).
@@ -357,10 +360,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply("ep", aWriter, pageData)
 
 	case "faq", "faq.html":
-		ph.handleReply("faq", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply(`faq`, aWriter, pageData)
 
 	case "favicon.ico":
-		http.Redirect(aWriter, aRequest, "/img/"+path, http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, `/img/`+path,
+			http.StatusMovedPermanently)
 
 	case "fonts":
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
@@ -374,9 +378,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case `i`, `il`: // (re-)init the hashList
 		if nil != ph.hashList {
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,nofollow")
-			ph.handleReply("il", aWriter, pageData)
+			ph.handleReply(`il`, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -385,7 +388,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
-		ph.handleReply("imprint", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply(`imprint`, aWriter, pageData)
 
 	case "index", "index.html":
 		ph.handleRoot("30", pageData, aWriter, aRequest)
@@ -396,7 +399,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		*/
 
 	case "licence", "license", "lizenz":
-		ph.handleReply("licence", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply(`licence`, aWriter, pageData)
 
 	case "m", "mw": // handle a given month
 		var y, d int
@@ -411,11 +414,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Month(y, m)
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,follow").
-			Set("Matches", pl.Len()).
-			Set("Postings", pl.Sort()).
+		pageData = pageData.Set(`Matches`, pl.Len()).
 			Set("monthURL", "/m/"+date).
+			Set(`Postings`, pl.Sort()).
+			Set(`Robots`, `noindex,follow`).
 			Set("weekURL", "/w/"+date)
 		ph.handleReply("searchresult", aWriter, pageData)
 
@@ -443,14 +445,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := p.Date()
 		err := ph.userList.IsAuthenticated(aRequest)
-		// if nil != err {
-		// 	apachelogger.Err("TPageHandler.handleGET()",
-		// 		fmt.Sprintf("%v", err))
-		// }
-		pageData = check4lang(pageData, aRequest).
-			Set("isAuth", nil == err).
+
+		pageData = pageData.Set(`isAuth`, nil == err).
+			Set(`monthURL`, `/m/`+date).
 			Set("Posting", p).
-			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
 		ph.handleReply("article", aWriter, pageData)
 
@@ -458,15 +456,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 	case "privacy", "datenschutz":
-		ph.handleReply("privacy", aWriter, check4lang(pageData, aRequest))
+		ph.handleReply(`privacy`, aWriter, pageData)
 
 	case `pv`, `v`: // update the pageView images
 		if AppArgs.PageView {
-			pageData = check4lang(pageData, aRequest).
-				Set("Robots", "noindex,nofollow")
-			ph.handleReply("pv", aWriter, pageData)
+			ph.handleReply(`pv`, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+			http.Redirect(aWriter, aRequest, `/n/`,
+				http.StatusMovedPermanently)
 		}
 
 	case "q":
@@ -474,7 +472,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "r", "rp": // posting's removal
 		if 0 == len(tail) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, `/n/`,
+				http.StatusSeeOther)
 			return
 		}
 		p := NewPosting(tail)
@@ -484,14 +483,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		t := p.Time()
 		date := p.Date()
-		pageData = check4lang(pageData, aRequest).
-			Set("HMS",
-				fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
+		pageData = pageData.Set(`HMS`,
+			fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
+			Set(`ID`, p.ID()).
 			Set("Manuscript", template.HTML(p.Markdown())).
-			Set("ID", p.ID()).
 			Set("monthURL", "/m/"+date).
+			Set(`Robots`, `noindex,nofollow`).
 			Set("weekURL", "/w/"+date).
-			Set("Robots", "noindex,nofollow").
 			Set("YMD", date) // #nosec G203
 		ph.handleReply("rp", aWriter, pageData)
 
@@ -519,14 +517,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleShare(tail, aWriter, aRequest)
 
 	case "si": // store images
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,nofollow")
-		ph.handleReply("si", aWriter, pageData)
+		ph.handleReply(`si`, aWriter,
+			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "ss": // store static
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,nofollow")
-		ph.handleReply("ss", aWriter, pageData)
+		ph.handleReply(`ss`, aWriter,
+			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "static": // deliver a static resource
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
@@ -547,18 +543,16 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Week(y, m, d)
-		pageData = check4lang(pageData, aRequest).
+		pageData = pageData.Set(`Matches`, pl.Len()).
+			Set(`monthURL`, `/m/`+date).
+			Set(`Postings`, pl.Sort()).
 			Set("Robots", "noindex,follow").
-			Set("Matches", pl.Len()).
-			Set("Postings", pl.Sort()).
-			Set("monthURL", "/m/"+date).
 			Set("weekURL", "/w/"+date)
 		ph.handleReply("searchresult", aWriter, pageData)
 
 	case `x`, `xp`, `xt`: // eXchange #tags/@mentions
-		pageData = check4lang(pageData, aRequest).
-			Set("Robots", "noindex,nofollow")
-		ph.handleReply("xt", aWriter, pageData)
+		ph.handleReply(`xt`, aWriter,
+			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case ``:
 		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
@@ -587,13 +581,16 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.handleRoot("30", pageData, aWriter, aRequest)
 		}
 
-	default:
-		// // if nothing matched (above) reply to the request
-		// // with an HTTP 404 not found error.
-		// http.NotFound(aWriter, aRequest)
+	case `echo.php`:
+		// Redirect spyware to the NSA:
+		http.Redirect(aWriter, aRequest, `https://www.nsa.gov/`,
+			http.StatusMovedPermanently)
 
-		// Redirect all invalid URLs to the NSA:
-		http.Redirect(aWriter, aRequest, "https://www.nsa.gov/", http.StatusMovedPermanently)
+	default:
+		// if nothing matched (above) reply to the request
+		// with an HTTP 404 not found error.
+		http.NotFound(aWriter, aRequest)
+
 	} // switch
 } // handleGET()
 
@@ -811,8 +808,7 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter 
 	}
 	pl := NewPostList()
 	_ = pl.Newest(num, start) // ignore fs errors here
-	aData = check4lang(aData, aRequest).
-		Set("Postings", pl.Sort()).
+	aData = aData.Set(`Postings`, pl.Sort()).
 		Set("Robots", "noindex,follow")
 	if pl.Len() >= num {
 		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", num, num+start+1))
@@ -823,8 +819,7 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter 
 // `handleSearch()` serves the search results.
 func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
-	aData = check4lang(aData, aRequest).
-		Set("Robots", "noindex,follow").
+	aData = aData.Set(`Robots`, `noindex,follow`).
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
 	ph.handleReply("searchresult", aWriter, aData)
@@ -859,8 +854,7 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, a
 		}
 	}
 
-	aData = check4lang(aData, aRequest).
-		Set("Robots", "index,follow").
+	aData = aData.Set(`Robots`, `index,follow`).
 		Set("Matches", pl.Len()).
 		Set("Postings", pl.Sort())
 	ph.handleReply("searchresult", aWriter, aData)
