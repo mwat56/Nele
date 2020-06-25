@@ -125,7 +125,7 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 			class = "tc99"
 		}
 
-		tl[idx] = template.HTML(`<a href="` +
+		tl[idx] = template.HTML(` <a href="` +
 			htListLookup['#' == item.Tag[0]] + item.Tag[1:] +
 			`" class="` + class + `" title=" ` +
 			fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) +
