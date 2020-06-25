@@ -33,6 +33,7 @@ func TestTemplateData_Get(t *testing.T) {
 	d1 := NewTemplateData()
 	(*d1)[`key1`] = `val1`
 	(*d1)[`key3`] = false
+	(*d1)[`key4`] = true
 
 	type args struct {
 		aKey string
@@ -48,7 +49,8 @@ func TestTemplateData_Get(t *testing.T) {
 		{" 1", *d1, args{`key1`}, `val1`, true},
 		{" 2", *d1, args{`key2`}, `val2`, false},
 		{" 3", *d1, args{`key3`}, false, true},
-		{" 4", *d1, args{`key3`}, true, true},
+		{" 4", *d1, args{`key4`}, true, true},
+		{" 5", *d1, args{`key5`}, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
