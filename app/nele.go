@@ -68,13 +68,12 @@ func doFile(aMe string) {
 	os.Exit(0)
 } // doFile()
 
-// `fatal()` logs `aMessage` and terminates the program.
-func fatal(aMessage string) {
+// `exit()` logs `aMessage` and terminates the program.
+func exit(aMessage string) {
 	apachelogger.Err("Nele/main", aMessage)
 	runtime.Gosched() // let the logger write
-	apachelogger.Close()
 	log.Fatalln(aMessage)
-} // fatal()
+} // exit()
 
 // `redirHTTP()` sends HTTP clients to HTTPS server.
 //
@@ -107,12 +106,12 @@ func setupSignals(aServer *http.Server) {
 
 	go func() {
 		for signal := range c {
-			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", os.Args[0], signal)
+			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", filepath.Base(os.Args[0]), signal)
 			apachelogger.Err(`Nele/catchSignals`, msg)
 			log.Println(msg)
 			runtime.Gosched() // let the logger write
 			if err := aServer.Shutdown(context.Background()); nil != err {
-				fatal(fmt.Sprintf("%s: %v", os.Args[0], err))
+				exit(fmt.Sprintf("%s: %v", filepath.Base(os.Args[0]), err))
 			}
 		}
 	}()
@@ -166,7 +165,7 @@ func main() {
 
 	if ph, err = nele.NewPageHandler(); nil != err {
 		nele.ShowHelp()
-		fatal(fmt.Sprintf("%s: %v", Me, err))
+		exit(fmt.Sprintf("%s: %v", Me, err))
 	}
 	// Setup the errorpage handler:
 	handler = errorhandler.Wrap(ph, ph)
@@ -245,7 +244,7 @@ func main() {
 		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, nele.AppArgs.Addr)
 		log.Println(s)
 		apachelogger.Log("Nele/main", s)
-		fatal(fmt.Sprintf("%s: %v", Me,
+		exit(fmt.Sprintf("%s: %v", Me,
 			server.ListenAndServeTLS(nele.AppArgs.CertPem, nele.AppArgs.CertKey)))
 		return
 	}
@@ -253,7 +252,7 @@ func main() {
 	s := fmt.Sprintf("%s listening HTTP at: %s", Me, nele.AppArgs.Addr)
 	log.Println(s)
 	apachelogger.Log("Nele/main", s)
-	fatal(fmt.Sprintf("%s: %v", Me, server.ListenAndServe()))
+	exit(fmt.Sprintf("%s: %v", Me, server.ListenAndServe()))
 } // main()
 
 /* _EoF_ */
