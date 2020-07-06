@@ -445,6 +445,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := p.Date()
 		err := ph.userList.IsAuthenticated(aRequest)
+		aWriter.Header().Set(`Cache-Control`, `private, max-age=864000`) // 10 days
+		aWriter.Header().Set(`Last-Modified`, p.LastModified())
 
 		pageData = pageData.Set(`isAuth`, nil == err).
 			Set(`monthURL`, `/m/`+date).
