@@ -13,6 +13,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -68,14 +69,14 @@ func doFile(aMe string) {
 	os.Exit(0)
 } // doFile()
 
-// `exit()` logs `aMessage` and terminates the program.
+// `exit()` Log `aMessage` and terminate the program.
 func exit(aMessage string) {
 	apachelogger.Err("Nele/main", aMessage)
 	runtime.Gosched() // let the logger write
 	log.Fatalln(aMessage)
 } // exit()
 
-// `redirHTTP()` sends HTTP clients to HTTPS server.
+// `redirHTTP()` Send HTTP clients to HTTPS server.
 //
 // see: https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
 func redirHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -109,10 +110,20 @@ func setupSignals(aServer *http.Server) {
 			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", filepath.Base(os.Args[0]), signal)
 			apachelogger.Err(`Nele/catchSignals`, msg)
 			log.Println(msg)
-			runtime.Gosched() // let the logger write
-			if err := aServer.Shutdown(context.Background()); nil != err {
-				exit(fmt.Sprintf("%s: %v", filepath.Base(os.Args[0]), err))
-			}
+			break
+		} // for
+
+		ctx, cancel := context.WithCancel(context.Background())
+		aServer.BaseContext = func(net.Listener) context.Context {
+			return ctx
+		}
+		aServer.RegisterOnShutdown(cancel)
+
+		ctxTimeout, cancelTimeout := context.WithTimeout(
+			context.Background(), time.Second*10)
+		defer cancelTimeout()
+		if err := aServer.Shutdown(ctxTimeout); nil != err {
+			exit(fmt.Sprintf("%s: %v", filepath.Base(os.Args[0]), err))
 		}
 	}()
 } // setupSignals()
@@ -176,29 +187,36 @@ func main() {
 	}
 
 	// Inspect logging commandline arguments and setup the `ApacheLogger`:
-	if 0 < len(nele.AppArgs.AccessLog) {
-		// we assume, an error means: no logfile
-		if 0 < len(nele.AppArgs.ErrorLog) {
-			handler = apachelogger.Wrap(handler, nele.AppArgs.AccessLog, nele.AppArgs.ErrorLog)
-		} else {
-			handler = apachelogger.Wrap(handler, nele.AppArgs.AccessLog, ``)
-		}
-		// err = nil // for use by test for `apachelogger.SetErrLog()` (below)
-	} else if 0 < len(nele.AppArgs.ErrorLog) {
-		handler = apachelogger.Wrap(handler, ``, nele.AppArgs.ErrorLog)
-	}
+	handler = apachelogger.Wrap(handler, nele.AppArgs.AccessLog, nele.AppArgs.ErrorLog)
+
+	ctxTimeout, cancelTimeout := context.WithTimeout(
+		context.Background(), time.Second*10)
+	defer cancelTimeout()
 
 	// We need a `server` reference to use it in `setupSignals()`
 	// and to set some reasonable timeouts:
 	server := &http.Server{
-		Addr:    nele.AppArgs.Addr,
+		// The TCP address for the server to listen on:
+		Addr: nele.AppArgs.Addr,
+		// Return the base context for incoming requests on this server:
+		BaseContext: func(net.Listener) context.Context {
+			return ctxTimeout
+		},
+		// Request handler to invoke:
 		Handler: handler,
 		// Set timeouts so that a slow or malicious client
 		// doesn't hold resources forever
-		IdleTimeout:       1 * time.Minute,
+		//
+		// The maximum amount of time to wait for the next request;
+		// if IdleTimeout is zero, the value of ReadTimeout is used:
+		IdleTimeout: 0,
+		// The amount of time allowed to read request headers:
 		ReadHeaderTimeout: 10 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		// The maximum duration for reading the entire request,
+		// including the body:
+		ReadTimeout: 10 * time.Second,
+		// The maximum duration before timing out writes of the response:
+		WriteTimeout: 10 * time.Second,
 	}
 	if 0 < len(nele.AppArgs.ErrorLog) {
 		apachelogger.SetErrLog(server)
@@ -239,7 +257,7 @@ func main() {
 				tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256, // #nosec G402
 			},
 		} // #nosec G402
-		server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
+		// server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 
 		s := fmt.Sprintf("%s listening HTTPS at: %s", Me, nele.AppArgs.Addr)
 		log.Println(s)
