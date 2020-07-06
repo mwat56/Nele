@@ -132,9 +132,10 @@ func SetPostingBaseDirectory(aBaseDir string) {
 type (
 	// TPosting is a single article/posting..
 	TPosting struct {
-		id       string // hex. representation of date/time
-		markdown []byte // (article-/file-)contents in Markdown markup
-		mtx      *sync.RWMutex
+		id           string    // hex. representation of date/time
+		lastModified time.Time // file modification time
+		markdown     []byte    // article contents in Markdown markup
+		mtx          *sync.RWMutex
 	}
 )
 
@@ -148,8 +149,9 @@ func NewPosting(aID string) *TPosting {
 	}
 
 	return &TPosting{
-		id:  aID,
-		mtx: new(sync.RWMutex),
+		id:           aID,
+		lastModified: time.Now(),
+		mtx:          new(sync.RWMutex),
 	}
 } // NewPosting()
 
@@ -188,9 +190,10 @@ func (p *TPosting) Clear() *TPosting {
 // `clone()` returns a copy of this posting/article.
 func (p *TPosting) clone() *TPosting {
 	return &TPosting{
-		id:       p.id,
-		markdown: bytes.TrimSpace(p.markdown),
-		mtx:      new(sync.RWMutex),
+		id:           p.id,
+		lastModified: p.lastModified,
+		markdown:     bytes.TrimSpace(p.markdown),
+		mtx:          new(sync.RWMutex),
 	}
 } // clone()
 
@@ -272,6 +275,11 @@ func (p *TPosting) ID() string {
 	return p.id
 } // ID()
 
+// LastModified returns the last-modified date/time of the posting.
+func (p *TPosting) LastModified() string {
+	return p.lastModified.Format(time.RFC1123)
+} // LastModified()
+
 // Len returns the current length of the posting's Markdown text.
 //
 // If the markup is not already in memory this methods calls
@@ -300,7 +308,9 @@ func (p *TPosting) Load() error {
 	if 0 == len(fName) {
 		return fmt.Errorf("No filename for posting '%s'", p.id)
 	}
-	if _, err := os.Stat(fName); nil != err {
+	if fi, err := os.Stat(fName); nil == err {
+		p.lastModified = fi.ModTime()
+	} else {
 		return err // probably ENOENT
 	}
 
@@ -394,6 +404,7 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	} else {
 		p.markdown = []byte(``)
 	}
+	p.lastModified = time.Now()
 
 	return p
 } // Set()
@@ -426,6 +437,8 @@ func (p *TPosting) Store() (int, error) {
 	defer mdFile.Close()
 
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+
+	p.lastModified = time.Now()
 
 	return mdFile.Write(p.markdown)
 } // Store()

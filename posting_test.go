@@ -104,8 +104,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 1459},
-		{" 2", 1459},
+		{" 1", 1460},
+		{" 2", 1460},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -234,8 +234,10 @@ func TestTPosting_clone(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := tt.fields.p
-			if got := p.clone(); !reflect.DeepEqual(got, tt.want) {
+			got := tt.fields.p.clone()
+			if (got.id != tt.want.id) ||
+				// the `lastModified` field will be slightly different
+				(string(got.markdown) != string(tt.want.markdown)) {
 				t.Errorf("TPosting.clone() = %s,\nwant %s", got, tt.want)
 			}
 		})
@@ -500,10 +502,11 @@ func TestTPosting_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := tt.fields.p
-			got := p.Set(tt.args.aMarkdown)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPosting.Set() = %v, want %v", got, tt.want)
+			got := tt.fields.p.Set(tt.args.aMarkdown)
+			if (got.id != tt.want.id) ||
+				// the `lastModified` field will be slightly different
+				(string(got.markdown) != string(tt.want.markdown)) {
+				t.Errorf("TPosting.Set() = %s,\nwant %s", got, tt.want)
 			}
 		})
 	}
