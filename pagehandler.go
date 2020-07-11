@@ -947,7 +947,7 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 	}()
 
-	aWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+	aWriter.Header().Set(`Access-Control-Allow-Methods`, `GET, HEAD, POST`)
 	if ph.NeedAuthentication(aRequest) {
 		if nil == ph.userList {
 			passlist.Deny(AppArgs.Realm, aWriter)
@@ -960,14 +960,18 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 	}
 
 	switch aRequest.Method {
-	case "GET":
+	case `GET`:
 		ph.handleGET(aWriter, aRequest)
 
-	case "POST":
+	case `HEAD`:
+		ph.handleGET(aWriter, aRequest)
+
+	case `POST`:
 		ph.handlePOST(aWriter, aRequest)
 
 	default:
-		http.Error(aWriter, "HTTP Method Not Allowed", http.StatusMethodNotAllowed)
+		http.Error(aWriter, `HTTP Method Not Allowed`,
+			http.StatusMethodNotAllowed)
 	}
 } // ServeHTTP()
 

@@ -109,10 +109,10 @@ func TestURLparts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gotRHead, gotRTail := URLparts(tt.args.aURL)
 			if gotRHead != tt.wantRHead {
-				t.Errorf("URLpath1() gotRHead = {%v}, want {%v}", gotRHead, tt.wantRHead)
+				t.Errorf("URLpath1() gotRHead = {%v},\nwant {%v}", gotRHead, tt.wantRHead)
 			}
 			if gotRTail != tt.wantRTail {
-				t.Errorf("URLpath1() gotRTail = {%v}, want {%v}", gotRTail, tt.wantRTail)
+				t.Errorf("URLpath1() gotRTail = {%v},\nwant {%v}", gotRTail, tt.wantRTail)
 			}
 		})
 	}
