@@ -17,7 +17,7 @@ import (
 	"github.com/mwat56/pageview"
 )
 
-func Test_checkForImgURL(t *testing.T) {
+func Test_checkPreviewURLs(t *testing.T) {
 	var t1 []byte
 	var l1 tImgURLlist
 	t2 := []byte(`bla \n> [![„Wir sind alle Opfer hier“](/img/httpswwwaddendumorgnewsopferstudium.png)](https://www.addendum.org/news/opferstudium/)\n bla`)
@@ -56,14 +56,14 @@ func Test_checkForImgURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotRList := checkForImageURL(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
+			if gotRList := checkPreviewURLs(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
 				t.Errorf("checkForImgURL() = %v,\nwant %v", gotRList, tt.wantRList)
 			}
 		})
 	}
-} // Test_checkForImgURL()
+} // Test_checkPreviewURLs()
 
-func Test_checkPageImages(t *testing.T) {
+func Test_checkPreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	p1 := NewPosting("15d9c2334fce3991")
@@ -82,10 +82,10 @@ func Test_checkPageImages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			checkPageImages(tt.args.aPosting)
+			checkPreviews(tt.args.aPosting)
 		})
 	}
-} // Test_checkPageImages()
+} // Test_checkPreviews()
 
 func Test_goUpdateAllLinkPreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
@@ -221,7 +221,7 @@ func Test_pvImageRE(t *testing.T) {
 	}
 } // Test_pvImageRE()
 
-func Test_setPostingLinkViews(t *testing.T) {
+func Test_setLinkPreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")
 	pageview.SetMaxAge(1)
 	imgURLdir := "/img/"
@@ -255,10 +255,10 @@ func Test_setPostingLinkViews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setPostingLinkViews(tt.args.aPosting, tt.args.aImageDirectory)
+			setLinkPreviews(tt.args.aPosting, tt.args.aImageDirectory)
 		})
 	}
-} // Test_setPostingLinkViews()
+} // Test_setLinkPreviews()
 
 func TestRemovePagePreviews(t *testing.T) {
 	_ = pageview.SetImageDirectory("/tmp/")

@@ -35,6 +35,22 @@ type (
 	}
 )
 
+// `checkPreviews()` checks whether the image file referenced
+// in the text of `aPosting` actually exists locally.
+//
+//	`aPosting` The posting the text of which is searched for
+// a local image link.
+func checkPreviews(aPosting *TPosting) {
+	if nil == aPosting {
+		return
+	}
+
+	list := checkPreviewURLs(aPosting.Markdown())
+	for _, pair := range list {
+		goCreatePreview(pair.pageURL)
+	}
+} // checkPreviews()
+
 var (
 	// R/O RegEx to find an URL for the preview image's.
 	pvImageRE = regexp.MustCompile(
@@ -45,37 +61,21 @@ var (
 	// 2 : remote page URL
 )
 
-// `checkForImageURL()` tests whether `aTxt` contains an external link with
-// an embedded page preview image, returning a list of the two link URLs.
+// `checkPreviewURLs()` tests whether `aTxt` contains an external
+// link with an embedded page preview image,
+// returning a list of the two link URLs.
 //
 //	`aTxt` is the text to search.
-func checkForImageURL(aTxt []byte) (rList tImgURLlist) {
+func checkPreviewURLs(aTxt []byte) (rList tImgURLlist) {
 	matches := pvImageRE.FindAllSubmatch(aTxt, -1)
-	for idx := 0; idx < len(matches); idx++ {
-		pair := tImgURL{
+	for idx, l := 0, len(matches); idx < l; idx++ {
+		rList = append(rList, tImgURL{
 			filepath.Base(string(matches[idx][1])),
 			string(matches[idx][2]),
-		}
-		rList = append(rList, pair)
+		})
 	}
 	return
-} // checkForImageURL()
-
-// `checkPageImages()` checks whether the image file referenced
-// in the text of `aPosting` exists in `aImageDir`.
-//
-//	`aPosting` The posting the text of which is searched for
-// a local image link.
-func checkPageImages(aPosting *TPosting) {
-	if nil == aPosting {
-		return
-	}
-
-	list := checkForImageURL(aPosting.Markdown())
-	for _, pair := range list {
-		goCreatePreview(pair.pageURL)
-	}
-} // checkPageImages()
+} // checkPreviewURLs()
 
 // `goCreatePreview()` generates a preview of `aURL` in background.
 //
@@ -90,32 +90,38 @@ func goCreatePreview(aURL string) {
 	}
 } // goCreatePreview()
 
-// `goUpdateAllLinkPreviews()` prepares the external links in all postings
-// to use a page preview image (if available).
+// `goUpdateAllLinkPreviews()` prepares the external links in
+// all postings to use a page preview image (if available).
 //
 //	`aPostingBaseDir` is the base directory used for storing
 // articles/postings.
 //	`aImageURLdir` is the local URL directory for page preview images.
 func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir string) {
-	dirnames, err := filepath.Glob(aPostingBaseDir + "/*")
-	if nil != err {
+	var ( // re-use variables in loops below
+		err                 error
+		dirnames, filenames []string
+		fName               string
+		p                   *TPosting
+	)
+	if dirnames, err = filepath.Glob(aPostingBaseDir + "/*"); nil != err {
 		return // we can't recover from this :-(
 	}
 
 	for _, mdName := range dirnames {
-		filenames, err := filepath.Glob(mdName + "/*.md")
-		if nil != err {
+		if filenames, err = filepath.Glob(mdName + "/*.md"); nil != err {
 			continue // it might be a file (not a directory) …
 		}
 
-		if 0 < len(filenames) {
-			for _, postName := range filenames {
-				fName := filepath.Base(postName)
-				p := NewPosting(fName[:len(fName)-3]) // strip name extension
-				if err := p.Load(); nil == err {
-					setPostingLinkViews(p, aImageURLdir)
-				}
-			}
+		if 0 == len(filenames) {
+			continue // no files found
+		}
+
+		for _, postName := range filenames {
+			fName = filepath.Base(postName)
+			p = NewPosting(fName[:len(fName)-3]) // strip name extension
+			if err = p.Load(); nil == err {
+				setLinkPreviews(p, aImageURLdir)
+			} // ELSE ignore the error here …
 		}
 	}
 } // goUpdateAllLinkPreviews()
@@ -144,9 +150,8 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	}
 } // preparePost()
 
-// `prepPostText()` gets called by `preparePost()` to
-// replace `[link-text](link-url)` by
-// `[![alt-text](image-URL)](link-URL)`
+// `prepPostText()` gets called by `preparePost()` to replace
+// `[link-text](link-url)` by `[![alt-text](image-URL)](link-URL)`
 //
 //	`aPosting` The posting the text of which is going to be updated.
 //	`aLink` The link parts to use.
@@ -171,9 +176,13 @@ func RemovePagePreviews(aPosting *TPosting) {
 		return
 	}
 
-	list := checkForImageURL(aPosting.Markdown())
+	list := checkPreviewURLs(aPosting.Markdown())
+	if 0 == len(list) {
+		return
+	}
+	fName := `` // re-use in loop below
 	for _, pair := range list {
-		fName := pageview.PathFile(pair.pageURL)
+		fName = pageview.PathFile(pair.pageURL)
 		if fi, err := os.Stat(fName); (nil != err) || fi.IsDir() {
 			continue
 		}
@@ -198,20 +207,21 @@ var (
 	pvSchemeRE = regexp.MustCompile(`^\w+://`)
 )
 
-// `setPostingLinkViews()` changes the external links in the text
+// `setLinkPreviews()` changes the external links in the text
 // of `aPosting` to include a page preview image (if available).
 //
 //	`aPosting` The posting the text of which is going to be processed.
 //	`aImageURLdir` The URL directory for page preview images.
-func setPostingLinkViews(aPosting *TPosting, aImageURLdir string) {
+func setLinkPreviews(aPosting *TPosting, aImageURLdir string) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
 	}
 
+	url := `` // re-use in loop below
 	linkMatches := pvLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
 	if (nil != linkMatches) && (0 < len(linkMatches)) {
 		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
-			url := string(linkMatches[cnt][3])
+			url = string(linkMatches[cnt][3])
 			if !pvSchemeRE.MatchString(url) {
 				continue // skip local links
 			}
@@ -224,10 +234,11 @@ func setPostingLinkViews(aPosting *TPosting, aImageURLdir string) {
 				aImageURLdir)
 		}
 	}
+
 	// In case we didn't find any normal links we check
 	// the links with an embedded page preview image:
-	checkPageImages(aPosting)
-} // setPostingLinkViews()
+	checkPreviews(aPosting)
+} // setLinkPreviews()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -245,7 +256,7 @@ func CreatePreview(aURL string) {
 //	`aPosting` The posting the text of which is going to be processed.
 //	`aImageURLdir`The URL directory for page preview images.
 func PrepareLinkPreviews(aPosting *TPosting, aImageURLdir string) {
-	go setPostingLinkViews(aPosting, aImageURLdir)
+	go setLinkPreviews(aPosting, aImageURLdir)
 	runtime.Gosched() // get the background operation started
 } // PrepareLinkPreviews()
 
