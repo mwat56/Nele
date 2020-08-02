@@ -966,6 +966,9 @@ func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Re
 	case `HEAD`:
 		ph.handleGET(aWriter, aRequest)
 
+	case `OPTIONS`:
+		aWriter.WriteHeader(http.StatusOK)
+
 	case `POST`:
 		ph.handlePOST(aWriter, aRequest)
 
