@@ -11,11 +11,9 @@ require (
 	github.com/mwat56/ini v1.5.1
 	github.com/mwat56/jffs v0.1.2
 	github.com/mwat56/pageview v0.4.5
-	github.com/mwat56/passlist v1.3.3
+	github.com/mwat56/passlist v1.3.4
 	github.com/mwat56/uploadhandler v1.1.5
 	github.com/mwat56/whitespace v0.2.2
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
-	golang.org/x/sys v0.0.0-20200802091954-4b90ce9b60b3 // indirect
 )
