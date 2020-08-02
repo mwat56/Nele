@@ -192,6 +192,10 @@ func parseAppArgs() {
 
 // `readAppArgs()` copies the commandline values into the `TAppArgs` instance.
 func readAppArgs() {
+	var ( // re-use variables
+		err error
+		fi  os.FileInfo
+	)
 	if 0 == len(AppArgs.BlogName) {
 		// AppArgs.BlogName = time.Now().Format("2006:01:02:15:04:05")
 		AppArgs.BlogName = `<! BlogName not configured !>`
@@ -201,9 +205,9 @@ func readAppArgs() {
 		AppArgs.DataDir = `./`
 	}
 	AppArgs.DataDir, _ = filepath.Abs(AppArgs.DataDir)
-	if f, err := os.Stat(AppArgs.DataDir); nil != err {
+	if fi, err = os.Stat(AppArgs.DataDir); nil != err {
 		log.Fatalf("`dataDir` == `%s` problem: %v", AppArgs.DataDir, err)
-	} else if !f.IsDir() {
+	} else if !fi.IsDir() {
 		log.Fatalf("Error: `dataDir` not a directory `%s`", AppArgs.DataDir)
 	}
 	// `postingBaseDirectory` defined in `posting.go`:
@@ -215,14 +219,14 @@ func readAppArgs() {
 
 	if 0 < len(AppArgs.CertKey) {
 		AppArgs.CertKey = absolute(AppArgs.DataDir, AppArgs.CertKey)
-		if fi, err := os.Stat(AppArgs.CertKey); (nil != err) || (0 >= fi.Size()) {
+		if fi, err = os.Stat(AppArgs.CertKey); (nil != err) || (0 >= fi.Size()) {
 			AppArgs.CertKey = ``
 		}
 	}
 
 	if 0 < len(AppArgs.CertPem) {
 		AppArgs.CertPem = absolute(AppArgs.DataDir, AppArgs.CertPem)
-		if fi, err := os.Stat(AppArgs.CertPem); (nil != err) || (0 >= fi.Size()) {
+		if fi, err = os.Stat(AppArgs.CertPem); (nil != err) || (0 >= fi.Size()) {
 			AppArgs.CertPem = ``
 		}
 	}

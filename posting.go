@@ -98,17 +98,22 @@ func PostingCount() (rCount uint32) {
 	if rCount = atomic.LoadUint32(&µCountCache); 0 < rCount {
 		return
 	}
+
+	var ( // re-use variable
+		err                  error
+		dName                string
+		dNames, fNames []string
+	)
 	// Apparently there's no current value ready so we compute a new one.
 	// Instead of doing this in _one_ glob we actually do it in two
 	// thus trading memory consumption with processing time and so
 	// we're being better prepared for huge amounts of postings.
-	dirnames, err := filepath.Glob(poPostingBaseDirectory + `/*`)
-	if nil != err {
+	if dNames, err = filepath.Glob(poPostingBaseDirectory + `/*`); nil != err {
 		return // we can't recover from this :-(
 	}
-	for _, mdName := range dirnames {
-		if filesnames, err := filepath.Glob(mdName + `/*.md`); nil == err {
-			rCount += uint32(len(filesnames))
+	for _, dName = range dNames {
+		if fNames, err = filepath.Glob(dName + `/*.md`); nil == err {
+			rCount += uint32(len(fNames))
 		}
 	}
 	atomic.StoreUint32(&µCountCache, rCount)
@@ -121,8 +126,7 @@ func PostingCount() (rCount uint32) {
 //
 //	`aBaseDir` The base directory to use for storing articles/postings.
 func SetPostingBaseDirectory(aBaseDir string) {
-	dir, err := filepath.Abs(aBaseDir)
-	if nil == err {
+	if dir, err := filepath.Abs(aBaseDir); nil == err {
 		poPostingBaseDirectory = dir
 	}
 } // SetPostingBaseDirectory()
@@ -179,6 +183,7 @@ func (p *TPosting) Clear() *TPosting {
 	if nil == p {
 		return p
 	}
+
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 
@@ -288,12 +293,14 @@ func (p *TPosting) Len() int {
 	if nil == p {
 		return 0
 	}
+
 	p.mtx.RLock()
 	defer p.mtx.RUnlock()
 
 	if result := len(p.markdown); 0 < result {
 		return result
 	}
+
 	if err := p.Load(); nil != err {
 		apachelogger.Err("TPosting.Len()",
 			fmt.Sprintf("TPosting.Load('%s'): %v", p.id, err))
@@ -308,16 +315,21 @@ func (p *TPosting) Load() error {
 	if 0 == len(fName) {
 		return fmt.Errorf("No filename for posting '%s'", p.id)
 	}
-	if fi, err := os.Stat(fName); nil == err {
-		p.lastModified = fi.ModTime()
-	} else {
+
+	var ( // re-use variables
+		bs  []byte
+		err error
+		fi  os.FileInfo
+	)
+	if fi, err = os.Stat(fName); nil != err {
 		return err // probably ENOENT
 	}
+	p.lastModified = fi.ModTime()
 
-	bs, err := ioutil.ReadFile(fName) // #nosec G304
-	if nil != err {
+	if bs, err = ioutil.ReadFile(fName); /* #nosec G304 */ nil != err {
 		return err
 	}
+
 	if p.markdown = bytes.TrimSpace(bs); nil == p.markdown {
 		// `bytes.TrimSpace()` returns `nil` instead of an empty slice
 		p.markdown = []byte(``)
@@ -348,6 +360,7 @@ func (p *TPosting) Markdown() []byte {
 	if nil == p {
 		return []byte(``)
 	}
+
 	p.mtx.RLock()
 	defer p.mtx.RUnlock()
 
@@ -369,6 +382,7 @@ func pathname(aID string) string {
 	if 0 == len(aID) {
 		return ``
 	}
+
 	p := &TPosting{
 		id: aID,
 	}
@@ -414,7 +428,7 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 //
 // The file is created on disk with mode `0640` (`-rw-r-----`).
 func (p *TPosting) Store() (int, error) {
-	var (
+	var ( // re-use variables
 		err    error
 		fName  string
 		mdFile *os.File
@@ -423,6 +437,7 @@ func (p *TPosting) Store() (int, error) {
 		// without an appropriate directory we can't save anything …
 		return 0, err
 	}
+
 	if 0 == len(p.markdown) {
 		return 0, p.Delete()
 	}
@@ -437,7 +452,6 @@ func (p *TPosting) Store() (int, error) {
 	defer mdFile.Close()
 
 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-
 	p.lastModified = time.Now()
 
 	return mdFile.Write(p.markdown)

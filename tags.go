@@ -9,7 +9,7 @@ package nele
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 /*
-* This file provides functions related to #hashtags/@mentions
+* This file provides functions related to #hashtags/@mentions.
  */
 
 import (
@@ -37,20 +37,26 @@ type (
 //	`aList` The hashlist to use/update.
 //	`aWalkFunc` The function to call for each posting.
 func goWalkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
-	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
+	var ( // re-use variables
+		dName, id, pName string
+		dNames, fNames   []string
+		err              error
+	)
+	dNames, err = filepath.Glob(PostingBaseDirectory() + "/*")
 	if nil != err {
 		return // we can't recover from this :-(
 	}
-	for _, mdName := range dirnames {
-		filesnames, err := filepath.Glob(mdName + "/*.md")
+
+	for _, dName = range dNames {
+		fNames, err = filepath.Glob(dName + "/*.md")
 		if nil != err {
 			continue // it might be a file (not a directory) …
 		}
-		if 0 == len(filesnames) {
+		if 0 == len(fNames) {
 			continue // skip empty directory
 		}
-		for _, postName := range filesnames {
-			id := strings.TrimPrefix(postName, mdName+"/")
+		for _, pName = range fNames {
+			id = strings.TrimPrefix(pName, dName+"/")
 			aWalkFunc(aList, NewPosting(id[:len(id)-3])) // strip name extension
 		}
 	}
@@ -111,10 +117,14 @@ var (
 //
 //	`aList` The list of #hashtags/@mentions to use.
 func MarkupCloud(aList *hashtags.THashList) []template.HTML {
-	var class string
+	var (
+		class string // re-use variable
+		idx   int
+		item  hashtags.TCountItem
+	)
 	list := aList.CountedList()
 	tl := make([]template.HTML, len(list))
-	for idx, item := range list {
+	for idx, item = range list {
 		if 7 > item.Count { // b000111
 			class = "tc5"
 		} else if 31 > item.Count { // b011111
@@ -140,14 +150,19 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 //
 //	`aPage` The HTML page to process.
 func MarkupTags(aPage []byte) []byte {
-	var repl, search string
+	var ( // re-use variables
+		cnt, l int
+		err          error
+		re           *regexp.Regexp
+		repl, search string
+	)
 	// (0) Check whether there are any links present:
 	linkMatches := htAHrefRE.FindAll(aPage, -1)
 	if (nil != linkMatches) || (0 < len(linkMatches)) {
 		// (1) replace the links with a dummy text:
-		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+		for l, cnt = len(linkMatches), 0; cnt < l; cnt++ {
 			search = regexp.QuoteMeta(string(linkMatches[cnt]))
-			if re, err := regexp.Compile(search); nil == err {
+			if re, err = regexp.Compile(search); nil == err {
 				repl = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
 				aPage = re.ReplaceAllLiteral(aPage, []byte(repl))
 			}
@@ -206,9 +221,9 @@ func MarkupTags(aPage []byte) []byte {
 		})
 
 	// (3) replace the link dummies with the real markup:
-	for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+	for l, cnt = len(linkMatches), 0; cnt < l; cnt++ {
 		search = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
-		if re, err := regexp.Compile(search); nil == err {
+		if re, err = regexp.Compile(search); nil == err {
 			result = re.ReplaceAllLiteralString(result, string(linkMatches[cnt]))
 		}
 	}
@@ -252,6 +267,7 @@ func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 	if (nil == aList) || (0 == len(aSearchTag)) || (0 == len(aReplaceTag)) {
 		return
 	}
+
 	switch aSearchTag[0] {
 	case '#', '@':
 		switch aReplaceTag[0] {

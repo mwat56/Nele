@@ -161,15 +161,19 @@ func NewPageHandler() (*TPageHandler, error) {
 // `newViewList()` returns a list of views found in `aDirectory`
 // and a possible I/O error.
 func newViewList(aDirectory string) (*TViewList, error) {
-	var v *TView
+	var ( // re-use variables
+		err   error
+		files []string
+		fName string
+		v     *TView
+	)
 	result := NewViewList()
 
-	files, err := filepath.Glob(aDirectory + "/*.gohtml")
-	if err != nil {
+	if files, err = filepath.Glob(aDirectory + "/*.gohtml"); err != nil {
 		return nil, err
 	}
 
-	for _, fName := range files {
+	for _, fName = range files {
 		fName = filepath.Base(fName[:len(fName)-7]) // remove extension
 		if v, err = NewView(aDirectory, fName); nil != err {
 			return nil, err
@@ -241,16 +245,17 @@ func URLparts(aURL string) (rDir, rPath string) {
 func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
 	lang, theme := AppArgs.Lang, AppArgs.Theme
 	if nil != aRequest {
-		if l := strings.ToLower(aRequest.FormValue(`lang`)); 0 < len(l) {
-			switch l {
+		var val string // re-use variable
+		if val = strings.ToLower(aRequest.FormValue(`lang`)); 0 < len(val) {
+			switch val {
 			case `de`, `en`:
-				lang = l
+				lang = val
 			}
 		}
-		if t := strings.ToLower(aRequest.FormValue(`theme`)); 0 < len(t) {
-			switch t {
+		if val = strings.ToLower(aRequest.FormValue(`theme`)); 0 < len(val) {
+			switch val {
 			case `dark`, `light`:
-				theme = t
+				theme = val
 			}
 		}
 	}
@@ -277,22 +282,26 @@ func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
 // GetErrorPage returns an error page for `aStatus`,
 // implementing the `TErrorPager` interface.
 func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
-	var empty []byte
+	var (
+		empty  []byte
+		err    error
+		result []byte
+	)
 
 	pageData := ph.basicPageData(nil).Set(`Robots`, `noindex,follow`)
 
 	switch aStatus {
 	case 404:
-		if page, err := ph.viewList.RenderedPage("404", pageData); nil == err {
-			return page
+		if result, err = ph.viewList.RenderedPage("404", pageData); nil == err {
+			return result
 		}
 
 	//TODO implement other status codes
 
 	default:
 		pageData = pageData.Set("Error", template.HTML(aData)) // #nosec G203
-		if page, err := ph.viewList.RenderedPage("error", pageData); nil == err {
-			return page
+		if result, err = ph.viewList.RenderedPage("error", pageData); nil == err {
+			return result
 		}
 	}
 
@@ -557,28 +566,29 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case ``:
-		if ht := aRequest.FormValue("ht"); 0 < len(ht) {
-			ph.handleHashtag(ht, pageData, aWriter, aRequest)
-		} else if m := aRequest.FormValue("m"); 0 < len(m) {
-			ph.reDir(aWriter, aRequest, "/m/"+m)
-		} else if mt := aRequest.FormValue("mt"); 0 < len(mt) {
-			ph.handleMention(mt, pageData, aWriter, aRequest)
-		} else if n := aRequest.FormValue("n"); 0 < len(n) {
-			ph.reDir(aWriter, aRequest, "/n/"+n)
-		} else if p := aRequest.FormValue("p"); 0 < len(p) {
-			ph.reDir(aWriter, aRequest, "/p/"+p)
-		} else if q := aRequest.FormValue("q"); 0 < len(q) {
-			ph.handleSearch(q, pageData, aWriter, aRequest)
-		} else if s := aRequest.FormValue("s"); 0 < len(s) {
-			ph.handleSearch(s, pageData, aWriter, aRequest)
-		} else if s := aRequest.FormValue("share"); 0 < len(s) {
+		var val string // re-use variable
+		if val = aRequest.FormValue("ht"); 0 < len(val) {
+			ph.handleHashtag(val, pageData, aWriter, aRequest)
+		} else if val = aRequest.FormValue("m"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/m/"+val)
+		} else if val = aRequest.FormValue("mt"); 0 < len(val) {
+			ph.handleMention(val, pageData, aWriter, aRequest)
+		} else if val = aRequest.FormValue("n"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/n/"+val)
+		} else if val = aRequest.FormValue("p"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/p/"+val)
+		} else if val = aRequest.FormValue("q"); 0 < len(val) {
+			ph.handleSearch(val, pageData, aWriter, aRequest)
+		} else if val = aRequest.FormValue("s"); 0 < len(val) {
+			ph.handleSearch(val, pageData, aWriter, aRequest)
+		} else if val = aRequest.FormValue("share"); 0 < len(val) {
 			if 0 < len(aRequest.URL.RawQuery) {
 				// we need this for e.g. YouTube URLs
-				s += "?" + aRequest.URL.RawQuery
+				val += "?" + aRequest.URL.RawQuery
 			}
-			ph.handleShare(s, aWriter, aRequest)
-		} else if w := aRequest.FormValue("w"); 0 < len(w) {
-			ph.reDir(aWriter, aRequest, "/w/"+w)
+			ph.handleShare(val, aWriter, aRequest)
+		} else if val = aRequest.FormValue("w"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/w/"+val)
 		} else {
 			ph.handleRoot("30", pageData, aWriter, aRequest)
 		}
@@ -614,16 +624,23 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	//	ph.reDir(aWriter, aRequest, "/somethingelse/")
 	// because we change the POST '/something/` URL to
 	// GET `/somethingelse/` which would confuse the browser.
+	var (
+		bb  []byte
+		err error
+		i   int
+		val string
+	)
 	path, tail := URLparts(aRequest.URL.Path)
 	switch path {
 	case `ap`: // add a new post
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		if m := replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(m) {
-			p := NewPosting("").Set(m)
-			if _, err := p.Store(); nil != err {
+
+		if bb = replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(bb) {
+			p := NewPosting("").Set(bb)
+			if _, err = p.Store(); nil != err {
 				apachelogger.Err("TPageHandler.handlePOST('a')",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
@@ -638,10 +655,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case `dp`: // change date of posting
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
+
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -660,11 +678,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		np := NewPosting(newID(t))
 		npn := np.PathFileName()
 		// ensure existence of directory:
-		if _, err := np.makeDir(); nil != err {
+		if _, err = np.makeDir(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('d 1')",
 				fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
 		}
-		if err := os.Rename(opn, npn); nil != err {
+		if err = os.Rename(opn, npn); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('d 2')",
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
@@ -676,24 +694,25 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
 
 	case `ep`: // edit posting
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
+
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		var old []byte
 		txt := replCRLF([]byte(aRequest.FormValue("manuscript")))
 		p := NewPosting(tail)
-		if err := p.Load(); nil != err {
+		if err = p.Load(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('e')",
 				fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
 		} else {
 			old = p.Markdown()
 		}
-		if bw, err := p.Set(txt).Store(); nil != err {
-			if bw < len(txt) {
+		if i, err = p.Set(txt).Store(); nil != err {
+			if i < len(txt) {
 				// let's hope for the best …
 				_, _ = p.Set(old).Store()
 			}
@@ -708,10 +727,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case `il`: // init hash list
 		if nil != ph.hashList {
-			if a := aRequest.FormValue("abort"); 0 < len(a) {
+			if val = aRequest.FormValue("abort"); 0 < len(val) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 				return
 			}
+
 			ReadHashlist(ph.hashList)
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		} else {
@@ -720,10 +740,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case `pv`: // update page preViews
 		if AppArgs.PageView {
-			if a := aRequest.FormValue("abort"); 0 < len(a) {
+			if val = aRequest.FormValue("abort"); 0 < len(val) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 				return
 			}
+
 			UpdatePreviews(PostingBaseDirectory(), `/img/`)
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		} else {
@@ -731,16 +752,17 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case `rp`: // posting removal
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 			return
 		}
+
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		p := NewPosting(tail)
 		RemovePagePreviews(p)
-		if err := p.Delete(); nil != err {
+		if err = p.Delete(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('r')",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
 		}
@@ -749,10 +771,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
 
 	case `si`: // store image
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
+
 		if nil == ph.imgUp { // lazy initialisation
 			ph.imgUp = uploadhandler.NewHandler(filepath.Join(AppArgs.DataDir, "/img/"),
 				"imgFile", AppArgs.MaxFileSize)
@@ -760,10 +783,11 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		ph.handleUpload(aWriter, aRequest, true)
 
 	case `ss`: // store static
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
+
 		if nil == ph.staticUp { // lazy initialisation
 			ph.staticUp = uploadhandler.NewHandler(filepath.Join(AppArgs.DataDir, "/static/"),
 				"statFile", AppArgs.MaxFileSize)
@@ -771,14 +795,15 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		ph.handleUpload(aWriter, aRequest, false)
 
 	case `xt`: // eXchange #tags/@mentions
-		if a := aRequest.FormValue("abort"); 0 < len(a) {
+		if val = aRequest.FormValue("abort"); 0 < len(val) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		if s := aRequest.FormValue("search"); 0 < len(s) {
+
+		if val = aRequest.FormValue("search"); 0 < len(val) {
 			if r := aRequest.FormValue("replace"); 0 < len(r) {
 				ReplaceTag(ph.hashList,
-					strings.TrimSpace(s),
+					strings.TrimSpace(val),
 					strings.TrimSpace(r)) // background operation
 			}
 		}
@@ -843,11 +868,16 @@ func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, 
 } // handleShare()
 
 func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
+	var ( // re-use variables
+		err error
+		id  string
+		p   *TPosting
+	)
 	pl := NewPostList()
 	if 0 < len(aList) {
-		for _, id := range aList {
-			p := NewPosting(id)
-			if err := p.Load(); nil != err {
+		for _, id = range aList {
+			p = NewPosting(id)
+			if err = p.Load(); nil != err {
 				apachelogger.Err("TPageHandler.handleTagMentions()",
 					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
 				continue
@@ -913,13 +943,14 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 		return true
 	}
 
-	if s := aRequest.FormValue("share"); 0 < len(s) {
+	var s string // re-use variable
+	if s = aRequest.FormValue("share"); 0 < len(s) {
 		return true
 	}
-	if s := aRequest.FormValue("si"); 0 < len(s) {
+	if s = aRequest.FormValue("si"); 0 < len(s) {
 		return true
 	}
-	if s := aRequest.FormValue("ss"); 0 < len(s) {
+	if s = aRequest.FormValue("ss"); 0 < len(s) {
 		return true
 	}
 

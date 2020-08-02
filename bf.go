@@ -9,7 +9,7 @@ package nele
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 /*
- * This file provides article/posting related functions and methods.
+ * This file provides a function to convert NarkDown to HTML.
  */
 
 import (
@@ -68,6 +68,7 @@ var (
 //
 //	`aMarkdown` The raw Markdown text to convert.
 func MDtoHTML(aMarkdown []byte) (rHTML []byte) {
+	var i int // re-use variable
 	bfMtx.Lock()
 	defer bfMtx.Unlock()
 
@@ -76,13 +77,13 @@ func MDtoHTML(aMarkdown []byte) (rHTML []byte) {
 	// Testing for PRE first makes this implementation twice as fast
 	// if there's no PRE in the generated HTML and about the same
 	// speed if there actually is a PRE part.
-	if i := bytes.Index(rHTML, bfPre); 0 > i {
+	if i = bytes.Index(rHTML, bfPre); 0 > i {
 		return // no need for further RegEx execution
 	}
 
 	rHTML = bfPreCodeRE1.ReplaceAll(rHTML, []byte("$1\n$2\n$3"))
 
-	if i := bytes.Index(rHTML, bfPreCode); 0 > i {
+	if i = bytes.Index(rHTML, bfPreCode); 0 > i {
 		return // no need for the second RegEx execution
 	}
 

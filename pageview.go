@@ -45,8 +45,9 @@ func checkPreviews(aPosting *TPosting) {
 		return
 	}
 
+	var pair tImgURL // re-use variable
 	list := checkPreviewURLs(aPosting.Markdown())
-	for _, pair := range list {
+	for _, pair = range list {
 		goCreatePreview(pair.pageURL)
 	}
 } // checkPreviews()
@@ -99,25 +100,25 @@ func goCreatePreview(aURL string) {
 func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir string) {
 	var ( // re-use variables in loops below
 		err                 error
-		dirnames, filenames []string
-		fName               string
+		dName, fName, pName string
+		dNames, fNames      []string
 		p                   *TPosting
 	)
-	if dirnames, err = filepath.Glob(aPostingBaseDir + "/*"); nil != err {
+	if dNames, err = filepath.Glob(aPostingBaseDir + "/*"); nil != err {
 		return // we can't recover from this :-(
 	}
 
-	for _, mdName := range dirnames {
-		if filenames, err = filepath.Glob(mdName + "/*.md"); nil != err {
+	for _, dName = range dNames {
+		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
 			continue // it might be a file (not a directory) …
 		}
 
-		if 0 == len(filenames) {
+		if 0 == len(fNames) {
 			continue // no files found
 		}
 
-		for _, postName := range filenames {
-			fName = filepath.Base(postName)
+		for _, pName = range fNames {
+			fName = filepath.Base(pName)
 			p = NewPosting(fName[:len(fName)-3]) // strip name extension
 			if err = p.Load(); nil == err {
 				setLinkPreviews(p, aImageURLdir)
@@ -142,6 +143,7 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	if 0 == len(aImageURLdir) {
 		return
 	}
+
 	if '/' != aImageURLdir[0] {
 		aImageURLdir = `/` + aImageURLdir
 	}
@@ -176,14 +178,21 @@ func RemovePagePreviews(aPosting *TPosting) {
 		return
 	}
 
-	list := checkPreviewURLs(aPosting.Markdown())
-	if 0 == len(list) {
+	var ( // re-use variables
+		err   error
+		fi    os.FileInfo
+		fName string
+		list  tImgURLlist
+		pair  tImgURL
+	)
+
+	if list = checkPreviewURLs(aPosting.Markdown()); 0 == len(list) {
 		return
 	}
-	fName := `` // re-use in loop below
-	for _, pair := range list {
+
+	for _, pair = range list {
 		fName = pageview.PathFile(pair.pageURL)
-		if fi, err := os.Stat(fName); (nil != err) || fi.IsDir() {
+		if fi, err = os.Stat(fName); (nil != err) || fi.IsDir() {
 			continue
 		}
 		_ = os.Remove(fName)

@@ -111,7 +111,11 @@ func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 
 // internal method for unit testing
 func (pl *TPostList) in() *TPostList {
-	for i, p := range *pl {
+	var ( // re-use variables
+		i int
+		p TPosting
+	)
+	for i, p = range *pl {
 		fmt.Fprintf(os.Stdout, "[%d] %v\n", i, p)
 	}
 	return pl
@@ -123,9 +127,13 @@ func (pl *TPostList) in() *TPostList {
 //
 //	`aPosting` is the posting to lookup in this list.
 func (pl *TPostList) Index(aPosting *TPosting) int {
-	for idx, p := range *pl {
+	var ( // re-use variables
+		i int
+		p TPosting
+	)
+	for i, p = range *pl {
 		if p.id == aPosting.id {
-			return idx
+			return i
 		}
 	}
 
@@ -184,36 +192,40 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 //	`aNumber` The number of articles to show.
 //	`aStart` The start number to use.
 func (pl *TPostList) Newest(aNumber, aStart int) error {
-	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
-	if nil != err {
+	var ( // re-use variables
+		counter        int
+		dName, pName   string
+		dNames, fNames []string
+		err            error
+	)
+	if dNames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
 		return err
 	}
 	// Sort the directory names to have the youngest entry first:
-	sort.Slice(dirnames,
+	sort.Slice(dNames,
 		func(i, j int) bool {
-			return (dirnames[i] > dirnames[j]) // descending
+			return (dNames[i] > dNames[j]) // descending
 		})
-	counter := 0
-	for _, dirname := range dirnames {
-		filesnames, err := filepath.Glob(dirname + "/*.md")
-		if nil != err {
+	for _, dName = range dNames {
+		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
 			continue // it might be a file (not a directory) …
 		}
-		if 0 >= len(filesnames) {
+		if 0 >= len(fNames) {
 			continue // skip empty directory
 		}
+
 		// Sort the file names to have the youngest post first:
-		sort.Slice(filesnames,
+		sort.Slice(fNames,
 			func(i, j int) bool {
-				return (filesnames[i] > filesnames[j]) // descending
+				return (fNames[i] > fNames[j]) // descending
 			})
-		for _, postname := range filesnames {
+		for _, pName = range fNames {
 			counter++
 			if counter <= aStart {
 				continue
 			}
-			postname = strings.TrimPrefix(postname, dirname+"/")
-			bgAddPosting(pl, postname[:len(postname)-3]) // strip name extension
+			pName = strings.TrimPrefix(pName, dName+"/")
+			bgAddPosting(pl, pName[:len(pName)-3]) // strip name extension
 			if len(*pl) >= aNumber {
 				return nil
 			}
@@ -262,11 +274,10 @@ func (pl *TPostList) Sort() *TPostList {
 
 // Week adds all postings of the current week to the list.
 //
-//	`aYear` the year to lookup; if `0` (zero) the current year
-// is used.
-//	`aMonth` the year's month to lookup; if `0` (zero) the current
+//	`aYear` The year to lookup; if `0` (zero) the current year is used.
+//	`aMonth` The year's month to lookup; if `0` (zero) the current
 // month is used.
-//	`aDay` the month's day to lookup; if `0` (zero) the current day is used.
+//	`aDay` The month's day to lookup; if `0` (zero) the current day is used.
 func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	var y, d int
 	var m time.Month
@@ -336,32 +347,37 @@ func NewPostList() *TPostList {
 //
 //	`aText` is the text to look for in the postings.
 func SearchPostings(aText string) *TPostList {
+	var ( // re-use variables
+		dName, fName, id string
+		dNames, fNames   []string
+		err              error
+		fTxt             []byte
+		p                *TPosting
+		pattern          *regexp.Regexp
+	)
 	result := NewPostList()
 
-	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
-	if err != nil {
+	if pattern, err = regexp.Compile(fmt.Sprintf("(?s)%s", aText)); err != nil {
 		return result // empty list
 	}
 
-	dirnames, err := filepath.Glob(PostingBaseDirectory() + "/*")
-	if nil != err {
+	if dNames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
 		return result
 	}
-	for _, dirname := range dirnames {
-		files, err := filepath.Glob(dirname + "/*.md")
-		if nil != err {
+	for _, dName = range dNames {
+		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
 			continue // it might be a file (not a directory) …
 		}
 
-		for _, fName := range files {
-			fTxt, err := ioutil.ReadFile(fName) // #nosec G304
+		for _, fName = range fNames {
+			fTxt, err = ioutil.ReadFile(fName) // #nosec G304
 			if (nil != err) || (!pattern.Match(fTxt)) {
 				// We 'eat' possible errors here, indirectly
 				// assuming them to be a no-match.
 				continue
 			}
-			id := path.Base(fName)
-			p := NewPosting(id[:len(id)-3]) // exclude file extension
+			id = path.Base(fName)
+			p = NewPosting(id[:len(id)-3]) // exclude file extension
 			result.Add(p.Set(fTxt))
 		}
 	}
