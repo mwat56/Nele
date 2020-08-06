@@ -42,14 +42,12 @@ func goWalkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
 		dNames, fNames   []string
 		err              error
 	)
-	dNames, err = filepath.Glob(PostingBaseDirectory() + "/*")
-	if nil != err {
+	if dNames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
 		return // we can't recover from this :-(
 	}
 
 	for _, dName = range dNames {
-		fNames, err = filepath.Glob(dName + "/*.md")
-		if nil != err {
+		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
 			continue // it might be a file (not a directory) …
 		}
 		if 0 == len(fNames) {
@@ -151,7 +149,7 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 //	`aPage` The HTML page to process.
 func MarkupTags(aPage []byte) []byte {
 	var ( // re-use variables
-		cnt, l int
+		cnt, l       int
 		err          error
 		re           *regexp.Regexp
 		repl, search string

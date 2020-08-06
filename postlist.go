@@ -207,10 +207,7 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 			return (dNames[i] > dNames[j]) // descending
 		})
 	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
-			continue // it might be a file (not a directory) …
-		}
-		if 0 >= len(fNames) {
+		if fNames, err = filepath.Glob(dName + "/*.md"); (nil != err) || (0 == len(fNames)) {
 			continue // skip empty directory
 		}
 
@@ -365,8 +362,8 @@ func SearchPostings(aText string) *TPostList {
 		return result
 	}
 	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
-			continue // it might be a file (not a directory) …
+		if fNames, err = filepath.Glob(dName + "/*.md"); (nil != err) || (0 == len(fNames)) {
+			continue // no files found
 		}
 
 		for _, fName = range fNames {

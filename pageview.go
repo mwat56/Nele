@@ -109,11 +109,7 @@ func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir string) {
 	}
 
 	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
-			continue // it might be a file (not a directory) …
-		}
-
-		if 0 == len(fNames) {
+		if fNames, err = filepath.Glob(dName + "/*.md"); (nil != err) || (0 == len(fNames)) {
 			continue // no files found
 		}
 

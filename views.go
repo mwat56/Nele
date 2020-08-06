@@ -98,20 +98,23 @@ type TView struct {
 // body without the filename extension (i.e. w/o `.gohtml`). `aName`
 // serves as both the main template's name as well as the view's name.
 func NewView(aBaseDir, aName string) (*TView, error) {
-	bd, err := filepath.Abs(aBaseDir)
-	if nil != err {
+	var (
+		bd    string
+		err   error
+		files []string
+		tpl   *template.Template
+	)
+	if bd, err = filepath.Abs(aBaseDir); nil != err {
 		return nil, err
 	}
-	files, err := filepath.Glob(bd + "/layout/*.gohtml")
-	if nil != err {
+	if files, err = filepath.Glob(bd + "/layout/*.gohtml"); nil != err {
 		return nil, err
 	}
 	files = append(files, bd+`/`+aName+`.gohtml`)
 
-	tpl, err := template.New(aName).
+	if tpl, err = template.New(aName).
 		Funcs(viewFunctionMap).
-		ParseFiles(files...)
-	if nil != err {
+		ParseFiles(files...); nil != err {
 		return nil, err
 	}
 
