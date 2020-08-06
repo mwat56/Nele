@@ -380,7 +380,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
-			ph.handleHashtag(tail, pageData, aWriter, aRequest)
+			ph.handleTagMentions(ph.hashList.HashList("#"+tail),
+				pageData, aWriter)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -432,7 +433,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "ml": // @mention list
 		if 0 < len(tail) {
-			ph.handleMention(tail, pageData, aWriter, aRequest)
+			ph.handleTagMentions(ph.hashList.MentionList("@"+tail),
+				pageData, aWriter)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -568,11 +570,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case ``:
 		var val string // re-use variable
 		if val = aRequest.FormValue("ht"); 0 < len(val) {
-			ph.handleHashtag(val, pageData, aWriter, aRequest)
+			ph.handleTagMentions(ph.hashList.HashList("#"+val),
+				pageData, aWriter)
 		} else if val = aRequest.FormValue("m"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/m/"+val)
 		} else if val = aRequest.FormValue("mt"); 0 < len(val) {
-			ph.handleMention(val, pageData, aWriter, aRequest)
+			ph.handleTagMentions(ph.hashList.MentionList("@"+val),
+				pageData, aWriter)
 		} else if val = aRequest.FormValue("n"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/n/"+val)
 		} else if val = aRequest.FormValue("p"); 0 < len(val) {
@@ -605,18 +609,6 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	} // switch
 } // handleGET()
-
-func (ph *TPageHandler) handleHashtag(aTag string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
-	tagList := ph.hashList.HashList("#" + aTag)
-
-	ph.handleTagMentions(tagList, aData, aWriter, aRequest)
-} // handleHashtag()
-
-func (ph *TPageHandler) handleMention(aMention string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
-	mentionList := ph.hashList.MentionList("@" + aMention)
-
-	ph.handleTagMentions(mentionList, aData, aWriter, aRequest)
-} // handleMention()
 
 // `handlePOST()` processes the HTTP POST requests.
 func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.Request) {
@@ -846,10 +838,11 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter 
 // `handleSearch()` serves the search results.
 func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
-	aData = aData.Set(`Robots`, `noindex,follow`).
-		Set("Matches", pl.Len()).
-		Set("Postings", pl.Sort())
-	ph.handleReply("searchresult", aWriter, aData)
+
+	ph.handleReply(`searchresult`, aWriter,
+		aData.Set(`Robots`, `noindex,follow`).
+			Set(`Matches`, pl.Len()).
+			Set(`Postings`, pl.Sort()))
 } // handleSearch()
 
 // `handleShare()` serves the edit page for a shared URL.
@@ -863,11 +856,12 @@ func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, 
 			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
 
-	CreatePreview(aShare)
+	CreatePreview(aShare) // background operation
 	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
 } // handleShare()
 
-func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
+// `handleTagMentions()` add the hashtag/mention list to `aData`
+func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, aWriter http.ResponseWriter) {
 	var ( // re-use variables
 		err error
 		id  string
@@ -886,10 +880,10 @@ func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, a
 		}
 	}
 
-	aData = aData.Set(`Robots`, `index,follow`).
-		Set("Matches", pl.Len()).
-		Set("Postings", pl.Sort())
-	ph.handleReply("searchresult", aWriter, aData)
+	ph.handleReply(`searchresult`, aWriter,
+		aData.Set(`Robots`, `index,follow`).
+			Set(`Matches`, pl.Len()).
+			Set(`Postings`, pl.Sort()))
 } // handleTagMentions()
 
 // `handleUpload()` processes a file upload.
