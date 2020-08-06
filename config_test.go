@@ -22,7 +22,7 @@ func parseAppArgsDebug() *TAppArgs {
 
 	// Define some flags used by `testing` to avoid
 	// bailing out during the test.
-	var coverprofile, run, testlogfile, timeout string
+	var coverprofile, run, testlogfile, timeout, v string
 	flag.CommandLine.StringVar(&coverprofile, `test.coverprofile`, coverprofile,
 		"coverprofile for tests")
 	flag.CommandLine.StringVar(&run, `test.run`, run,
@@ -31,6 +31,7 @@ func parseAppArgsDebug() *TAppArgs {
 		"testlogfile for tests")
 	flag.CommandLine.StringVar(&timeout, `test.timeout`, timeout,
 		"timeout for tests")
+	flag.CommandLine.StringVar(&v, `test.v`, v, `test.v`)
 
 	parseAppArgs()
 
