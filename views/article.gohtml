@@ -1,5 +1,5 @@
 {{- define "article" -}}
-{{template "htmlpage" .}}
+	{{template "htmlpage" .}}
 {{- end -}}
 
 {{- define "bodypage" -}}
@@ -10,9 +10,7 @@
 	</dl>
 	{{- if .isAuth -}}
 		<p class="right small">
-		[ <a href="/d/{{$ID}}">date</a> ] &nbsp;
-		[ <a href="/e/{{$ID}}">edit</a> ] &nbsp;
-		[ <a href="/r/{{$ID}}">remove</a> ]
+		[ <a href="/d/{{$ID}}">date</a> ] &nbsp; [ <a href="/e/{{$ID}}">edit</a> ] &nbsp; [ <a href="/r/{{$ID}}">remove</a> ]
 		</p>
 	{{- end -}}
 {{- end -}}

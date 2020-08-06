@@ -13,16 +13,16 @@
 	<form method="post" action="/xt/" enctype="application/x-www-form-urlencoded">
 	{{- if eq $lang "de" -}}
 		<p class="centered"><br/><label for="search">Suche: </label> &nbsp;
-		<input type="search" id="search" name="search" value="" autofocus>
-		&nbsp; <label for="replace">Ersatz: </label> &nbsp;
+		<input type="search" id="search" name="search" value="" autofocus><br>
+		<label for="replace">Ersatz: </label> &nbsp;
 		<input type="text" id="replace" name="replace" value=""></p>
 		<p class="centered"><br/><input type="submit" name="abort" title="Abbrechen" value=" Abbrechen " enctype="text/plain"> &nbsp;
 		<input type="reset" name="reset" title=" Zurücksetzen " value=" Zurücksetzen "> &nbsp;
 		<input type="submit" name="submit" title=" Ersetzen " value=" Ersetzen "></p>
 	{{- else -}}
 		<p class="centered"><br/><label for="search">Search: </label> &nbsp;
-		<input type="search" id="search" name="search" value="" autofocus>
-		&nbsp; <label for="replace">Replace: </label> &nbsp;
+		<input type="search" id="search" name="search" value="" autofocus><br>
+		<label for="replace">Replace: </label> &nbsp;
 		<input type="text" id="replace" name="replace" value=""></p>
 		<p class="centered"><br/><input type="submit" name="abort" title="Abort" value=" Abort " enctype="text/plain"> &nbsp;
 		<input type="reset" name="reset" title=" Reset " value=" Reset "> &nbsp;
