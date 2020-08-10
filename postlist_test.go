@@ -118,6 +118,7 @@ func TestTPostList_Article(t *testing.T) {
 	}
 } // TestTPostList_Article()
 
+/*
 func TestTPostList_in(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 	p1 := NewPosting("").Set([]byte("# Hello World!"))
@@ -145,6 +146,7 @@ func TestTPostList_in(t *testing.T) {
 		})
 	}
 } // TestTPostList_in()
+*/
 
 func TestTPostList_Len(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")

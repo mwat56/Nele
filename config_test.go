@@ -206,6 +206,7 @@ func Test_setAppArgsDebug(t *testing.T) {
 	}
 } // Test_setAppArgsDebug()
 
+/*
 func TestShowHelp(t *testing.T) {
 	_ = setAppArgsDebug()
 	tests := []struct {
@@ -220,3 +221,4 @@ func TestShowHelp(t *testing.T) {
 		})
 	}
 } // TestShowHelp()
+*/
