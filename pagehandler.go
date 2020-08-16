@@ -88,14 +88,18 @@ func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
 	matches := reYmdRE.FindStringSubmatch(aDate)
 	if 1 < len(matches) {
 		// The RegEx only matches digits so we can
-		// safely ignore all Atoi() errors.
+		// safely ignore all `Atoi()` errors.
 		rYear, _ = strconv.Atoi(matches[1])
 		if 0 < len(matches[3]) {
 			m, _ := strconv.Atoi(matches[3])
 			rMonth = time.Month(m)
 			if 0 < len(matches[5]) {
 				rDay, _ = strconv.Atoi(matches[5])
+			} else {
+				rDay = 1
 			}
+		} else {
+			rDay = 1
 		}
 	}
 
@@ -411,25 +415,30 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "licence", "license", "lizenz":
 		ph.handleReply(`licence`, aWriter, pageData)
 
-	case "m", "mw": // handle a given month
-		var y, d int
-		var m time.Month
+	case `m`, `mw`: // handle a given month
+		var (
+			d, y   int
+			m      time.Month
+			robots string = `noindex,follow`
+		)
 		if 0 == len(tail) {
 			y, m, d = time.Now().Date()
 		} else {
 			y, m, d = getYMD(tail)
-			if 0 == d {
-				d = 1
+			// Allow indexing for lists older 30 days
+			t := time.Date(y, m, d+30, 0, 0, 0, 0, time.Local)
+			if t.Before(time.Now()) {
+				robots = `index,follow`
 			}
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Month(y, m)
-		pageData = pageData.Set(`Matches`, pl.Len()).
-			Set("monthURL", "/m/"+date).
-			Set(`Postings`, pl.Sort()).
-			Set(`Robots`, `noindex,follow`).
-			Set("weekURL", "/w/"+date)
-		ph.handleReply("searchresult", aWriter, pageData)
+		ph.handleReply(`searchresult`, aWriter,
+			pageData.Set(`Matches`, pl.Len()).
+				Set(`monthURL`, "/m/"+date).
+				Set(`Postings`, pl.Sort()).
+				Set(`Robots`, robots).
+				Set(`weekURL`, "/w/"+date))
 
 	case "ml": // @mention list
 		if 0 < len(tail) {
@@ -543,25 +552,30 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
-	case "w", "ww": // handle a given week
-		var y, d int
-		var m time.Month
+	case `w`, `ww`: // handle a given week
+		var (
+			d, y   int
+			m      time.Month
+			robots string = `noindex,follow`
+		)
 		if 0 == len(tail) {
 			y, m, d = time.Now().Date()
 		} else {
 			y, m, d = getYMD(tail)
-			if 0 == d {
-				d = 1
+			// Allow indexing for lists older 30 days
+			t := time.Date(y, m, d+30, 0, 0, 0, 0, time.Local)
+			if t.Before(time.Now()) {
+				robots = `index,follow`
 			}
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Week(y, m, d)
-		pageData = pageData.Set(`Matches`, pl.Len()).
-			Set(`monthURL`, `/m/`+date).
-			Set(`Postings`, pl.Sort()).
-			Set("Robots", "noindex,follow").
-			Set("weekURL", "/w/"+date)
-		ph.handleReply("searchresult", aWriter, pageData)
+		ph.handleReply(`searchresult`, aWriter,
+			pageData.Set(`Matches`, pl.Len()).
+				Set(`monthURL`, `/m/`+date).
+				Set(`Postings`, pl.Sort()).
+				Set(`Robots`, robots).
+				Set(`weekURL`, "/w/"+date))
 
 	case `x`, `xp`, `xt`: // eXchange #tags/@mentions
 		ph.handleReply(`xt`, aWriter,
@@ -597,7 +611,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.handleRoot("30", pageData, aWriter, aRequest)
 		}
 
-	case `echo.php`:
+	case `echo.php`, `cgi-bin`:
 		// Redirect spyware to the NSA:
 		http.Redirect(aWriter, aRequest, `https://www.nsa.gov/`,
 			http.StatusMovedPermanently)
