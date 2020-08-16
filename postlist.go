@@ -109,6 +109,7 @@ func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
 		})
 } // doWalk()
 
+/*
 // internal method for unit testing
 func (pl *TPostList) in() *TPostList {
 	var ( // re-use variables
@@ -120,6 +121,7 @@ func (pl *TPostList) in() *TPostList {
 	}
 	return pl
 } // in()
+*/
 
 // Index returns the 0-based list index of `aPosting`.
 // In case `aPosting` was not found in list the return value
