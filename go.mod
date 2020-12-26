@@ -15,7 +15,7 @@ require (
 	github.com/mwat56/uploadhandler v1.1.5
 	github.com/mwat56/whitespace v0.2.2
 	github.com/russross/blackfriday/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
-	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
-	golang.org/x/term v0.0.0-20201207232118-ee85cb95a76b // indirect
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
+	golang.org/x/sys v0.0.0-20201223074533-0d417f636930 // indirect
+	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 )
