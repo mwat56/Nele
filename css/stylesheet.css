@@ -230,6 +230,11 @@ dl.posting dd blockquote {
 	border-radius: 1ex;
 	margin-left: 2ex;
 }
+dl.posting dd blockquote.twitter-tweet {
+	border: thin solid #ccc;
+	margin-left: 2.5ex;
+	padding-top: 0;
+}
 em,
 .em,
 i,
