@@ -611,7 +611,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.handleRoot("30", pageData, aWriter, aRequest)
 		}
 
-	case `echo.php`, `cgi-bin`:
+	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`, `vendor`, `wp-content`:
 		// Redirect spyware to the NSA:
 		http.Redirect(aWriter, aRequest, `https://www.nsa.gov/`,
 			http.StatusMovedPermanently)
