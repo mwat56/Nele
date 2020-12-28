@@ -62,6 +62,10 @@ var (
 	bfPreCodeRE1 = regexp.MustCompile(`(?s)\s*(<pre>)<code>(.*?)\s*</code>(</pre>)\s*`)
 
 	bfPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
+
+	// RegEx to correct back markup since Blackfriday v2.1.0';
+	// see `mdToHTML()`
+	bfSupRE = regexp.MustCompile(`<span aria-label='Return'>.*</span>`)
 )
 
 // MDtoHTML converts the `aMarkdown` data and returns HTML data.
@@ -73,6 +77,7 @@ func MDtoHTML(aMarkdown []byte) (rHTML []byte) {
 	defer bfMtx.Unlock()
 
 	rHTML = bytes.TrimSpace(bf.Run(aMarkdown, bfRenderer, bfExtensions))
+	rHTML = bfSupRE.ReplaceAll(rHTML, []byte("<sup>[return]</sup>"))
 
 	// Testing for PRE first makes this implementation twice as fast
 	// if there's no PRE in the generated HTML and about the same
