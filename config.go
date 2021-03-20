@@ -272,12 +272,15 @@ func readAppArgs() {
 		pageview.SetImageFileType(`png`)
 		pageview.SetJavaScript(false)
 		pageview.SetMaxAge(0)
-		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36`)
 		// Doesn't work with Facebook:
 		// pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
-		pageview.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+
+		// Doesn't work with Twitter:
+		// pageview.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
 		// see: https://lynx.invisible-island.net/current/CHANGES.html
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
+		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36`)
+		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
 	}
 
 	if 0 < len(AppArgs.PostFile) {
