@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -221,8 +220,8 @@ func replCRLF(aText []byte) []byte {
 var (
 	// RegEx to find path and possible added path components
 	phURLpartsRE = regexp.MustCompile(
-		`(?i)^/*([\p{L}\d_.-]+)?/*([\p{L}\d_§.?!=:;/,@# -]*)?`)
-	//           1111111111111     222222222222222222222222
+		`(?i)^/*([\p{L}\d_.-]+)?/*([\p{L}\d_§.?!=:;/,@# ’'-]*)?`)
+	//           1111111111111     22222222222222222222222222
 )
 
 // URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
@@ -404,7 +403,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "imprint", "impressum":
 		ph.handleReply(`imprint`, aWriter, pageData)
 
-	case `index`, `index.html`, `index.php`:
+	case `index`, `index.html`, `index.php`, `index.shtml`:
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 
 		/*

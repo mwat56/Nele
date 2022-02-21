@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -71,8 +70,12 @@ var (
 	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
 
 	// match: #hashtag|@mention
-	htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}\d_§-]+)(.?|$)`)
-	//                                         11111111111111111  2222
+	// htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}\d_§-]+)(.?|$)`)
+	//                                            11111111111111111  2222
+	htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}’'\d_§-]+)(.?|$)`)
+	//                                         1111111111111111111  2222
+	// Note: compare with `github.com/mwat56/hashtags/hashtags.go`
+
 )
 
 // AddTagID checks a newly added `aPosting` for #hashtags and @mentions.

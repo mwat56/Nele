@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
                EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -44,6 +43,8 @@ type (
 
 		MaxFileSize int64  // max. upload file size
 		mfs         string // max. upload file size
+
+		Name string // name of the actual program
 
 		PageView   bool   // wether to use page previews or not
 		PostAdd    bool   // whether to write a posting from commandline
@@ -161,37 +162,8 @@ func init() {
 } // init()
 */
 
-// InitConfig reads both the INI values and the commandline arguments.
-//
-// The steps here are:
-//
-// (1) read the INI file(s):
-//	(a) read the local `./.nele.ini`,
-//	(b) read the global `/etc/nele.ini`,
-//	(c) read the user-local `~/.nele.ini`,
-//	(d) read the user-local `~/.config/nele.ini`,
-// (2) merge the commandline arguments with the INI values into
-// the global `AppArgs` variable.
-//
-// This function is meant to be called first thing in the application's
-// `main()` function.
-func InitConfig() {
-	flag.CommandLine = flag.NewFlagSet(`Kaliber`, flag.ExitOnError)
-	iniValues = tArguments{*ini.ReadIniData(`nele`)}
-
-	setAppArgs()
-	parseAppArgs()
-	readAppArgs()
-} // InitConfig()
-
-// `parseAppArgs()` parsed the actual commandline arguments.
-func parseAppArgs() {
-	flag.CommandLine.Usage = ShowHelp
-	_ = flag.CommandLine.Parse(os.Args[1:])
-} // parseAppArgs()
-
-// `readAppArgs()` copies the commandline values into the `TAppArgs` instance.
-func readAppArgs() {
+// `copyAppArgs2IniData()` copies the commandline values into the `TAppArgs` instance.
+func copyAppArgs2IniData() {
 	var ( // re-use variables
 		err error
 		fi  os.FileInfo
@@ -268,8 +240,8 @@ func readAppArgs() {
 	}
 
 	if AppArgs.PageView {
-		_ = pageview.SetImageDirectory(absolute(AppArgs.DataDir, `img`))
-		pageview.SetImageFileType(`png`)
+		_ = pageview.SetImageDir(absolute(AppArgs.DataDir, `img`))
+		pageview.SetImageType(`png`)
 		pageview.SetJavaScript(false)
 		pageview.SetMaxAge(0)
 		// Doesn't work with Facebook:
@@ -280,7 +252,9 @@ func readAppArgs() {
 		// see: https://lynx.invisible-island.net/current/CHANGES.html
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
 		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36`)
-		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
+		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
+		// pageview.SetUserAgent(`Opera/9.80 (X11; Linux i686; U; en-GB) Presto/2.8.131 Version/11.10`)
+		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0`)
 	}
 
 	if 0 < len(AppArgs.PostFile) {
@@ -311,11 +285,41 @@ func readAppArgs() {
 	}
 
 	flag.CommandLine = nil // free unneeded memory
-} // readAppArgs()
+} // copyAppArgs2IniData()
 
-// `setAppArgs()` reads the commandline arguments into a list
+// InitConfig reads both the INI values and the commandline arguments.
+//
+// The steps here are:
+//
+// (1) read the INI file(s):
+//	(a) read the local `./.nele.ini`,
+//	(b) read the global `/etc/nele.ini`,
+//	(c) read the user-local `~/.nele.ini`,
+//	(d) read the user-local `~/.config/nele.ini`,
+// (2) merge the commandline arguments with the INI values into
+// the global `AppArgs` variable.
+//
+// This function is meant to be called first thing in the application's
+// `main()` function.
+func InitConfig() {
+	const appName string = "nele"
+	flag.CommandLine = flag.NewFlagSet(appName, flag.ExitOnError)
+	iniValues = tArguments{*ini.ReadIniData(appName)}
+
+	readCmdlineArgs()
+	parseCmdlineArgs()
+	copyAppArgs2IniData()
+} // InitConfig()
+
+// `parseCmdlineArgs()` parsed the actual commandline arguments.
+func parseCmdlineArgs() {
+	flag.CommandLine.Usage = ShowHelp
+	_ = flag.CommandLine.Parse(os.Args[1:])
+} // parseCmdlineArgs()
+
+// `readCmdlineArgs()` reads the commandline arguments into a list
 // structure merging it with key-value pairs read from INI file(s).
-func setAppArgs() {
+func readCmdlineArgs() {
 	var (
 		ok bool
 		s  string // temp. value
@@ -466,7 +470,7 @@ func setAppArgs() {
 
 	iniValues.Clear()           // release unneeded memory
 	iniValues = tArguments{nil} // dito
-} // setAppArgs()()
+} // readCmdlineArgs()
 
 // ShowHelp lists the commandline options to `Stderr`.
 func ShowHelp() {
