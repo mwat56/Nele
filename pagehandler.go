@@ -148,7 +148,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
 
 	if AppArgs.PageView {
-		UpdatePreviews(PostingBaseDirectory(), `/img/`) // background operation
+		UpdateScreenshots(PostingBaseDirectory(), `/img/`) // background operation
 	}
 
 	if 0 == len(AppArgs.UserFile) {
@@ -650,7 +650,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
 			if AppArgs.PageView {
-				PrepareLinkPreviews(p, "/img/")
+				PrepareLinkScreenshots(p, "/img/")
 			}
 			AddTagID(ph.hashList, p)
 
@@ -693,7 +693,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		RenameIDTags(ph.hashList, op.ID(), np.ID())
 		if AppArgs.PageView {
-			PrepareLinkPreviews(np, "/img/")
+			PrepareLinkScreenshots(np, "/img/")
 		}
 
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
@@ -723,7 +723,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 		}
 		if AppArgs.PageView {
-			PrepareLinkPreviews(p, "/img/")
+			PrepareLinkScreenshots(p, "/img/")
 		}
 		UpdateTags(ph.hashList, p)
 
@@ -750,7 +750,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				return
 			}
 
-			UpdatePreviews(PostingBaseDirectory(), `/img/`)
+			UpdateScreenshots(PostingBaseDirectory(), `/img/`)
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -766,7 +766,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 		p := NewPosting(tail)
-		RemovePagePreviews(p)
+		RemovePageScreenshots(p)
 		if err = p.Delete(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('r')",
 				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
@@ -869,7 +869,7 @@ func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, 
 			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
 
-	CreatePreview(aShare) // background operation
+	CreateScreenshot(aShare) // background operation
 	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
 } // handleShare()
 
