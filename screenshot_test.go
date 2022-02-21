@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -14,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mwat56/pageview"
+	"github.com/mwat56/screenshot"
 )
 
-func Test_checkPreviewURLs(t *testing.T) {
+func Test_checkScreenshotURLs(t *testing.T) {
 	var t1 []byte
 	var l1 tImgURLlist
 	t2 := []byte(`bla \n> [![„Wir sind alle Opfer hier“](/img/httpswwwaddendumorgnewsopferstudium.png)](https://www.addendum.org/news/opferstudium/)\n bla`)
@@ -56,16 +55,16 @@ func Test_checkPreviewURLs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotRList := checkPreviewURLs(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
+			if gotRList := checkScreenshotURLs(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
 				t.Errorf("checkForImgURL() = %v,\nwant %v", gotRList, tt.wantRList)
 			}
 		})
 	}
-} // Test_checkPreviewURLs()
+} // Test_checkScreenshotURLs()
 
-func Test_checkPreviews(t *testing.T) {
-	_ = pageview.SetImageDir("/tmp/")
-	pageview.SetMaxAge(1)
+func Test_checkScreenshots(t *testing.T) {
+	screenshot.SetImageDir("/tmp/")
+	screenshot.SetImageAge(1)
 	p1 := NewPosting("15d9c2334fce3991")
 	p2 := NewPosting("15d9393f4f5f3bb4")
 
@@ -82,14 +81,14 @@ func Test_checkPreviews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			checkPreviews(tt.args.aPosting)
+			checkScreenshots(tt.args.aPosting)
 		})
 	}
-} // Test_checkPreviews()
+} // Test_checkScreenshots()
 
-func Test_goUpdateAllLinkPreviews(t *testing.T) {
-	_ = pageview.SetImageDir("/tmp/")
-	pageview.SetMaxAge(1)
+func Test_goUpdateAllLinkScreenshots(t *testing.T) {
+	screenshot.SetImageDir("/tmp/")
+	screenshot.SetImageAge(1)
 	type args struct {
 		aPostingBaseDir string
 		aImageURLdir    string
@@ -103,12 +102,51 @@ func Test_goUpdateAllLinkPreviews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goUpdateAllLinkPreviews(tt.args.aPostingBaseDir, tt.args.aImageURLdir)
+			goUpdateAllLinkScreenshots(tt.args.aPostingBaseDir, tt.args.aImageURLdir)
 			time.Sleep(time.Second)
 		})
 	}
 	time.Sleep(time.Second)
-} // Test_goUpdateAllLinkPreviews()
+} // Test_goUpdateAllLinkScreenshots()
+
+func Test_goSetLinkScreenshots(t *testing.T) {
+	screenshot.SetImageDir("/tmp/")
+	screenshot.SetImageAge(1)
+	imgURLdir := "/img/"
+	p1 := NewPosting("15d678172cfc527a")
+	_ = p1.Load()
+	p2 := NewPosting("15d9c2334fce3991")
+	_ = p2.Load()
+	p3 := NewPosting("15d9393f4f5f3bb4")
+	_ = p3.Load()
+	p4 := NewPosting("15d93196ab1b2899")
+	_ = p4.Load()
+	p5 := NewPosting("15d8b372f3186303")
+	_ = p5.Load()
+	p6 := NewPosting("15dbb86d6c2cdc2c")
+	_ = p6.Load()
+	type args struct {
+		aPosting        *TPosting
+		aImageDirectory string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{" 1", args{p1, imgURLdir}},
+		{" 2", args{p2, imgURLdir}},
+		{" 3", args{p3, imgURLdir}},
+		{" 4", args{p4, imgURLdir}},
+		{" 5", args{p5, imgURLdir}},
+		{" 6", args{p6, imgURLdir}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			goSetLinkScreenshots(tt.args.aPosting, tt.args.aImageDirectory)
+		})
+	}
+} // Test_goSetLinkScreenshots()
 
 func Test_prepPostText(t *testing.T) {
 	imageURLdir := `/img/`
@@ -143,7 +181,7 @@ func Test_prepPostText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			linkMatches := pvLinkRE2.FindAllSubmatch(tt.args.aPosting, -1)
+			linkMatches := ssLinkRE2.FindAllSubmatch(tt.args.aPosting, -1)
 			link := &tLink{
 				link:     string(linkMatches[0][1]),
 				linkText: string(linkMatches[0][2]),
@@ -159,7 +197,7 @@ func Test_prepPostText(t *testing.T) {
 // R/O RegEx to extract link-text and link-URL from markup.
 // Checking for the not-existence of the leading `!` should exclude
 // embedded image links.
-var pvLinkRE2 = regexp.MustCompile(
+var ssLinkRE2 = regexp.MustCompile(
 	`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[]+?)\]\s*\(([^\]]+?)\))`)
 
 //                                              122222222111111133333333311
@@ -169,7 +207,7 @@ var pvLinkRE2 = regexp.MustCompile(
 // 2 : link text
 // 3 : remote page URL
 
-func Test_pvImageRE(t *testing.T) {
+func Test_ssImageRE(t *testing.T) {
 	var t1 string
 	t2 := "bla \n> [„link text one“](https://www.example.org/one/)\n bla"
 	t3 := "bla \n bla [„link text two“](https://www.example.org/two/)\n bla\n > [„link text three“](https://www.example.org/three) bla"
@@ -183,85 +221,44 @@ func Test_pvImageRE(t *testing.T) {
 	t11 := "> [„link text eleven“](https://www.example.org/eleven/)\n bla"
 	t12 := "> [„link text eleven“ (b)](https://www.example.org/eleven/)\n bla"
 
-	type args struct {
-		aTxt string
-	}
 	tests := []struct {
 		name     string
-		args     args
+		aTxt     string
 		matchNum int
 	}{
 		// TODO: Add test cases.
-		{" 1", args{t1}, 0},
-		{" 2", args{t2}, 1},
-		{" 3", args{t3}, 1},
-		{" 4", args{t4}, 0},
-		{" 5", args{t5}, 0},
-		{" 6", args{t6}, 0},
-		{" 7", args{t7}, 0},
-		{" 8", args{t8}, 0},
-		{" 9", args{t9}, 0},
-		{"10", args{t10}, 1},
-		{"11", args{t11}, 1},
-		{"12", args{t12}, 1},
+		{" 1", t1, 0},
+		{" 2", t2, 1},
+		{" 3", t3, 1},
+		{" 4", t4, 0},
+		{" 5", t5, 0},
+		{" 6", t6, 0},
+		{" 7", t7, 0},
+		{" 8", t8, 0},
+		{" 9", t9, 0},
+		{"10", t10, 1},
+		{"11", t11, 1},
+		{"12", t12, 1},
 	}
 	var matchLen int
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotMatches := pvLinkRE2.FindAllStringSubmatch(tt.args.aTxt, -1)
+			gotMatches := ssLinkRE2.FindAllStringSubmatch(tt.aTxt, -1)
 			if nil == gotMatches {
 				matchLen = 0
 			} else {
 				matchLen = len(gotMatches)
 			}
 			if matchLen != tt.matchNum {
-				t.Errorf("Test_pvLinkRE() =\n{%v},\nwant {%v},\n{%v}", matchLen, tt.matchNum, gotMatches)
+				t.Errorf("Test_ssLinkRE() =\n{%v},\nwant {%v},\n{%v}", matchLen, tt.matchNum, gotMatches)
 			}
 		})
 	}
-} // Test_pvImageRE()
+} // Test_ssImageRE()
 
-func Test_setLinkPreviews(t *testing.T) {
-	_ = pageview.SetImageDir("/tmp/")
-	pageview.SetMaxAge(1)
-	imgURLdir := "/img/"
-	p1 := NewPosting("15d678172cfc527a")
-	_ = p1.Load()
-	p2 := NewPosting("15d9c2334fce3991")
-	_ = p2.Load()
-	p3 := NewPosting("15d9393f4f5f3bb4")
-	_ = p3.Load()
-	p4 := NewPosting("15d93196ab1b2899")
-	_ = p4.Load()
-	p5 := NewPosting("15d8b372f3186303")
-	_ = p5.Load()
-	p6 := NewPosting("15dbb86d6c2cdc2c")
-	_ = p6.Load()
-	type args struct {
-		aPosting        *TPosting
-		aImageDirectory string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-		{" 1", args{p1, imgURLdir}},
-		{" 2", args{p2, imgURLdir}},
-		{" 3", args{p3, imgURLdir}},
-		{" 4", args{p4, imgURLdir}},
-		{" 5", args{p5, imgURLdir}},
-		{" 6", args{p6, imgURLdir}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			setLinkPreviews(tt.args.aPosting, tt.args.aImageDirectory)
-		})
-	}
-} // Test_setLinkPreviews()
-
-func TestRemovePagePreviews(t *testing.T) {
-	_ = pageview.SetImageDir("/tmp/")
+func TestRemovePageScreenshots(t *testing.T) {
+	screenshot.SetImageDir("/tmp/")
 	t1 := NewPosting("")
 	t2 := NewPosting("")
 	type args struct {
@@ -277,7 +274,7 @@ func TestRemovePagePreviews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RemovePagePreviews(tt.args.aPosting)
+			RemovePageScreenshots(tt.args.aPosting)
 		})
 	}
-} // TestRemovePagePreviews()
+} // TestRemovePageScreenshots()

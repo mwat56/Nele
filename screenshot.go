@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -16,7 +15,7 @@ import (
 	"runtime"
 
 	"github.com/mwat56/apachelogger"
-	"github.com/mwat56/pageview"
+	"github.com/mwat56/screenshot"
 )
 
 type (
@@ -35,26 +34,26 @@ type (
 	}
 )
 
-// `checkPreviews()` checks whether the image file referenced
+// `checkScreenshots()` checks whether the image file referenced
 // in the text of `aPosting` actually exists locally.
 //
 //	`aPosting` The posting the text of which is searched for
 // a local image link.
-func checkPreviews(aPosting *TPosting) {
+func checkScreenshots(aPosting *TPosting) {
 	if nil == aPosting {
 		return
 	}
 
 	var pair tImgURL // re-use variable
-	list := checkPreviewURLs(aPosting.Markdown())
+	list := checkScreenshotURLs(aPosting.Markdown())
 	for _, pair = range list {
-		goCreatePreview(pair.pageURL)
+		goCreateScreenshot(pair.pageURL)
 	}
-} // checkPreviews()
+} // checkScreenshots()
 
 var (
-	// R/O RegEx to find an URL for the preview image's.
-	pvImageRE = regexp.MustCompile(
+	// R/O RegEx to find an URL for the screenshot image's.
+	ssImageRE = regexp.MustCompile(
 		`(?s)\[\s*\!\[[^\]]*?\]\s*\(\s*([^\)]+?)\s*\)\s*\]\s*\(\s*([^\)]+?)\s*\)`)
 	//                                 111111111                  222222222
 	// `[![alt-text](image-URL)](link-url)`
@@ -62,13 +61,13 @@ var (
 	// 2 : remote page URL
 )
 
-// `checkPreviewURLs()` tests whether `aTxt` contains an external
-// link with an embedded page preview image,
+// `checkScreenshotURLs()` tests whether `aTxt` contains an external
+// link with an embedded page screenshot image,
 // returning a list of the two link URLs.
 //
 //	`aTxt` is the text to search.
-func checkPreviewURLs(aTxt []byte) (rList tImgURLlist) {
-	matches := pvImageRE.FindAllSubmatch(aTxt, -1)
+func checkScreenshotURLs(aTxt []byte) (rList tImgURLlist) {
+	matches := ssImageRE.FindAllSubmatch(aTxt, -1)
 	for idx, l := 0, len(matches); idx < l; idx++ {
 		rList = append(rList, tImgURL{
 			filepath.Base(string(matches[idx][1])),
@@ -76,28 +75,61 @@ func checkPreviewURLs(aTxt []byte) (rList tImgURLlist) {
 		})
 	}
 	return
-} // checkPreviewURLs()
+} // checkScreenshotURLs()
 
-// `goCreatePreview()` generates a preview of `aURL` in background.
+// `goCreateScreenshot()` generates a screenshot of `aURL` in background.
 //
-//	`aURL` The URL for which to create a preview image.
-func goCreatePreview(aURL string) {
-	// `pageview.CreateImage()` checks whether the file exists
+//	`aURL` The URL for which to create a screenshot image.
+func goCreateScreenshot(aURL string) {
+	// `screenshot.CreateImage()` checks whether the file exists
 	// and whether it's too old.
-	imgName, err := pageview.CreateImage(aURL)
+	imgName, err := screenshot.CreateImage(aURL)
 	if (nil != err) || (0 == len(imgName)) {
-		apachelogger.Err("goCreatePreview()",
-			fmt.Sprintf("pageview.CreateImage(%s): '%v'", aURL, err))
+		apachelogger.Err("goCreateScreenshot()",
+			fmt.Sprintf("screenshot.CreateImage(%s): '%v'", aURL, err))
 	}
-} // goCreatePreview()
+} // goCreateScreenshot()
 
-// `goUpdateAllLinkPreviews()` prepares the external links in
-// all postings to use a page preview image (if available).
+// `goSetLinkScreenshots()` changes the external links in the text
+// of `aPosting` to include a page screenshot image (if available).
+//
+//	`aPosting` The posting the text of which is going to be processed.
+//	`aImageURLdir` The URL directory for page screenshot images.
+func goSetLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
+	if (nil == aPosting) || (0 == aPosting.Len()) {
+		return
+	}
+
+	url := `` // re-use in loop below
+	linkMatches := ssLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
+	if (nil != linkMatches) && (0 < len(linkMatches)) {
+		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
+			url = string(linkMatches[cnt][3])
+			if !ssSchemeRE.MatchString(url) {
+				continue // skip local links
+			}
+			preparePost(aPosting,
+				&tLink{
+					link:     string(linkMatches[cnt][1]),
+					linkText: string(linkMatches[cnt][2]),
+					linkURL:  url,
+				},
+				aImageURLdir)
+		}
+	}
+
+	// In case we didn't find any normal links we check
+	// the links with an embedded page screenshot image:
+	checkScreenshots(aPosting)
+} // goSetLinkScreenshots()
+
+// `goUpdateAllLinkScreenshots()` prepares the external links in
+// all postings to use a page screenshot image (if available).
 //
 //	`aPostingBaseDir` is the base directory used for storing
 // articles/postings.
-//	`aImageURLdir` is the local URL directory for page preview images.
-func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir string) {
+//	`aImageURLdir` is the local URL directory for page screenshot images.
+func goUpdateAllLinkScreenshots(aPostingBaseDir, aImageURLdir string) {
 	var ( // re-use variables in loops below
 		err                 error
 		dName, fName, pName string
@@ -117,23 +149,23 @@ func goUpdateAllLinkPreviews(aPostingBaseDir, aImageURLdir string) {
 			fName = filepath.Base(pName)
 			p = NewPosting(fName[:len(fName)-3]) // strip name extension
 			if err = p.Load(); nil == err {
-				setLinkPreviews(p, aImageURLdir)
+				goSetLinkScreenshots(p, aImageURLdir)
 			} // ELSE ignore the error here …
 		}
 	}
-} // goUpdateAllLinkPreviews()
+} // goUpdateAllLinkScreenshots()
 
-// `preparePost()` creates a preview image and updates `aLink`
+// `preparePost()` creates a screenshot image and updates `aLink`
 // in the text of `aPosting` to embed a link into the image.
 //
 //	`aPosting` The posting the text of which is going to be updated.
 //	`aLink` The link parts to use.
-//	`aImageURLdir` The URL directory for page preview images.
+//	`aImageURLdir` The URL directory for page screenshot images.
 func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
-	imgName, err := pageview.CreateImage(aLink.linkURL)
+	imgName, err := screenshot.CreateImage(aLink.linkURL)
 	if (nil != err) || (0 == len(imgName)) {
 		apachelogger.Err("preparePost()",
-			fmt.Sprintf("pageview.CreateImage(%s): '%v'", aLink.linkURL, err))
+			fmt.Sprintf("screenshot.CreateImage(%s): '%v'", aLink.linkURL, err))
 		return
 	}
 	if 0 == len(aImageURLdir) {
@@ -153,7 +185,7 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 //
 //	`aPosting` The posting the text of which is going to be updated.
 //	`aLink` The link parts to use.
-//	`aImageURLdir` The URL directory for page preview images.
+//	`aImageURLdir` The URL directory for page screenshot images.
 func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string) (rText []byte) {
 	search := regexp.QuoteMeta(aLink.link)
 	if re, err := regexp.Compile(search); nil == err {
@@ -166,10 +198,10 @@ func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string
 	return
 } // prepPostText()
 
-// RemovePagePreviews deletes the images used in `aPosting`.
+// RemovePageScreenshots deletes the images used in `aPosting`.
 //
 //	`aPosting` The posting the image(s) of which are going to be deleted.
-func RemovePagePreviews(aPosting *TPosting) {
+func RemovePageScreenshots(aPosting *TPosting) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
 	}
@@ -182,24 +214,24 @@ func RemovePagePreviews(aPosting *TPosting) {
 		pair  tImgURL
 	)
 
-	if list = checkPreviewURLs(aPosting.Markdown()); 0 == len(list) {
+	if list = checkScreenshotURLs(aPosting.Markdown()); 0 == len(list) {
 		return
 	}
 
 	for _, pair = range list {
-		fName = pageview.PathFile(pair.pageURL)
+		fName = screenshot.PathFile(pair.pageURL)
 		if fi, err = os.Stat(fName); (nil != err) || fi.IsDir() {
 			continue
 		}
 		_ = os.Remove(fName)
 	}
-} // RemovePagePreviews()
+} // RemovePageScreenshots()
 
 var (
 	// R/O RegEx to extract link-text and link-URL from markup.
 	// Checking for the not-existence of the leading `!` should exclude
 	// embedded image links.
-	pvLinkRE = regexp.MustCompile(
+	ssLinkRE = regexp.MustCompile(
 		`(?m)(?:^\s*\>[\t ]*)((?:[^\!\n\>][\t ]*)?\[([^\[]+?)\]\s*\(([^\]]+?)\))`)
 	//                                            11222222222111111133333333311
 	// `[link-text](link-url)`
@@ -209,71 +241,38 @@ var (
 	// 3 : remote page URL
 
 	// R/O simple RegEx to check whether an URL starts with a scheme.
-	pvSchemeRE = regexp.MustCompile(`^\w+://`)
+	ssSchemeRE = regexp.MustCompile(`^\w+://`)
 )
-
-// `setLinkPreviews()` changes the external links in the text
-// of `aPosting` to include a page preview image (if available).
-//
-//	`aPosting` The posting the text of which is going to be processed.
-//	`aImageURLdir` The URL directory for page preview images.
-func setLinkPreviews(aPosting *TPosting, aImageURLdir string) {
-	if (nil == aPosting) || (0 == aPosting.Len()) {
-		return
-	}
-
-	url := `` // re-use in loop below
-	linkMatches := pvLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
-	if (nil != linkMatches) && (0 < len(linkMatches)) {
-		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
-			url = string(linkMatches[cnt][3])
-			if !pvSchemeRE.MatchString(url) {
-				continue // skip local links
-			}
-			preparePost(aPosting,
-				&tLink{
-					link:     string(linkMatches[cnt][1]),
-					linkText: string(linkMatches[cnt][2]),
-					linkURL:  url,
-				},
-				aImageURLdir)
-		}
-	}
-
-	// In case we didn't find any normal links we check
-	// the links with an embedded page preview image:
-	checkPreviews(aPosting)
-} // setLinkPreviews()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// CreatePreview generates a preview of `aURL` in background.
+// CreateScreenshot generates a screenshot of `aURL` in background.
 //
-//	`aURL` The URL for which to create a preview image.
-func CreatePreview(aURL string) {
-	go goCreatePreview(aURL)
+//	`aURL` The URL for which to create a screenshot image.
+func CreateScreenshot(aURL string) {
+	go goCreateScreenshot(aURL)
 	runtime.Gosched() // get the background operation started
-} // CreatePreview
+} // CreateScreenshot
 
-// PrepareLinkPreviews updates the external link(s) in `aPosting`
-// to include page preview image(s) (if available).
+// PrepareLinkScreenshots updates the external link(s) in `aPosting`
+// to include page screenshot image(s) (if available).
 //
 //	`aPosting` The posting the text of which is going to be processed.
-//	`aImageURLdir`The URL directory for page preview images.
-func PrepareLinkPreviews(aPosting *TPosting, aImageURLdir string) {
-	go setLinkPreviews(aPosting, aImageURLdir)
+//	`aImageURLdir`The URL directory for page screenshot images.
+func PrepareLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
+	go goSetLinkScreenshots(aPosting, aImageURLdir)
 	runtime.Gosched() // get the background operation started
-} // PrepareLinkPreviews()
+} // PrepareLinkScreenshots()
 
-// UpdatePreviews starts the process to update the preview images
+// UpdateScreenshots starts the process to update the screenshot images
 // in all postings.
 //
 //	`aPostingBaseDir` The base directory used for storing
 // articles/postings.
-//	`aImageURLdir` The URL directory for page preview images.
-func UpdatePreviews(aPostingBaseDir, aImgURLdir string) {
-	go goUpdateAllLinkPreviews(aPostingBaseDir, aImgURLdir)
+//	`aImageURLdir` The URL directory for page screenshot images.
+func UpdateScreenshots(aPostingBaseDir, aImgURLdir string) {
+	go goUpdateAllLinkScreenshots(aPostingBaseDir, aImgURLdir)
 	runtime.Gosched() // get the background operation started
-} // UpdateLinkPreviews()
+} // UpdateLinkScreenshots()
 
 /* _EoF_ */
