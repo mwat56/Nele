@@ -1,3 +1,8 @@
+/*
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
+                  All rights reserved
+               EMail : <support@mwat.de>
+*/
 /* Reset all page elements to a reasonable default, see:
 * http://meyerweb.com/eric/thoughts/2007/04/18/reset-reasoning/
 */
@@ -458,7 +463,8 @@ ul li {
 	border: thin solid transparent;
 	margin: 0 auto;
 	padding: 0;
-	max-width: 92ex;
+	width: 541pt;
+	max-width: 598pt; /* absolute value to match DIN A4 */
 }
 p#next {
 	text-align: right;
@@ -594,7 +600,7 @@ a.tc99:hover {
 	#main {
 		background: #fff;
 		color: #000;
-		max-width: 20cm;
+		max-width: 541pt;
 	}
 }
 /* _EoF_ */
