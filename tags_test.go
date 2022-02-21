@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 import (
@@ -25,12 +24,12 @@ func Test_MarkupTags(t *testing.T) {
 
 	p2 := []byte(`
 #-------------
-*@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Spain*
+*@Antoni_Comín @Carles_Puigdemont @Catalonia @EU @Immunity @Oriol_Junqueras @Paul_O'Hare @Spain*
 #-------------`)
 
 	w2 := []byte(`
 #-------------
-*<a href="/ml/antoni_comín" class="smaller">@Antoni_Comín</a> <a href="/ml/carles_puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/catalonia" class="smaller">@Catalonia</a> <a href="/ml/eu" class="smaller">@EU</a> <a href="/ml/immunity" class="smaller">@Immunity</a> <a href="/ml/oriol_junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/spain" class="smaller">@Spain</a>*
+*<a href="/ml/antoni_comín" class="smaller">@Antoni_Comín</a> <a href="/ml/carles_puigdemont" class="smaller">@Carles_Puigdemont</a> <a href="/ml/catalonia" class="smaller">@Catalonia</a> <a href="/ml/eu" class="smaller">@EU</a> <a href="/ml/immunity" class="smaller">@Immunity</a> <a href="/ml/oriol_junqueras" class="smaller">@Oriol_Junqueras</a> <a href="/ml/paul_o'hare" class="smaller">@Paul_O'Hare</a> <a href="/ml/spain" class="smaller">@Spain</a>*
 #-------------`)
 
 	type args struct {

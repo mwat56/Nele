@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2021 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -104,8 +103,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 1781},
-		{" 2", 1781},
+		{" 1", 1818},
+		{" 2", 1818},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

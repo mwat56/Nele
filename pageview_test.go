@@ -64,7 +64,7 @@ func Test_checkPreviewURLs(t *testing.T) {
 } // Test_checkPreviewURLs()
 
 func Test_checkPreviews(t *testing.T) {
-	_ = pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDir("/tmp/")
 	pageview.SetMaxAge(1)
 	p1 := NewPosting("15d9c2334fce3991")
 	p2 := NewPosting("15d9393f4f5f3bb4")
@@ -88,7 +88,7 @@ func Test_checkPreviews(t *testing.T) {
 } // Test_checkPreviews()
 
 func Test_goUpdateAllLinkPreviews(t *testing.T) {
-	_ = pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDir("/tmp/")
 	pageview.SetMaxAge(1)
 	type args struct {
 		aPostingBaseDir string
@@ -222,7 +222,7 @@ func Test_pvImageRE(t *testing.T) {
 } // Test_pvImageRE()
 
 func Test_setLinkPreviews(t *testing.T) {
-	_ = pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDir("/tmp/")
 	pageview.SetMaxAge(1)
 	imgURLdir := "/img/"
 	p1 := NewPosting("15d678172cfc527a")
@@ -261,7 +261,7 @@ func Test_setLinkPreviews(t *testing.T) {
 } // Test_setLinkPreviews()
 
 func TestRemovePagePreviews(t *testing.T) {
-	_ = pageview.SetImageDirectory("/tmp/")
+	_ = pageview.SetImageDir("/tmp/")
 	t1 := NewPosting("")
 	t2 := NewPosting("")
 	type args struct {
