@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
                EMail : <support@mwat.de>
 */
-
 package nele
 
 import (
@@ -22,9 +21,12 @@ func parseAppArgsDebug() *TAppArgs {
 
 	// Define some flags used by `testing` to avoid
 	// bailing out during the test.
-	var coverprofile, run, testlogfile, timeout, v string
+	var coverprofile, paniconexit, run, testlogfile, timeout, v string
+
 	flag.CommandLine.StringVar(&coverprofile, `test.coverprofile`, coverprofile,
 		"coverprofile for tests")
+	flag.CommandLine.StringVar(&paniconexit, `test.paniconexit0`, paniconexit,
+		"paniconexit for tests")
 	flag.CommandLine.StringVar(&run, `test.run`, run,
 		"run for tests")
 	flag.CommandLine.StringVar(&testlogfile, `test.testlogfile`, testlogfile,
@@ -33,7 +35,7 @@ func parseAppArgsDebug() *TAppArgs {
 		"timeout for tests")
 	flag.CommandLine.StringVar(&v, `test.v`, v, `test.v`)
 
-	parseAppArgs()
+	parseCmdlineArgs()
 
 	return &AppArgs
 } // parseAppArgsDebug()
@@ -45,8 +47,8 @@ func readAppArgsDebug() *TAppArgs {
 	flag.CommandLine = flag.NewFlagSet(`Nele`, flag.ExitOnError)
 	AppArgs = TAppArgs{}
 
-	setAppArgs()
-	readAppArgs()
+	readCmdlineArgs()
+	copyAppArgs2IniData()
 
 	return &AppArgs
 } // readAppArgsDebug()
@@ -62,7 +64,7 @@ func setAppArgsDebug() *TAppArgs {
 	// Clear/reset the INI values to simulate missing INI file(s):
 	iniValues = tArguments{*ini1.GetSection(``)}
 
-	setAppArgs()
+	readCmdlineArgs()
 
 	return &AppArgs
 } // setAppArgsDebug()

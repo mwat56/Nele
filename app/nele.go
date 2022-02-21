@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                All rights reserved
            EMail : <support@mwat.de>
 */
-
 package main
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -107,7 +106,7 @@ func setupSignals(aServer *http.Server) {
 
 	go func() {
 		for signal := range c {
-			msg := fmt.Sprintf("%s captured '%v', stopping program and exiting ...", filepath.Base(os.Args[0]), signal)
+			msg := fmt.Sprintf("%s captured '%v', 'stopping program and exiting ...'", filepath.Base(os.Args[0]), signal)
 			apachelogger.Err(`Nele/catchSignals`, msg)
 			log.Println(msg)
 			break
@@ -216,7 +215,8 @@ func main() {
 		// including the body:
 		ReadTimeout: 10 * time.Second,
 		// The maximum duration before timing out writes of the response:
-		WriteTimeout: 10 * time.Second,
+		// WriteTimeout: 10 * time.Second,
+		WriteTimeout: -1, // see whether this eliminates "i/o timeout HTTP/1.0"
 	}
 	if 0 < len(nele.AppArgs.ErrorLog) {
 		apachelogger.SetErrLog(server)
