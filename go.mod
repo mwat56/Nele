@@ -10,7 +10,6 @@ require (
 	github.com/mwat56/hashtags v0.6.1
 	github.com/mwat56/ini v1.5.2
 	github.com/mwat56/jffs v0.1.3
-	github.com/mwat56/pageview v0.4.6
 	github.com/mwat56/passlist v1.3.6
 	github.com/mwat56/screenshot v0.1.2
 	github.com/mwat56/uploadhandler v1.1.8
@@ -40,7 +39,6 @@ replace (
 	github.com/mwat56/hashtags => ../hashtags
 	github.com/mwat56/ini => ../ini
 	github.com/mwat56/jffs => ../jffs
-	github.com/mwat56/pageview => ../pageview
 	github.com/mwat56/passlist => ../passlist
 	github.com/mwat56/screenshot => ../screenshot
 	github.com/mwat56/sessions => ../sessions
