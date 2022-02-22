@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/mwat56/ini"
-	"github.com/mwat56/pageview"
+	"github.com/mwat56/screenshot"
 	"github.com/mwat56/whitespace"
 )
 
@@ -46,11 +46,11 @@ type (
 
 		Name string // name of the actual program
 
-		PageView   bool   // wether to use page previews or not
 		PostAdd    bool   // whether to write a posting from commandline
 		PostFile   string // name of file to post
 		port       int    // port to listen to
 		Realm      string // host/domain to secure by BasicAuth
+		Screenshot bool   // whether to use page screenshots or not
 		Theme      string // `dark` or `light` display theme
 		UserAdd    string // username to add to password list
 		UserCheck  string // username to check in password list
@@ -239,22 +239,24 @@ func copyAppArgs2IniData() {
 		AppArgs.MaxFileSize = kmg2Num(AppArgs.mfs)
 	}
 
-	if AppArgs.PageView {
-		_ = pageview.SetImageDir(absolute(AppArgs.DataDir, `img`))
-		pageview.SetImageType(`png`)
-		pageview.SetJavaScript(false)
-		pageview.SetMaxAge(0)
+	if AppArgs.Screenshot {
+		// screenshot.SetImageAge(0) // default
+		screenshot.SetImageDir(absolute(AppArgs.DataDir, `img`))
+		// screenshot.SetJavaScript(false) // default
+		screenshot.SetImageQuality(100)
+		screenshot.SetScrollbars(true)
 		// Doesn't work with Facebook:
-		// pageview.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		// screenshot.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
 
 		// Doesn't work with Twitter:
-		// pageview.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
+		// screenshot.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
 		// see: https://lynx.invisible-island.net/current/CHANGES.html
-		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
-		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36`)
-		// pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
-		// pageview.SetUserAgent(`Opera/9.80 (X11; Linux i686; U; en-GB) Presto/2.8.131 Version/11.10`)
-		pageview.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0`)
+
+		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
+		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36`)
+		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
+		// screenshot.SetUserAgent(`Opera/9.80 (X11; Linux i686; U; en-GB) Presto/2.8.131 Version/11.10`)
+		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0`) // Default
 	}
 
 	if 0 < len(AppArgs.PostFile) {
@@ -426,8 +428,8 @@ func readCmdlineArgs() {
 	flag.CommandLine.StringVar(&AppArgs.PostFile, `pf`, AppArgs.PostFile,
 		"<fileName> (optional) post file: name of a file to add as new posting")
 
-	AppArgs.PageView, _ = iniValues.AsBool(`pageView`)
-	flag.CommandLine.BoolVar(&AppArgs.PageView, `pv`, AppArgs.PageView,
+	AppArgs.Screenshot, _ = iniValues.AsBool(`Screenshot`)
+	flag.CommandLine.BoolVar(&AppArgs.Screenshot, `pv`, AppArgs.Screenshot,
 		"<boolean> Use page preview images for links")
 
 	if AppArgs.Realm, ok = iniValues.AsString(`realm`); (!ok) || (0 == len(AppArgs.Realm)) {

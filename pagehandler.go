@@ -147,7 +147,7 @@ func NewPageHandler() (*TPageHandler, error) {
 
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
 
-	if AppArgs.PageView {
+	if AppArgs.Screenshot {
 		UpdateScreenshots(PostingBaseDirectory(), `/img/`) // background operation
 	}
 
@@ -479,8 +479,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "privacy", "datenschutz":
 		ph.handleReply(`privacy`, aWriter, pageData)
 
-	case `pv`, `v`: // update the pageView images
-		if AppArgs.PageView {
+	case `pv`, `v`: // update the Screenshot images
+		if AppArgs.Screenshot {
 			ph.handleReply(`pv`, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
@@ -649,7 +649,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				apachelogger.Err("TPageHandler.handlePOST('a')",
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
-			if AppArgs.PageView {
+			if AppArgs.Screenshot {
 				PrepareLinkScreenshots(p, "/img/")
 			}
 			AddTagID(ph.hashList, p)
@@ -692,7 +692,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
 		}
 		RenameIDTags(ph.hashList, op.ID(), np.ID())
-		if AppArgs.PageView {
+		if AppArgs.Screenshot {
 			PrepareLinkScreenshots(np, "/img/")
 		}
 
@@ -722,7 +722,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				_, _ = p.Set(old).Store()
 			}
 		}
-		if AppArgs.PageView {
+		if AppArgs.Screenshot {
 			PrepareLinkScreenshots(p, "/img/")
 		}
 		UpdateTags(ph.hashList, p)
@@ -744,7 +744,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 	case `pv`: // update page preViews
-		if AppArgs.PageView {
+		if AppArgs.Screenshot {
 			if val = aRequest.FormValue("abort"); 0 < len(val) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 				return
@@ -945,7 +945,7 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 		`r`, `rp`, // posting's removal
 		`share`,    // share another URL
 		`si`, `ss`, // store images, store static data
-		`v`, `pv`, // update pageView
+		`v`, `pv`, // update Screenshot
 		`x`, `xp`, `xt`: // eXchange #tags/@mentions
 		return true
 	}
