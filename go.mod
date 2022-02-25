@@ -11,7 +11,7 @@ require (
 	github.com/mwat56/ini v1.5.2
 	github.com/mwat56/jffs v0.1.3
 	github.com/mwat56/passlist v1.3.6
-	github.com/mwat56/screenshot v0.1.2
+	github.com/mwat56/screenshot v0.2.0
 	github.com/mwat56/uploadhandler v1.1.8
 	github.com/mwat56/whitespace v0.2.3
 	github.com/russross/blackfriday/v2 v2.1.0
@@ -28,7 +28,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220224120231-95c6836cb0e7 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 )
 
