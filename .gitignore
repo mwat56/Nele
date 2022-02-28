@@ -11,6 +11,7 @@ certs/*
 *.db
 error.*
 .git/
+.github/
 img/*
 *.ini
 *.log
