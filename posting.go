@@ -262,7 +262,7 @@ func (p *TPosting) Equal(aID string) bool {
 // Exists returns whether there is a file with more than zero bytes.
 func (p *TPosting) Exists() bool {
 	fi, err := os.Stat(p.PathFileName())
-	if (nil != err) || fi.IsDir() {
+	if (nil != err) || (!fi.Mode().IsRegular()) {
 		return false
 	}
 
