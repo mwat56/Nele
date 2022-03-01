@@ -40,7 +40,7 @@ And, I wanted no external dependencies (like databases etc.). –
 And, I didn't care for Windows<sup>(tm) </sup> compatibility since I left the MS-platform about 25 years ago after using it in the 80s and early 90s of the last century.
 (But who, in his right mind, would want to run a web-service on such a platform anyway?)
 
-That's how I ended up with this little blog-system (for lack of a better word; or: diary, notes, …).
+That's how I ended up with this little blog-system (for lack of a better word; or: "diary", "notes", …).
 It's a system that lets you write and add articles from both the command line and a web-interface.
 It provides options to add, modify and delete entries using a user/password list for authentication when accessing certain URLs in this system.
 Articles can be added, edited (e.g. for correcting typos etc.), or removed altogether.
@@ -49,7 +49,7 @@ If you don't like the styles coming with the package you can, of course, change 
 The articles you write are then available on the net as _web-pages_.
 
 It is not, however, a discussion platform.
-It's supposed to be used as a publication platform, not some kind of _social media_.
+It's supposed to be used as a publication platform, not some kind of _social media_ (where people thrive on insulting each other).
 So I intentionally didn't bother with comments or discussion threading.
 
 ## Features
@@ -259,11 +259,6 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 	# NOTE: This is merely a debugging aid and should normally be `false`.
 	logStack = true
 
-	# Use preview images of linked pages.
-	# NOTE: This feature depends on the external `wkhtmltoimage` binary;
-	# for more details see: https://godoc.org/github.com/mwat56/pageview
-	pageView = true
-
 	# The IP port to listen to.
 	port = 8181
 
@@ -276,6 +271,11 @@ There is an INI file called `nele.ini` coming with the package, where you can st
 
 	# Name of host/domain to secure by BasicAuth.
 	realm = "This Host"
+
+	# Use screenshot images of linked pages.
+	# NOTE: This feature depends on the external `wkhtmltoimage` binary;
+	# for more details see: https://godoc.org/github.com/mwat56/screenshot
+	Screenshot = true
 
 	# Web/display theme ("dark" or "light").
 	theme = dark
@@ -291,7 +291,7 @@ The program, when started, will first look for the INI file in five different pl
 4. in the current user's configuration directory (e.g. `$HOME/.config/nele.ini`),
 5. in the `-ini <filename>` commandline option (if given).
 
-All these files (_if they exist_) are read in the given order at startup before finally parsing the commandline options shown earlier.
+All these files (_if they exist_) are read in the given order at startup before finally parsing the commandline options shown above.
 So each step overwrites the previous one, the commandline options having the highest priority. –
 But let's look at some of the commandline options more closely.
 
@@ -320,27 +320,23 @@ These two options (`-pa` and `-pf`) are only usable from the commandline.
 
 ### Authentication
 
-Why, you may ask, would you need an username/password file anyway?
-Well, you remember me mentioning that you can add, edit and delete articles?
-You wouldn't want _anyone_ on the net being able to do that, now, would you?
-For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_.
-(Better safe than sorry, right?)
+Why, you may ask, would you need an username/password file anyway? Well, you remember me mentioning that you can add, edit and delete articles? You wouldn't want _anyone_ on the net being able to do that, now, would you? For that reason, whenever there's no password file given (either in the INI file or the command-line) all functionality requiring authentication will be _disabled_. (Better safe than sorry, right?)
 
-_Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both are different.
+> _Note_ that the password file generated and used by this system resembles the `htpasswd` used by the Apache web-server, but both files are _not_ interchangeable because the actual encryption algorithms used by both respectively are different.
 
 ### User/password file & handling
 
-Only usable from the commandline are the `-uXX` options, most of which need a username and the name of the password file to use. –
-_Note_ that whenever you're prompted to input a password this will _not_ be echoed to the console.
+Only usable from the commandline are the `-uXX` options, most of which need a username and the name of the password file to use.
+> _Note_ that whenever you're prompted to input a password this will _not_ be echoed to the console.
 
 The `-ua` option allows you to add an user/password pair:
 
-    $ ./nele -ua testuser1 -uf pwaccess.db
+	$ ./nele -ua testuser1 -uf pwaccess.db
 
-     password:
-    repeat pw:
-        added 'testuser1' to list
-    $ _
+	   password:
+	  repeat pw:
+		added 'testuser1' to list
+	$ _
 
 Again: The password input is not echoed to the console, therefore you don't see it.
 
@@ -348,57 +344,57 @@ Since we have the `passfile` setting already in our INI file (see above) we can 
 
 With `-uc` you can check a user's password:
 
-    $ ./nele -uc testuser1
+	$ ./nele -uc testuser1
 
-     password:
-        'testuser1' password check successful
-    $ _
+	password:
+		'testuser1' password check successful
+	$ _
 
 This `-uc` you'll probably never actually use, it was just easy to implement.
 
 If you want to remove an user account the `-ud` will do the trick (i.e. delete a user):
 
-    $ ./nele -ud testuser1
-        removed 'testuser1' from list
-    $ _
+	$ ./nele -ud testuser1
+		removed 'testuser1' from list
+	$ _
 
 When you want to know which users are stored in your password file `-ul` is your friend:
 
-    $ ./nele -ul
-    matthias
+	$ ./nele -ul
+	matthias
 
-    $ _
+	$ _
 
 Since we deleted the `testuser1` before only one entry remains.
 
 That only leaves `-uu` to update (change) a user's password.
 
-    $ ./nele -ua testuser2
+	$ ./nele -ua testuser2
 
-     password:
-    repeat pw:
-        added 'testuser2' to list
+	password:
+	repeat pw:
+		added 'testuser2' to list
 
-    $ ./nele -uu testuser2
+	$ ./nele -uu testuser2
 
-     password:
-    repeat pw:
-        updated user 'testuser2' in list
+	   password:
+	  repeat pw:
+		updated user 'testuser2' in list
 
-    $ ./nele -ul
-    matthias
-    testuser2
+	$ ./nele -ul
+	matthias
+	testuser2
 
-    $ _
+	$ _
 
 First we added (`-ua`) a new user, then we updated the password (`-uu`), and finally we asked for the list of users (`-ul`).
 
 ### Page/link previews
 
-If you set the `pageView` INI- or commandline-option to `true` there will be a preview image generated – by way of calling the external [wkhtmltoimage](https://wkhtmltopdf.org/index.html) commandline utility.
+If you set the `Screenshot` INI- or commandline-option to `true` there will be a preview image generated – by way of calling the [ChromeDP](https://github.com/chromedp/chromedp) library.
 Those image files are stored locally (in the `./img/` directory) and may be used as often as you want.
 
-> **Note** that preview images are created only for links in a _blockquote_ section:
+> **Note** that screenshot images are created only for links in a _blockquote_ section:
 >
 >	`> [link text](http://www.example.org/one.html)`
 >
@@ -414,17 +410,11 @@ Those image files are stored locally (in the `./img/` directory) and may be used
 >
 > This restriction was introduced to avoid messing up the overall layout of a posting: It wouldn't look good if every link in a sentence would be replaced by an image.
 
-The commandline utility [wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) is  **_required_**  for this `pageView` option to work.
-Under Linux this utility is usually part of your distribution.
-If not, you can [download wkhtmltoimage](https://wkhtmltopdf.org/downloads.html) from the web and install it.
-Sometimes the package from the download page above is more recent than the version in your Linux distribution.
-If in doubt, I'd suggest to test both versions to determine which one to use and works best for you.
+The Go library controlling a headless instance of the `Chrome` browser is [ChromeDP](https://github.com/chromedp/chromedp) and is  _required_  for this package to work. Under Linux this browser is usually part of your distribution (as `chromium-browser`).
 
-Generating a preview image usually takes between one and five seconds, depending on the actual web-page in question, however, it can take considerably longer.
-To avoid hanging the program the `wkhtmltoimage` executable is called with an one minute timeout.
+Generating a screenshot image usually takes between one and five seconds, depending on the actual web-page in question, bandwidth, traffic etc.; however, it can take considerably longer. To avoid hanging the program the `CreateImage()` function uses a timeout of half a minute by default.
 
-And, finally, not all web-pages can be rendered properly and turned into an image.
-In such case `wkhtmltoimage` usually just crashes and the link in your posting just remains as is (i.e. a normal text link w/o preview).
+And, finally, not all web-pages can be rendered properly and turned into an image. In such a case `ChromeDP` usually aborts with an error and the link in your posting just remains as is (i.e. a normal text link w/o preview/screenshot).
 
 ## Configuration
 
@@ -482,12 +472,12 @@ Since you don't usually know/remember the article ID you'll first go to show the
 * `/il/` (init list): Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist.
 It clears the current list and reads all postings to extract the #hashtags and @mentions.
 _Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
-* `/pv/` (pageView): Assuming you set the `pageview` INI-/commandline-option to `true` this shows you a simple HTML form by which you can start a background process checking all postings for page preview images.
+* `/pv/` (preview): Assuming you set the `Screenshot` INI-/commandline-option to `true` this shows you a simple HTML form by which you can start a background process checking all postings for page preview/screenshot images.
 Again, this was implemented as a debugging aid and you won't usually use this option.
 * `/rp/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
 _Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
 * `/share/https://some.host.domain/somepage` lets you share another page URL.
-Whatever you write after the initial `/share/` is considered a remote URL, and a new article will be created and shown for you to edit.
+Whatever you write after the initial `/share/` is assumed to be a remote URL, and a new article will be created and shown for you to edit.
 * `/si/` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
 Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
 * `/ss/` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
@@ -536,7 +526,7 @@ The `datadir`/`fonts/` directory contains some freely available fonts used by th
 The `datadir`/`img/` directory can be used to store, well, _images_ to which you then can link in your articles.
 You can put there whatever images you like either from the command-line or by using the system's `/si` URL.
 
-Additionally any page preview images are stored here (if use set the `pageView` INI- or commandline-option to `true`).
+Additionally any page preview/screenshot images are stored here (if set the `Screenshot` INI- or commandline-option to `true`).
 
 ### Postings
 
@@ -568,6 +558,7 @@ The following external libraries were used building `Nele`:
 
 * [ApacheLogger](https://github.com/mwat56/apachelogger)
 * [BlackFriday](https://gopkg.in/russross/blackfriday.v2)
+* [ChromeDP](https://github.com/chromedp/chromedp)
 * [Crypto](https://golang.org/x/crypto)
 * [CSSfs](https://github.com/mwat56/cssfs)
 * [ErrorHandler](https://github.com/mwat56/errorhandler)
@@ -575,15 +566,15 @@ The following external libraries were used building `Nele`:
 * [Hashtags](https://github.com/mwat56/hashtags)
 * [INI](https://github.com/mwat56/ini)
 * [Jffs](https://github.com/mwat56/jffs)
-* [PageView](https://github.com/mwat56/pageview)
 * [PassList](https://github.com/mwat56/passlist)
+* [ScreenShot](https://github.com/mwat56/screenshot)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
 * [WhiteSpace](https://github.com/mwat56/whitespace)
 * [wkHtmlToImage](https://wkhtmltopdf.org/)
 
 ## Licence
 
-    Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+    Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                     All rights reserved
                 EMail : <support@mwat.de>
 

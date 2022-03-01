@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/mwat56/apachelogger v1.6.0
+	github.com/mwat56/apachelogger v1.6.1
 	github.com/mwat56/cssfs v0.2.6
 	github.com/mwat56/errorhandler v1.1.9
 	github.com/mwat56/hashtags v0.6.1

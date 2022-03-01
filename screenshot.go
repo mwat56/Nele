@@ -198,35 +198,6 @@ func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string
 	return
 } // prepPostText()
 
-// RemovePageScreenshots deletes the images used in `aPosting`.
-//
-//	`aPosting` The posting the image(s) of which are going to be deleted.
-func RemovePageScreenshots(aPosting *TPosting) {
-	if (nil == aPosting) || (0 == aPosting.Len()) {
-		return
-	}
-
-	var ( // re-use variables
-		err   error
-		fi    os.FileInfo
-		fName string
-		list  tImgURLlist
-		pair  tImgURL
-	)
-
-	if list = checkScreenshotURLs(aPosting.Markdown()); 0 == len(list) {
-		return
-	}
-
-	for _, pair = range list {
-		fName = screenshot.PathFile(pair.pageURL)
-		if fi, err = os.Stat(fName); (nil != err) || fi.IsDir() {
-			continue
-		}
-		_ = os.Remove(fName)
-	}
-} // RemovePageScreenshots()
-
 var (
 	// R/O RegEx to extract link-text and link-URL from markup.
 	// Checking for the not-existence of the leading `!` should exclude
@@ -263,6 +234,35 @@ func PrepareLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
 	go goSetLinkScreenshots(aPosting, aImageURLdir)
 	runtime.Gosched() // get the background operation started
 } // PrepareLinkScreenshots()
+
+// RemovePageScreenshots deletes the images used in `aPosting`.
+//
+//	`aPosting` The posting the image(s) of which are going to be deleted.
+func RemovePageScreenshots(aPosting *TPosting) {
+	if (nil == aPosting) || (0 == aPosting.Len()) {
+		return
+	}
+
+	var ( // re-use variables
+		err   error
+		fi    os.FileInfo
+		fName string
+		list  tImgURLlist
+		pair  tImgURL
+	)
+
+	if list = checkScreenshotURLs(aPosting.Markdown()); 0 == len(list) {
+		return
+	}
+
+	for _, pair = range list {
+		fName = screenshot.PathFile(pair.pageURL)
+		if fi, err = os.Stat(fName); (nil != err) || fi.IsDir() {
+			continue
+		}
+		_ = os.Remove(fName)
+	}
+} // RemovePageScreenshots()
 
 // UpdateScreenshots starts the process to update the screenshot images
 // in all postings.

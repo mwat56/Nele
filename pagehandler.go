@@ -743,7 +743,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
 		}
 
-	case `pv`: // update page preViews
+	case `pv`: // update page previews/screenshots
 		if AppArgs.Screenshot {
 			if val = aRequest.FormValue("abort"); 0 < len(val) {
 				http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
