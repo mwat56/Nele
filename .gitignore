@@ -16,6 +16,7 @@ img/*
 *.ini
 *.log
 *.log.gz
+logs/
 Markdown_Syntax.*
 md2htm
 *.min.css
