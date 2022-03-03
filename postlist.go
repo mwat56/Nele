@@ -1,9 +1,8 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
                All rights reserved
            EMail : <support@mwat.de>
 */
-
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -32,15 +31,29 @@ type (
 	TPostList []TPosting
 )
 
+/* * /
+const (
+	//TODO make this a `TPostList` property:
+	plAscending  int = 1
+	plDescending int = -1
+	plNone       int = 0
+)
+/* */
+
 // Add appends `aPosting` to the list.
 //
 //	`aPosting` contains the actual posting's text.
 func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 	*pl = append(*pl, *aPosting)
 
+	// We need an explicit return value (despite the in-place
+	// modification of `pl`) ro allow for command chaining like
+	// `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
 	return pl
 } // Add()
 
+/*
+//TODO remove unused method
 // Article adds the posting identified by `aID` to the list.
 //
 //	`aID` is the ID of the posting to add to this list.
@@ -49,6 +62,7 @@ func (pl *TPostList) Article(aID string) *TPostList {
 
 	return pl
 } // Article()
+*/
 
 // Day adds all postings of the current day to the list.
 func (pl *TPostList) Day() *TPostList {
@@ -65,17 +79,19 @@ func (pl *TPostList) Day() *TPostList {
 //
 //	`aPosting` is the posting o remove from this list.
 func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
-	// we ignore the very first list entry (hold the base directory)
-	if idx := pl.Index(aPosting); 0 < idx {
-		if (len(*pl) - 1) == idx { // len - 1: because list is zero-based
-			*pl = (*pl)[:idx] // last list entry
+	if idx := pl.Index(aPosting); 0 <= idx {
+		if 0 == idx {
+			*pl = (*pl)[1:] // remove first list entry
+		} else if (len(*pl) - 1) == idx { // len - 1: because list is zero-based
+			*pl = (*pl)[:idx] // omit last list entry
 		} else {
 			*pl = append((*pl)[:idx], (*pl)[idx+1:]...)
 		}
-		return pl, true
+
+		return pl, true // `aPosting` found and removed
 	}
 
-	return pl, false
+	return pl, false // `aPosting` not found in list
 } // Delete()
 
 var (
@@ -312,7 +328,7 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// `bgAddPosting()` is a function adding a new posting to `aPostList`.
+// `bgAddPosting()` adds a new posting (with `aID`) to `aPostList`.
 //
 //	`aPostList` is the `TPostList` instance to add to.
 //	`aID` is the identifier of the new posting to add;
@@ -356,7 +372,7 @@ func SearchPostings(aText string) *TPostList {
 	)
 	result := NewPostList()
 
-	if pattern, err = regexp.Compile(fmt.Sprintf("(?s)%s", aText)); err != nil {
+	if pattern, err = regexp.Compile(fmt.Sprintf("(?s)%s", aText)); nil != err {
 		return result // empty list
 	}
 
@@ -371,12 +387,12 @@ func SearchPostings(aText string) *TPostList {
 		for _, fName = range fNames {
 			fTxt, err = ioutil.ReadFile(fName) // #nosec G304
 			if (nil != err) || (!pattern.Match(fTxt)) {
-				// We 'eat' possible errors here, indirectly
-				// assuming them to be a no-match.
+				// We 'eat' possible errors here, thus
+				// implicitely assuming them to be a no-match.
 				continue
 			}
 			id = path.Base(fName)
-			p = NewPosting(id[:len(id)-3]) // exclude file extension
+			p = NewPosting(id[:len(id)-3]) // exclude extension `.md`
 			result.Add(p.Set(fTxt))
 		}
 	}
