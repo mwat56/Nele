@@ -74,7 +74,8 @@ var (
 	// set up by a call to `InitConfig()`.
 	AppArgs TAppArgs
 
-	// iniValues is the list for the cmdline arguments and INI values.
+	// iniValues is the list for the cmdline arguments and INI values
+	// used during program startup.
 	iniValues tArguments
 )
 
@@ -162,7 +163,8 @@ func init() {
 } // init()
 */
 
-// `copyAppArgs2IniData()` copies the commandline values into the `TAppArgs` instance.
+// `copyAppArgs2IniData()` copies the commandline values into the
+// global `TAppArgs` instance.
 func copyAppArgs2IniData() {
 	var ( // re-use variables
 		err error
@@ -220,6 +222,8 @@ func copyAppArgs2IniData() {
 	}
 	switch AppArgs.Lang {
 	case `de`, `en`:
+		// accepted values
+
 	default:
 		AppArgs.Lang = `en`
 	}
@@ -239,26 +243,6 @@ func copyAppArgs2IniData() {
 		AppArgs.MaxFileSize = kmg2Num(AppArgs.mfs)
 	}
 
-	if AppArgs.Screenshot {
-		// screenshot.SetImageAge(0) // default
-		screenshot.SetImageDir(absolute(AppArgs.DataDir, `img`))
-		// screenshot.SetJavaScript(false) // default
-		screenshot.SetImageQuality(100)
-		screenshot.SetScrollbars(true)
-		// Doesn't work with Facebook:
-		// screenshot.SetUserAgent(`Lynx/2.8.9dev.16 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
-
-		// Doesn't work with Twitter:
-		// screenshot.SetUserAgent(`Lynx/2.9.0dev.5 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.5.17`)
-		// see: https://lynx.invisible-island.net/current/CHANGES.html
-
-		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72`)
-		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36`)
-		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0`)
-		// screenshot.SetUserAgent(`Opera/9.80 (X11; Linux i686; U; en-GB) Presto/2.8.131 Version/11.10`)
-		// screenshot.SetUserAgent(`Mozilla/5.0 (X11; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0`) // Default
-	}
-
 	if 0 < len(AppArgs.PostFile) {
 		AppArgs.PostFile = absolute(AppArgs.DataDir, AppArgs.PostFile)
 	}
@@ -267,12 +251,17 @@ func copyAppArgs2IniData() {
 		AppArgs.Realm = `My Blog`
 	}
 
+	if AppArgs.Screenshot {
+		processScreenshotOptions()
+	}
+
 	if 0 < len(AppArgs.Theme) {
 		AppArgs.Theme = strings.ToLower(AppArgs.Theme)
 	}
 	switch AppArgs.Theme {
 	case `dark`, `light`:
 		// accepted values
+
 	default:
 		AppArgs.Theme = `dark`
 	}
@@ -304,7 +293,7 @@ func copyAppArgs2IniData() {
 // This function is meant to be called first thing in the application's
 // `main()` function.
 func InitConfig() {
-	const appName string = "nele"
+	const appName string = `nele`
 	flag.CommandLine = flag.NewFlagSet(appName, flag.ExitOnError)
 	iniValues = tArguments{*ini.ReadIniData(appName)}
 
@@ -318,6 +307,38 @@ func parseCmdlineArgs() {
 	flag.CommandLine.Usage = ShowHelp
 	_ = flag.CommandLine.Parse(os.Args[1:])
 } // parseCmdlineArgs()
+
+// `processScreenshotOptions()` handles the INI- and commandline options
+// for the screenshot facility.
+func processScreenshotOptions() {
+	// Don't depend on defaults set by the package
+	ssOptions := screenshot.Options()
+
+	//TODO make this values configurable by INI and cmdline.
+
+	ssOptions.AcceptOther = true
+	ssOptions.CertErrors = true
+	ssOptions.Cookies = true
+	ssOptions.HostsAvoidJSfile = absolute("./", screenshot.HostsAvoidJS)
+	ssOptions.HostsNeedJSfile = absolute("./", screenshot.HostsNeedJS)
+	ssOptions.ImageAge = 0
+	ssOptions.ImageDir = absolute(AppArgs.DataDir, `img`)
+	ssOptions.ImageHeight = 800
+	ssOptions.ImageOverwrite = false
+	ssOptions.ImageQuality = 75
+	ssOptions.ImageScale = 0
+	ssOptions.ImageWidth = 800
+	ssOptions.JavaScript = false
+	ssOptions.MaxProcessTime = 32
+	ssOptions.Mobile = true
+	ssOptions.Platform = screenshot.DefaultPlatform
+	ssOptions.Scrollbars = false
+	// We need an agent that is accepted by `Facebook`, `Twitter`,
+	// and `Youtube` at least because still a lot of sites do some
+	// sort of browser-sniffing (instead of capability checking).
+	ssOptions.UserAgent = screenshot.DefaultAgent
+	ssOptions.Do() // activate the settings
+} // processScreenshotOptions()
 
 // `readCmdlineArgs()` reads the commandline arguments into a list
 // structure merging it with key-value pairs read from INI file(s).
@@ -430,7 +451,9 @@ func readCmdlineArgs() {
 
 	AppArgs.Screenshot, _ = iniValues.AsBool(`Screenshot`)
 	flag.CommandLine.BoolVar(&AppArgs.Screenshot, `pv`, AppArgs.Screenshot,
-		"<boolean> Use page preview images for links")
+		"<boolean> Use page preview/screenshot images for links")
+
+	//TODO implement various screenshot options
 
 	if AppArgs.Realm, ok = iniValues.AsString(`realm`); (!ok) || (0 == len(AppArgs.Realm)) {
 		AppArgs.Realm = `My Blog`
