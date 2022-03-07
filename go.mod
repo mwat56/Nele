@@ -11,14 +11,14 @@ require (
 	github.com/mwat56/ini v1.5.2
 	github.com/mwat56/jffs v0.1.3
 	github.com/mwat56/passlist v1.3.7
-	github.com/mwat56/screenshot v0.4.2
+	github.com/mwat56/screenshot v0.4.3
 	github.com/mwat56/uploadhandler v1.1.9
 	github.com/mwat56/whitespace v0.2.3
 	github.com/russross/blackfriday/v2 v2.1.0
 )
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20220228194516-ead8cf59b1fa // indirect
+	github.com/chromedp/cdproto v0.0.0-20220304215434-892afa710589 // indirect
 	github.com/chromedp/chromedp v0.7.8 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
