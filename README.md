@@ -543,7 +543,7 @@ You can put there whatever file you like either from the command-line or by usin
 
 The `datadir`/`views/` directory holds the templates with which the final HTML pages are generated.
 Provided that you feel at home working with _Go_ templates you might change them as you see fit.
-I will, however, __not__ provide any support for you changing the default template structure.
+I will, however, _not_  provide any support for you changing the default template structure.
 
 A concise overview of the used templates and which variables they use you'll find in the file [template_vars.md](template_vars.md)
 
