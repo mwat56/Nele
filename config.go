@@ -274,8 +274,6 @@ func copyAppArgs2IniData() {
 		// Print out the arguments and terminate:
 		log.Fatalf("runtime arguments:\n%s", AppArgs.String())
 	}
-
-	flag.CommandLine = nil // free unneeded memory
 } // copyAppArgs2IniData()
 
 // InitConfig reads both the INI values and the commandline arguments.
@@ -294,7 +292,6 @@ func copyAppArgs2IniData() {
 // `main()` function.
 func InitConfig() {
 	const appName string = `nele`
-	flag.CommandLine = flag.NewFlagSet(appName, flag.ExitOnError)
 	iniValues = tArguments{*ini.ReadIniData(appName)}
 
 	readCmdlineArgs()
@@ -302,7 +299,7 @@ func InitConfig() {
 	copyAppArgs2IniData()
 } // InitConfig()
 
-// `parseCmdlineArgs()` parsed the actual commandline arguments.
+// `parseCmdlineArgs()` parses the actual commandline arguments.
 func parseCmdlineArgs() {
 	flag.CommandLine.Usage = ShowHelp
 	_ = flag.CommandLine.Parse(os.Args[1:])
@@ -317,10 +314,10 @@ func processScreenshotOptions() {
 	//TODO make this values configurable by INI and cmdline.
 
 	ssOptions.AcceptOther = true
-	ssOptions.CertErrors = true
-	ssOptions.Cookies = true
-	ssOptions.HostsAvoidJSfile = absolute("./", screenshot.HostsAvoidJS)
-	ssOptions.HostsNeedJSfile = absolute("./", screenshot.HostsNeedJS)
+	ssOptions.CertErrors = false
+	ssOptions.Cookies = false
+	ssOptions.HostsAvoidJSfile = absolute(`./`, screenshot.HostsAvoidJS)
+	ssOptions.HostsNeedJSfile = absolute(`./`, screenshot.HostsNeedJS)
 	ssOptions.ImageAge = 0
 	ssOptions.ImageDir = absolute(AppArgs.DataDir, `img`)
 	ssOptions.ImageHeight = 800
@@ -330,7 +327,7 @@ func processScreenshotOptions() {
 	ssOptions.ImageWidth = 800
 	ssOptions.JavaScript = false
 	ssOptions.MaxProcessTime = 32
-	ssOptions.Mobile = true
+	ssOptions.Mobile = false // !important
 	ssOptions.Platform = screenshot.DefaultPlatform
 	ssOptions.Scrollbars = false
 	// We need an agent that is accepted by `Facebook`, `Twitter`,
