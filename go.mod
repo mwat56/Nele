@@ -11,7 +11,7 @@ require (
 	github.com/mwat56/ini v1.5.3
 	github.com/mwat56/jffs v0.1.4
 	github.com/mwat56/passlist v1.3.8
-	github.com/mwat56/screenshot v0.4.5
+	github.com/mwat56/screenshot v0.4.6
 	github.com/mwat56/uploadhandler v1.1.9
 	github.com/mwat56/whitespace v0.2.3
 	github.com/russross/blackfriday/v2 v2.1.0
