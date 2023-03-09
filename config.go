@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-               EMail : <support@mwat.de>
+Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
+
+	   All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -281,10 +282,12 @@ func copyAppArgs2IniData() {
 // The steps here are:
 //
 // (1) read the INI file(s):
+//
 //	(a) read the local `./.nele.ini`,
 //	(b) read the global `/etc/nele.ini`,
 //	(c) read the user-local `~/.nele.ini`,
 //	(d) read the user-local `~/.config/nele.ini`,
+//
 // (2) merge the commandline arguments with the INI values into
 // the global `AppArgs` variable.
 //
@@ -331,7 +334,7 @@ func processScreenshotOptions() {
 	ssOptions.Platform = screenshot.DefaultPlatform
 	ssOptions.Scrollbars = false
 	// We need an agent that is accepted by `Facebook`, `Twitter`,
-	// and `Youtube` at least because still a lot of sites do some
+	// and `YouTube` at least because still a lot of sites do some
 	// sort of browser-sniffing (instead of capability checking).
 	ssOptions.UserAgent = screenshot.DefaultAgent
 	ssOptions.Do() // activate the settings
