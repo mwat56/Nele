@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
                   All rights reserved
               EMail : <support@mwat.de>
 */
@@ -148,7 +148,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
 
 	if AppArgs.Screenshot {
-		UpdateScreenshots(PostingBaseDirectory(), `/img/`) // background operation
+		UpdateScreenshots(PostingBaseDirectory()) // background operation
 	}
 
 	if 0 == len(AppArgs.UserFile) {
@@ -375,7 +375,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply(`faq`, aWriter, pageData)
 
 	case "favicon.ico":
-		http.Redirect(aWriter, aRequest, `/img/`+path,
+		http.Redirect(aWriter, aRequest,
+			`/img/`+path,
 			http.StatusMovedPermanently)
 
 	case "fonts":
@@ -650,7 +651,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
 			}
 			if AppArgs.Screenshot {
-				PrepareLinkScreenshots(p, "/img/")
+				PrepareLinkScreenshots(p)
 			}
 			AddTagID(ph.hashList, p)
 
@@ -693,7 +694,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		RenameIDTags(ph.hashList, op.ID(), np.ID())
 		if AppArgs.Screenshot {
-			PrepareLinkScreenshots(np, "/img/")
+			PrepareLinkScreenshots(np)
 		}
 
 		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
@@ -723,7 +724,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 		}
 		if AppArgs.Screenshot {
-			PrepareLinkScreenshots(p, "/img/")
+			PrepareLinkScreenshots(p)
 		}
 		UpdateTags(ph.hashList, p)
 
@@ -750,7 +751,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				return
 			}
 
-			UpdateScreenshots(PostingBaseDirectory(), `/img/`)
+			UpdateScreenshots(PostingBaseDirectory())
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
