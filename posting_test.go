@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -103,8 +104,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 1820},
-		{" 2", 1820},
+		{" 1", 1821},
+		{" 2", 1821},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
