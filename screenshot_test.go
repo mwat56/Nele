@@ -1,7 +1,8 @@
 /*
-   Copyright © 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2022, 2023 M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -102,7 +103,7 @@ func Test_goUpdateAllLinkScreenshots(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goUpdateAllLinkScreenshots(tt.args.aPostingBaseDir, tt.args.aImageURLdir)
+			goUpdateAllLinkScreenshots(tt.args.aPostingBaseDir /*, tt.args.aImageURLdir*/)
 			time.Sleep(time.Second)
 		})
 	}
@@ -143,7 +144,7 @@ func Test_goSetLinkScreenshots(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goSetLinkScreenshots(tt.args.aPosting, tt.args.aImageDirectory)
+			goSetLinkScreenshots(tt.args.aPosting /*, tt.args.aImageDirectory*/)
 		})
 	}
 } // Test_goSetLinkScreenshots()

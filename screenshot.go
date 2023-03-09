@@ -1,7 +1,8 @@
 /*
-   Copyright © 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2022, 2023 M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -38,6 +39,7 @@ type (
 // in the text of `aPosting` actually exists locally.
 //
 //	`aPosting` The posting the text of which is searched for
+//
 // a local image link.
 func checkScreenshots(aPosting *TPosting) {
 	if nil == aPosting {
@@ -94,8 +96,7 @@ func goCreateScreenshot(aURL string) {
 // of `aPosting` to include a page screenshot image (if available).
 //
 //	`aPosting` The posting the text of which is going to be processed.
-//	`aImageURLdir` The URL directory for page screenshot images.
-func goSetLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
+func goSetLinkScreenshots(aPosting *TPosting) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
 	}
@@ -103,6 +104,7 @@ func goSetLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
 	url := `` // re-use in loop below
 	linkMatches := ssLinkRE.FindAllSubmatch(aPosting.Markdown(), -1)
 	if (nil != linkMatches) && (0 < len(linkMatches)) {
+		imgDir := screenshot.ImageDir()
 		for l, cnt := len(linkMatches), 0; cnt < l; cnt++ {
 			url = string(linkMatches[cnt][3])
 			if !ssSchemeRE.MatchString(url) {
@@ -114,7 +116,7 @@ func goSetLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
 					linkText: string(linkMatches[cnt][2]),
 					linkURL:  url,
 				},
-				aImageURLdir)
+				imgDir)
 		}
 	}
 
@@ -127,9 +129,9 @@ func goSetLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
 // all postings to use a page screenshot image (if available).
 //
 //	`aPostingBaseDir` is the base directory used for storing
+//
 // articles/postings.
-//	`aImageURLdir` is the local URL directory for page screenshot images.
-func goUpdateAllLinkScreenshots(aPostingBaseDir, aImageURLdir string) {
+func goUpdateAllLinkScreenshots(aPostingBaseDir string) {
 	var ( // re-use variables in loops below
 		err                 error
 		dName, fName, pName string
@@ -149,7 +151,7 @@ func goUpdateAllLinkScreenshots(aPostingBaseDir, aImageURLdir string) {
 			fName = filepath.Base(pName)
 			p = NewPosting(fName[:len(fName)-3]) // strip name extension
 			if err = p.Load(); nil == err {
-				goSetLinkScreenshots(p, aImageURLdir)
+				goSetLinkScreenshots(p)
 			} // ELSE ignore the error here …
 		}
 	}
@@ -198,6 +200,19 @@ func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string
 	return
 } // prepPostText()
 
+// // `validateScreenshot()` implements two purposes:
+// // (a) it checks whether a certain article contains screenshots;
+// // (b) it checks whether the screenshot image is  formally correct
+// // (e.g. `png` vs. `jpeg`).
+// func validateScreenshot(aImgDir string) {
+// 	/*
+// 		+ walk through all posting dirs
+// 		+ + check each posting for links
+// 		+ +
+
+// 	*/
+// } // validateScreenshot()
+
 var (
 	// R/O RegEx to extract link-text and link-URL from markup.
 	// Checking for the not-existence of the leading `!` should exclude
@@ -229,9 +244,8 @@ func CreateScreenshot(aURL string) {
 // to include page screenshot image(s) (if available).
 //
 //	`aPosting` The posting the text of which is going to be processed.
-//	`aImageURLdir`The URL directory for page screenshot images.
-func PrepareLinkScreenshots(aPosting *TPosting, aImageURLdir string) {
-	go goSetLinkScreenshots(aPosting, aImageURLdir)
+func PrepareLinkScreenshots(aPosting *TPosting) {
+	go goSetLinkScreenshots(aPosting)
 	runtime.Gosched() // get the background operation started
 } // PrepareLinkScreenshots()
 
@@ -268,11 +282,11 @@ func RemovePageScreenshots(aPosting *TPosting) {
 // in all postings.
 //
 //	`aPostingBaseDir` The base directory used for storing
+//
 // articles/postings.
-//	`aImageURLdir` The URL directory for page screenshot images.
-func UpdateScreenshots(aPostingBaseDir, aImgURLdir string) {
-	go goUpdateAllLinkScreenshots(aPostingBaseDir, aImgURLdir)
+func UpdateScreenshots(aPostingBaseDir string) {
+	go goUpdateAllLinkScreenshots(aPostingBaseDir)
 	runtime.Gosched() // get the background operation started
-} // UpdateLinkScreenshots()
+} // UpdateScreenshots()
 
 /* _EoF_ */
