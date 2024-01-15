@@ -192,7 +192,7 @@ dl,
 ol,
 ul {
 	font-size: 1em;
-	margin: 1ex 0 1ex 1ex;
+	margin: 1ex 0 1ex 2ex;
 	page-break-before: avoid;
 }
 dl,
@@ -415,6 +415,16 @@ small,
 	font-size: 79%;
 	font-weight: inherit;
 }
+
+sub {
+	font-size: smaller;
+	vertical-align: sub;
+}
+sup {
+	font-size: smaller;
+	vertical-align: super;
+}
+
 textarea#manuscript {
 	height: 94ex;
 	max-height: 45em;
@@ -501,6 +511,14 @@ pre#preview {
 .error {
 	padding: 1em 0 1em 0;
 }
+
+div.footnotes,
+.footnotes ol,
+.footnotes ol li {
+	margin-left: 1ex;
+	padding-left: 1ex;
+}
+
 a.idlink {
 	clear: left;
 	float: left;
@@ -540,6 +558,17 @@ p.PostingCount {
 }
 a.smaller {
 	hyphens: none;
+}
+
+sup.footnote-ref:after {
+	content: ")";
+}
+sup.footnote-ref:before {
+	content: "(";
+}
+sup.footnote-ref:hoover,
+sup[footnote-return]:hoover {
+	text-decoration: underline;
 }
 
 p.tc {
