@@ -1,5 +1,5 @@
 /*
-Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
 	    All rights reserved
 	EMail : <support@mwat.de>
@@ -104,8 +104,8 @@ func TestPostingCount(t *testing.T) {
 		wantRCount uint32
 	}{
 		// TODO: Add test cases.
-		{" 1", 1821},
-		{" 2", 1821},
+		{" 1", 1832},
+		{" 2", 1832},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
