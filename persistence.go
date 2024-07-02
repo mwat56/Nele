@@ -1,5 +1,5 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
 		All rights reserved
 	EMail : <support@mwat.de>
@@ -18,7 +18,8 @@ import (
 	//    "sync/atomic"
 	"syscall"
 	"time"
-	//    "github.com/mwat56/apachelogger"
+
+	se "github.com/mwat56/sourceerror"
 )
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -90,6 +91,9 @@ var (
 
 // `PostingBaseDirectory()` returns the base directory used for
 // storing the articles/postings.
+//
+// Returns:
+// - `string`: The base directory tu use.
 func PostingBaseDirectory() string {
 	return poPostingBaseDirectory
 } // PostingBaseDirectory()
@@ -97,11 +101,32 @@ func PostingBaseDirectory() string {
 // `SetPostingBaseDirectory()` sets the base directory used for
 // storing the articles/postings.
 //
-//	`aBaseDir` The base directory to use for storing articles/postings.
+// Parameters:
+// - `aBaseDir` The base directory to use for storing articles/postings.
+//
+// Returns:
+// - `error`: Any error that occurred during the setting of the base directory.
+//
+// Example:
+//
+//	// Set the base directory to "/path/to/new/base/directory"
+//	err := nele.SetPostingBaseDirectory("/path/to/new/base/directory")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	// Get the current base directory
+//	fmt.Println(nele.PostingBaseDirectory())
+//
+//	// Set the base directory back to the default value
+//	err = nele.SetPostingBaseDirectory("./postings")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
 func SetPostingBaseDirectory(aBaseDir string) error {
 	dir, err := filepath.Abs(aBaseDir)
 	if nil != err {
-		return err
+		return se.Wrap(err, 2)
 	}
 
 	poPostingBaseDirectory = dir
@@ -116,22 +141,38 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 //
 // A non-existing file is not considered an error here.
 //
-//	`aFileName` The name of the file to delete.
+// Parameters:
+// - `aFileName` The name of the file to delete.
+//
+// Returns:
+// - `error`: Any error that occurred during the deletion process.
 func delFile(aFileName string) error {
 	err := os.Remove(aFileName)
 	if nil != err {
 		if e, ok := err.(*os.PathError); ok && e.Err == syscall.ENOENT {
 			return nil
 		}
+		return se.Wrap(err, 5)
 	}
 	// atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
 
-	return err
+	return nil
 } // delFile()
 
+// `id2dir()` converts a given uint64 to a directory name.
+//
+// The function returns a directory name based on the provided uint64.
+// The directory name is constructed by joining the year and the hexadecimal
+// string representation of the provided uint64, with a "/" separator.
+//
+// Parameters:
+// - `aID`: A posting's ID to be converted to a directory name.
+//
+// Return Value:
+// - `string`: The directory name based on the `aID`.
 func id2dir(aID uint64) string {
 	fname := id2str(aID)
-	// Using the id's first three characters leads to
+	// Using the id's first four characters leads to
 	// directories worth about 52 days of data.
 	// We use the year to guard against ID overflows in a directory.
 	dir := fmt.Sprintf(`%04d%s`, id2time(aID).Year(), fname[:3])
@@ -139,6 +180,17 @@ func id2dir(aID uint64) string {
 	return path.Join(poPostingBaseDirectory, dir)
 } // id2dir()
 
+// `id2filename()` converts a given uint64 to a file name.
+//
+// The function returns a file name based on `aID`.
+// The file name is constructed by joining the directory and the hexadecimal
+// string representation of the provided uint64, with a ".md" extension.
+//
+// Parameters:
+// - `aID`: A posting's ID to be converted to a file name.
+//
+// Return Value:
+// - `string`: The file name based on the provided uint64.
 func id2filename(aID uint64) string {
 	dir := id2dir(aID)
 	fname := id2str(aID)
@@ -146,10 +198,20 @@ func id2filename(aID uint64) string {
 	return path.Join(dir, fname) + `.md`
 } // id2filename()
 
-func id2str(aID uint64) (id string) {
-	id = fmt.Sprintf("%x", aID)
-	if 16 > len(id) {
-		id = strings.Repeat("0", 16-len(id)) + id
+// `id2str()` converts a given uint64 to a hexadecimal string.
+//
+// The function returns a hexadecimal string representation of the
+// provided uint64.
+//
+// Parameters:
+// - `aID`: The uint64 value to be converted to a hexadecimal string.
+//
+// Return Value:
+// - `string`: The hexadecimal string representation of `aID`.
+func id2str(aID uint64) (rStr string) {
+	rStr = fmt.Sprintf("%x", aID)
+	if 16 > len(rStr) {
+		rStr = strings.Repeat("0", 16-len(rStr)) + rStr
 	}
 
 	return
@@ -157,7 +219,11 @@ func id2str(aID uint64) (id string) {
 
 // `id2time()` returns a date/time represented by `aID`.
 //
-//	`aID` is a posting's ID.
+// Parameters:
+// - `aID`: A posting's ID to be converted to a `time.Time`.
+//
+// Returns:
+// - `time.Time`: The UnixNano value of the provided time.Time.
 func id2time(aID uint64) time.Time {
 	return time.Unix(0, int64(aID))
 } // id2time()
@@ -166,15 +232,34 @@ func id2time(aID uint64) time.Time {
 // returning the created directory.
 //
 // The directory is created with filemode `0775` (`drwxrwxr-x`).
+//
+// Parameters:
+// - `aID`: The posting's ID.
+//
+// Returns:
+// - `string`: The created directory,
+// - `error`: TAny error that occurred during the creation process.
 func mkDir(aID uint64) (string, error) {
 	fMode := os.ModeDir | 0775
 	dirname := id2dir(aID)
 	if err := os.MkdirAll(filepath.FromSlash(dirname), fMode); nil != err {
-		return "", err
+		return "", se.Wrap(err, 1)
 	}
 
-	//    return path.Join(dirname, p.id), nil
 	return dirname, nil
 } // mkDir()
+
+// `time2id()` converts a given `aTime` to an integer representation
+//
+// The function returns the UnixNano value of the provided time.Time.
+//
+// Parameters:
+// - `aTime` (time.Time) The time to be converted to a uint64 integer.
+//
+// Return Value:
+// - `uint64`: The UnixNano value of the provided time.Time.
+func time2id(aTime time.Time) uint64 {
+	return uint64(aTime.UnixNano())
+} // time2id()
 
 /* _EoF_ */
