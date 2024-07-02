@@ -29,7 +29,7 @@ import (
 //
 //	`aMarkdown` The text to store as a new posting.
 func addMarkdown(aMarkdown []byte) (int, error) {
-	return NewPosting("").Set(aMarkdown).Store()
+	return NewPosting(uint64(0), "").Set(aMarkdown).Store()
 } // addMarkdown()
 
 // AddConsolePost reads data from `StdIn` and saves it as a new posting,
