@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-               All rights reserved
-           EMail : <support@mwat.de>
+Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+
+		All rights reserved
+	EMail : <support@mwat.de>
 */
 package main
 
@@ -219,7 +220,7 @@ func main() {
 		WriteTimeout: -1, // see whether this eliminates "i/o timeout HTTP/1.0"
 	}
 	if 0 < len(nele.AppArgs.ErrorLog) {
-		apachelogger.SetErrLog(server)
+		apachelogger.SetErrorLog(server)
 	}
 	setupSignals(server)
 
