@@ -6,14 +6,14 @@ toolchain go1.22.1
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/mwat56/apachelogger v1.6.4
+	github.com/mwat56/apachelogger v1.7.0
 	github.com/mwat56/cssfs v0.2.7
 	github.com/mwat56/errorhandler v1.1.11
 	github.com/mwat56/hashtags v0.6.3
 	github.com/mwat56/ini v1.9.0
 	github.com/mwat56/jffs v0.1.4
 	github.com/mwat56/passlist v1.3.11
-	github.com/mwat56/screenshot v0.4.8
+	github.com/mwat56/screenshot v0.4.9
 	github.com/mwat56/uploadhandler v1.1.11
 	github.com/mwat56/whitespace v0.2.6
 	github.com/russross/blackfriday/v2 v2.1.0
