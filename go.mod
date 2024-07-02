@@ -14,6 +14,7 @@ require (
 	github.com/mwat56/jffs v0.1.4
 	github.com/mwat56/passlist v1.3.11
 	github.com/mwat56/screenshot v0.4.9
+	github.com/mwat56/sourceerror v0.2.1
 	github.com/mwat56/uploadhandler v1.1.11
 	github.com/mwat56/whitespace v0.2.6
 	github.com/russross/blackfriday/v2 v2.1.0
