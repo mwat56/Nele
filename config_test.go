@@ -1,18 +1,39 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-               EMail : <support@mwat.de>
+Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+
+	   All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
 import (
-	"flag"
-	"reflect"
 	"testing"
 
-	"github.com/mwat56/ini"
+	ht "github.com/mwat56/hashtags"
 )
 
+// `prep4Tests()` prepares the environment for testing.
+//
+// It sets the binary storage flag to false, initializes the configuration,
+// sets the persistence to filesystem-based, and sets the posting base
+// directory.
+//
+// This function is meant for unit testing only.
+func prep4Tests() {
+	ht.UseBinaryStorage = false
+
+	// `InitConfig()` calls `flag.parse()` which in turn will cause
+	// errors when run with `go test …`.
+	InitConfig()
+
+	SetPersistence(TFSpersistence{})
+
+	SetPostingBaseDirectory("/tmp/postings/")
+} // prep4Tests()
+
+// --------------------------------------------------------------------------
+
+/*
 // `parseAppArgsDebug()` calls `parseAppArgs()` and returns `AppArgs`.
 //
 // This function is meant for unit testing only.
@@ -47,8 +68,7 @@ func readAppArgsDebug() *TAppArgs {
 	flag.CommandLine = flag.NewFlagSet(`Nele`, flag.ExitOnError)
 	AppArgs = TAppArgs{}
 
-	readCmdlineArgs()
-	copyAppArgs2IniData()
+	InitConfig()
 
 	return &AppArgs
 } // readAppArgsDebug()
@@ -60,16 +80,15 @@ func setAppArgsDebug() *TAppArgs {
 	flag.CommandLine = flag.NewFlagSet(`Nele`, flag.ExitOnError)
 	AppArgs = TAppArgs{}
 
-	var ini1 ini.TIniList
+	var ini1 ini.TSectionList
 	// Clear/reset the INI values to simulate missing INI file(s):
-	iniValues = tArguments{*ini1.GetSection(``)}
+	iniValues = ini1.GetSection("")
 
 	readCmdlineArgs()
 
 	return &AppArgs
 } // setAppArgsDebug()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+*/
 
 func Test_absolute(t *testing.T) {
 	bd := "/var/tmp"
@@ -128,6 +147,7 @@ func Test_kmg2Num(t *testing.T) {
 	}
 } // Test_kmg2Num()
 
+/*
 func Test_parseAppArgsDebug(t *testing.T) {
 	expected := &TAppArgs{}
 	tests := []struct {
@@ -207,6 +227,7 @@ func Test_setAppArgsDebug(t *testing.T) {
 		})
 	}
 } // Test_setAppArgsDebug()
+*/
 
 /*
 func TestShowHelp(t *testing.T) {

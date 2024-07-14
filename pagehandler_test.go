@@ -13,19 +13,17 @@ import (
 	"time"
 )
 
-func TestNewPageHandler(t *testing.T) {
-	// `InitConfig()` calls `flag.parse()` which in turn will cause
-	// errors when run with `go test …`.
-	readAppArgsDebug()
-	SetPostingBaseDirectory("/tmp/postings/")
-	prepareTestFiles()
+func Test_NewPageHandler(t *testing.T) {
+	prep4Tests()
+	// prepareTestFiles()
+
 	tests := []struct {
 		name    string
 		want    int
 		wantErr bool
 	}{
+		{"1", 18, false},
 		// TODO: Add test cases.
-		{" 1", 18, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,7 +37,7 @@ func TestNewPageHandler(t *testing.T) {
 			}
 		})
 	}
-} // TestNewPageHandler()
+} // Test_NewPageHandler()
 
 func Test_numStart(t *testing.T) {
 	type args struct {

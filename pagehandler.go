@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -19,7 +20,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"runtime/debug"
@@ -29,7 +29,7 @@ import (
 
 	"github.com/mwat56/apachelogger"
 	"github.com/mwat56/cssfs"
-	"github.com/mwat56/hashtags"
+	ht "github.com/mwat56/hashtags"
 	"github.com/mwat56/jffs"
 	"github.com/mwat56/passlist"
 	"github.com/mwat56/uploadhandler"
@@ -39,7 +39,7 @@ type (
 	// TPageHandler provides the handling of HTTP request/response.
 	TPageHandler struct {
 		cssFS    http.Handler                  // CSS file server
-		hashList *hashtags.THashList           // #hashtags/@mentions list
+		hashList *ht.THashTags                 // #hashtags/@mentions list
 		imgUp    *uploadhandler.TUploadHandler // `img` upload handler
 		staticFS http.Handler                  // `static` file server
 		staticUp *uploadhandler.TUploadHandler // `static` upload handler
@@ -47,6 +47,67 @@ type (
 		viewList *TViewList                    // list of template/views
 	}
 )
+
+// --------------------------------------------------------------------------
+// constructor function:
+
+// `NewPageHandler()` returns a new `TPageHandler` instance.
+//
+// The returned object implements the `errorhandler.TErrorPager`,
+// `http.Handler`, `and `passlist.TAuthDecider` interfaces.
+func NewPageHandler() (*TPageHandler, error) {
+	var (
+		err error
+		msg string
+	)
+	result := new(TPageHandler)
+
+	if result.viewList, err = newViewList(
+		filepath.Join(AppArgs.DataDir, "views")); nil != err {
+		msg = fmt.Sprintf("Error: views problem: %v", err)
+		log.Println(`NewPageHandler()`, msg)
+
+		// Without our views we can't generate any web-page.
+		return nil, err
+	}
+
+	result.cssFS = cssfs.FileServer(AppArgs.DataDir + `/`)
+
+	if 0 < len(AppArgs.HashFile) {
+		// hashtags.UseBinaryStorage = false //TODO REMOVE
+		if result.hashList, err = ht.New(AppArgs.HashFile, true); nil != err {
+			result.hashList = nil
+		} else {
+			InitHashlist(result.hashList) // background operation
+		}
+	}
+	if nil == result.hashList {
+		if nil == err {
+			err = errors.New(`Error: missing hashFile`)
+		}
+		msg = fmt.Sprintf("%v", err)
+		log.Println(`NewPageHandler()`, msg)
+		return nil, err
+	}
+
+	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
+
+	if AppArgs.Screenshot {
+		UpdateScreenshots(PostingBaseDirectory()) // background operation
+	}
+
+	if 0 == len(AppArgs.UserFile) {
+		log.Println("NewPageHandler(): missing password file\nAUTHENTICATION DISABLED!")
+	} else if result.userList, err = passlist.LoadPasswords(AppArgs.UserFile); nil != err {
+		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
+		result.userList = nil
+	}
+
+	return result, nil
+} // NewPageHandler()
+
+// --------------------------------------------------------------------------
+// helper functions:
 
 var (
 	// RegEx to match hh:mm:ss
@@ -106,60 +167,6 @@ func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
 } // getYMD()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// NewPageHandler returns a new `TPageHandler` instance.
-//
-// The returned object implements the `errorhandler.TErrorPager`,
-// `http.Handler`, `and `passlist.TAuthDecider` interfaces.
-func NewPageHandler() (*TPageHandler, error) {
-	var (
-		err error
-		msg string
-	)
-	result := new(TPageHandler)
-
-	if result.viewList, err = newViewList(filepath.Join(AppArgs.DataDir, "views")); nil != err {
-		msg = fmt.Sprintf("Error: views problem: %v", err)
-		log.Println(`NewPageHandler()`, msg)
-
-		// Without our views we can't generate any web-page.
-		return nil, err
-	}
-
-	result.cssFS = cssfs.FileServer(AppArgs.DataDir + `/`)
-
-	if 0 < len(AppArgs.HashFile) {
-		// hashtags.UseBinaryStorage = false //TODO REMOVE
-		if result.hashList, err = hashtags.New(AppArgs.HashFile); nil != err {
-			result.hashList = nil
-		} else {
-			InitHashlist(result.hashList) // background operation
-		}
-	}
-	if nil == result.hashList {
-		if nil == err {
-			err = errors.New(`Error: missing hashFile`)
-		}
-		msg = fmt.Sprintf("%v", err)
-		log.Println(`NewPageHandler()`, msg)
-		return nil, err
-	}
-
-	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
-
-	if AppArgs.Screenshot {
-		UpdateScreenshots(PostingBaseDirectory()) // background operation
-	}
-
-	if 0 == len(AppArgs.UserFile) {
-		log.Println("NewPageHandler(): missing password file\nAUTHENTICATION DISABLED!")
-	} else if result.userList, err = passlist.LoadPasswords(AppArgs.UserFile); nil != err {
-		log.Printf("NewPageHandler(): %v\nAUTHENTICATION DISABLED!", err)
-		result.userList = nil
-	}
-
-	return result, nil
-} // NewPageHandler()
 
 // `newViewList()` returns a list of views found in `aDirectory`
 // and a possible I/O error.
@@ -224,7 +231,7 @@ var (
 	//           1111111111111     22222222222222222222222222
 )
 
-// URLparts returns two parts: `rDir` holds the base-directory of `aURL`,
+// `URLparts()` returns two parts: `rDir` holds the base-directory of `aURL`,
 // `rPath` holds the remaining part of `aURL`.
 //
 // Depending on the actual value of `aURL` both return values may be
@@ -233,6 +240,7 @@ func URLparts(aURL string) (rDir, rPath string) {
 	if result, err := url.QueryUnescape(aURL); nil == err {
 		aURL = result
 	}
+
 	matches := phURLpartsRE.FindStringSubmatch(aURL)
 	if 2 < len(matches) {
 		return matches[1], strings.TrimSpace(matches[2])
@@ -241,7 +249,8 @@ func URLparts(aURL string) (rDir, rPath string) {
 	return aURL, ""
 } // URLparts()
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// --------------------------------------------------------------------------
+// TPageHandler methods
 
 // `basicPageData()` returns a list of data to be inserted into the
 // `view`/templates.
@@ -273,7 +282,7 @@ func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
 		Set("MentionCount", ph.hashList.MentionCount()).
 		Set("monthURL", "/m/"+now).
 		Set("NOW", now).
-		Set("PostingCount", PostingCount()).
+		Set("PostingCount", poPersistence.PostingCount()).
 		Set("Robots", "index,follow").
 		Set("Taglist", MarkupCloud(ph.hashList)).
 		Set("Title", AppArgs.Realm+": "+now).
@@ -332,7 +341,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(tail)
+		p := NewPosting(0, tail)
 		if !p.Exists() {
 			http.NotFound(aWriter, aRequest)
 			return
@@ -341,7 +350,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		date := p.Date()
 		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
 			t.Hour(), t.Minute(), t.Second())).
-			Set("ID", p.ID()).
+			Set("ID", p.IDstr()).
 			Set("Manuscript", template.HTML(p.Markdown())).
 			Set("monthURL", "/m/"+date).
 			Set("Robots", "noindex,nofollow").
@@ -354,7 +363,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(tail)
+		p := NewPosting(0, tail)
 		if !p.Exists() {
 			http.NotFound(aWriter, aRequest)
 			return
@@ -363,7 +372,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		date := p.Date()
 		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
 			t.Hour(), t.Minute(), t.Second())).
-			Set("ID", p.ID()).
+			Set("ID", p.IDstr()).
 			Set("Manuscript", template.HTML(p.Markdown())).
 			Set("monthURL", "/m/"+date).
 			Set("Robots", "noindex,nofollow").
@@ -384,7 +393,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
-			ph.handleTagMentions(ph.hashList.HashList("#"+tail),
+			ph.handleTagMentions(ph.hashList.HashList(string(ht.MarkHash)+tail),
 				pageData, aWriter)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
@@ -449,17 +458,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case "n", "np": // handle newest postings
-		ph.handleRoot(tail, pageData, aWriter, aRequest)
+		ph.handleRoot(tail, pageData, aWriter /*, aRequest*/)
 
 	case "p", "pp": // handle a single posting
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(tail)
+		p := NewPosting(0, tail)
 		if err := p.Load(); nil != err {
 			apachelogger.Err("TPageHandler.handleGET()",
-				fmt.Sprintf("TPosting.Load('%s'): %v", p.ID(), err))
+				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
@@ -498,7 +507,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(tail)
+		p := NewPosting(0, tail)
 		if !p.Exists() {
 			http.NotFound(aWriter, aRequest)
 			return
@@ -507,7 +516,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		date := p.Date()
 		pageData = pageData.Set(`HMS`,
 			fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second())).
-			Set(`ID`, p.ID()).
+			Set(`ID`, p.IDstr()).
 			Set("Manuscript", template.HTML(p.Markdown())).
 			Set("monthURL", "/m/"+date).
 			Set(`Robots`, `noindex,nofollow`).
@@ -520,7 +529,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
-			ph.handleSearch(tail, pageData, aWriter, aRequest)
+			ph.handleSearch(tail, pageData, aWriter /*, aRequest*/)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -596,9 +605,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if val = aRequest.FormValue("p"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/p/"+val)
 		} else if val = aRequest.FormValue("q"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter, aRequest)
+			ph.handleSearch(val, pageData, aWriter /*, aRequest*/)
 		} else if val = aRequest.FormValue("s"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter, aRequest)
+			ph.handleSearch(val, pageData, aWriter /*, aRequest*/)
 		} else if val = aRequest.FormValue("share"); 0 < len(val) {
 			if 0 < len(aRequest.URL.RawQuery) {
 				// we need this for e.g. YouTube URLs
@@ -608,7 +617,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if val = aRequest.FormValue("w"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/w/"+val)
 		} else {
-			ph.handleRoot("30", pageData, aWriter, aRequest)
+			ph.handleRoot("30", pageData, aWriter /*, aRequest*/)
 		}
 
 	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`, `.env`, `vendor`, `wp-content`:
@@ -645,17 +654,17 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 
 		if bb = replCRLF([]byte(aRequest.FormValue("manuscript"))); 0 < len(bb) {
-			p := NewPosting("").Set(bb)
+			p := NewPosting(0, "").Set(bb)
 			if _, err = p.Store(); nil != err {
 				apachelogger.Err("TPageHandler.handlePOST('a')",
-					fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
+					fmt.Sprintf("TPosting.Store(%s): %v", p.IDstr(), err))
 			}
 			if AppArgs.Screenshot {
 				PrepareLinkScreenshots(p)
 			}
 			AddTagID(ph.hashList, p)
 
-			http.Redirect(aWriter, aRequest, "/p/"+p.ID(), http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/p/"+p.IDstr(), http.StatusSeeOther)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -669,35 +678,37 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		op := NewPosting(tail)
+
+		op := NewPosting(str2id(tail), "")
+		oid := op.ID()
 		t := op.Time()
+
 		y, mo, d := t.Date()
 		if ymd := aRequest.FormValue("ymd"); 0 < len(ymd) {
 			y, mo, d = getYMD(ymd)
 		}
+
 		h, mi, s, n := t.Hour(), t.Minute(), t.Second(), t.Nanosecond()
 		if hms := aRequest.FormValue("hms"); 0 < len(hms) {
 			h, mi, s = getHMS(hms)
 		}
-		opn := op.PathFileName()
+
 		t = time.Date(y, mo, d, h, mi, s, n, time.Local)
-		np := NewPosting(newID(t))
-		npn := np.PathFileName()
-		// ensure existence of directory:
-		if _, err = np.makeDir(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST('d 1')",
-				fmt.Sprintf("np.makeDir(%s): %v", np.ID(), err))
+		nid := time2id(t)
+		if err = poPersistence.Rename(oid, nid); nil != err {
+			apachelogger.Err("TPageHandler.handlePOST('dp')",
+				fmt.Sprintf("Persistence.Rename(%d, %d): %v", oid, nid, err))
 		}
-		if err = os.Rename(opn, npn); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST('d 2')",
-				fmt.Sprintf("os.Rename(%s, %s): %v", opn, npn, err))
-		}
-		RenameIDTags(ph.hashList, op.ID(), np.ID())
+
+		RenameIDTags(ph.hashList, oid, nid)
+
+		np := NewPosting(nid, "")
+		np.Load()
 		if AppArgs.Screenshot {
 			PrepareLinkScreenshots(np)
 		}
 
-		http.Redirect(aWriter, aRequest, "/p/"+np.ID(), http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/p/"+np.IDstr(), http.StatusSeeOther)
 
 	case `ep`: // edit posting
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
@@ -708,17 +719,20 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
+
 		var old []byte
-		txt := replCRLF([]byte(aRequest.FormValue("manuscript")))
-		p := NewPosting(tail)
+		nTxt := replCRLF([]byte(aRequest.FormValue("manuscript")))
+
+		p := NewPosting(str2id(tail), "")
 		if err = p.Load(); nil != err {
 			apachelogger.Err("TPageHandler.handlePOST('e')",
-				fmt.Sprintf("TPosting.Load(%s): %v", p.ID(), err))
+				fmt.Sprintf("TPosting.Load(%s): %v", p.IDstr(), err))
 		} else {
 			old = p.Markdown()
 		}
-		if i, err = p.Set(txt).Store(); nil != err {
-			if i < len(txt) {
+
+		if i, err = p.Set(nTxt).Store(); nil != err {
+			if i < len(nTxt) {
 				// let's hope for the best …
 				_, _ = p.Set(old).Store()
 			}
@@ -728,7 +742,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		}
 		UpdateTags(ph.hashList, p)
 
-		tail += "?z=" + p.ID() // kick the browser cache
+		tail += "?z=" + p.IDstr() // kick the browser cache
 		http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
 
 	case `il`: // init hash list
@@ -766,15 +780,16 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		p := NewPosting(tail)
-		RemovePageScreenshots(p)
-		if err = p.Delete(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST('r')",
-				fmt.Sprintf("TPosting.Delete(%s): %v", p.ID(), err))
-		}
-		RemoveIDTags(ph.hashList, tail)
 
-		http.Redirect(aWriter, aRequest, "/m/"+p.Date(), http.StatusSeeOther)
+		post := NewPosting(str2id(tail), "")
+		RemovePageScreenshots(post)
+		if err = post.Delete(); nil != err {
+			apachelogger.Err("TPageHandler.handlePOST('r')",
+				fmt.Sprintf("TPosting.Delete(%s): %v", post.IDstr(), err))
+		}
+		RemoveIDTags(ph.hashList, str2id(tail))
+
+		http.Redirect(aWriter, aRequest, "/m/"+post.Date(), http.StatusSeeOther)
 
 	case `si`: // store image
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
@@ -834,13 +849,17 @@ func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, a
 } // handleReply()
 
 // `handleRoot()` serves the logical web-root directory.
-func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleRoot(aNumStr string,
+	aData *TemplateData,
+	aWriter http.ResponseWriter /* ,aRequest *http.Request*/) {
 	num, start := numStart(aNumStr)
 	if 0 == num {
 		num = 30
 	}
+
 	pl := NewPostList()
 	_ = pl.Newest(num, start) // ignore fs errors here
+
 	aData = aData.Set(`Postings`, pl.Sort()).
 		Set("Robots", "noindex,follow")
 	if pl.Len() >= num {
@@ -850,7 +869,9 @@ func (ph *TPageHandler) handleRoot(aNumStr string, aData *TemplateData, aWriter 
 } // handleRoot()
 
 // `handleSearch()` serves the search results.
-func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleSearch(aTerm string,
+	aData *TemplateData,
+	aWriter http.ResponseWriter /*, aRequest *http.Request*/) {
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
 
 	ph.handleReply(`searchresult`, aWriter,
@@ -864,33 +885,33 @@ func (ph *TPageHandler) handleSearch(aTerm string, aData *TemplateData, aWriter 
 //	`aShare` The URL to share with the new posting.
 //	`aWriter` The writer to respond to the remote user.
 func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
-	p := NewPosting("").Set([]byte("\n\n> [ ](" + aShare + ")\n"))
+	p := NewPosting(0, "\n\n> [ ]("+aShare+")\n")
 	if _, err := p.Store(); nil != err {
 		apachelogger.Err("TPageHandler.handleShare()",
 			fmt.Sprintf("TPosting.Store('%s'): %v", aShare, err))
 	}
 
 	CreateScreenshot(aShare) // background operation
-	ph.reDir(aWriter, aRequest, "/e/"+p.ID())
+	ph.reDir(aWriter, aRequest, "/e/"+p.IDstr())
 } // handleShare()
 
 // `handleTagMentions()` add the hashtag/mention list to `aData`
-func (ph *TPageHandler) handleTagMentions(aList []string, aData *TemplateData, aWriter http.ResponseWriter) {
+func (ph *TPageHandler) handleTagMentions(aList []uint64, aData *TemplateData, aWriter http.ResponseWriter) {
 	var ( // re-use variables
-		err error
-		id  string
-		p   *TPosting
+		err  error
+		id   uint64
+		post *TPosting
 	)
 	pl := NewPostList()
 	if 0 < len(aList) {
 		for _, id = range aList {
-			p = NewPosting(id)
-			if err = p.Load(); nil != err {
+			post = NewPosting(id, "")
+			if err = post.Load(); nil != err {
 				apachelogger.Err("TPageHandler.handleTagMentions()",
-					fmt.Sprintf("TPosting.Load('%s'): %v", id, err))
+					fmt.Sprintf("TPosting.Load('%s'): %v", id2str(id), err))
 				continue
 			}
-			pl.Add(p)
+			pl.Add(post)
 		}
 	}
 
@@ -915,13 +936,12 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 
 	if 200 == status {
 		fName := strings.TrimPrefix(txt, AppArgs.DataDir)
-		p := NewPosting(``)
-		p.Set([]byte("\n\n\n> " + img + "[" + fName + "](" + fName + ")\n\n"))
-		if _, err := p.Store(); nil != err {
+		post := NewPosting(0, "\n\n\n> "+img+"["+fName+"]("+fName+")\n\n")
+		if _, err := post.Store(); nil != err {
 			apachelogger.Err("TPageHandler.handleUpload()",
-				fmt.Sprintf("TPosting.Store(%s): %v", p.ID(), err))
+				fmt.Sprintf("TPosting.Store(%s): %v", post.IDstr(), err))
 		}
-		http.Redirect(aWriter, aRequest, "/e/"+p.ID(), http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/e/"+post.IDstr(), http.StatusSeeOther)
 	} else {
 		http.Error(aWriter, txt, status)
 	}

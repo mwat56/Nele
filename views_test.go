@@ -1,9 +1,9 @@
 /*
-   Copyright © 2019, 2020 M.Watermann, 10247 Berlin, Germany
-              All rights reserved
-          EMail : <support@mwat.de>
-*/
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
+		All rights reserved
+	EMail : <support@mwat.de>
+*/
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -48,20 +48,20 @@ func Test_addExternURLtargets(t *testing.T) {
 	}
 } // Test_addExternURLtargets()
 
-func TestNewView(t *testing.T) {
-	type args struct {
+func Test_NewView(t *testing.T) {
+	type tArgs struct {
 		aBaseDir string
 		aName    string
 	}
 	tests := []struct {
 		name     string
-		args     args
+		args     tArgs
 		wantView bool
 		wantErr  bool
 	}{
+		{" 1", tArgs{"./views/", "test1"}, false, true},
+		{" 2", tArgs{"./views/", "index"}, true, false},
 		// TODO: Add test cases.
-		{" 1", args{"./views/", "test1"}, false, true},
-		{" 2", args{"./views/", "index"}, true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -75,22 +75,19 @@ func TestNewView(t *testing.T) {
 			}
 		})
 	}
-} // TestNewView()
+} // Test_NewView()
 
-func TestTView_render(t *testing.T) {
+func Test_TView_render(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 
-	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := NewPosting(id1).
-		Set([]byte("View_render: Oh dear! This is a first posting."))
+	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
+	p1 := NewPosting(id1, "View_render: Oh dear! This is a first posting.")
 
-	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := NewPosting(id2).
-		Set([]byte("View_render: Hi there! This is another posting."))
+	id2 := time2id(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
+	p2 := NewPosting(id2, "View_render: Hi there! This is another posting.")
 
-	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := NewPosting(id3).
-		Set([]byte("View_render: Oh dear! This is a single posting."))
+	id3 := time2id(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
+	p3 := NewPosting(id3, "View_render: Oh dear! This is a single posting.")
 
 	v1, _ := NewView("./views/", "index")
 	pl1 := NewPostList().Add(p1).Add(p2).Sort()
@@ -107,19 +104,19 @@ func TestTView_render(t *testing.T) {
 		Set("Postings", p3).
 		Set("ToBeIgnored", "! Ignore Me !")
 
-	type args struct {
+	type tArgs struct {
 		aWriter io.Writer
 		aData   *TemplateData
 	}
 	tests := []struct {
 		name    string
 		view    TView
-		args    args
+		args    tArgs
 		wantErr bool
 	}{
+		{"1", *v1, tArgs{os.Stdout, dl1}, false},
+		{"2", *v2, tArgs{os.Stdout, dl2}, false},
 		// TODO: Add test cases.
-		{" 1", *v1, args{os.Stdout, dl1}, false},
-		{" 2", *v2, args{os.Stdout, dl2}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -129,16 +126,17 @@ func TestTView_render(t *testing.T) {
 			}
 		})
 	}
-} // TestTView_render()
+} // Test_TView_render()
 
-func TestNewViewList(t *testing.T) {
-	vl := TViewList{}
+func Test_NewViewList(t *testing.T) {
+	vl := &TViewList{}
+
 	tests := []struct {
 		name string
 		want *TViewList
 	}{
+		{"1", vl},
 		// TODO: Add test cases.
-		{" 1", &vl},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -147,7 +145,7 @@ func TestNewViewList(t *testing.T) {
 			}
 		})
 	}
-} // TestNewViewList()
+} // Test_NewViewList()
 
 func TestTViewList_Add(t *testing.T) {
 	vname1 := "index"
@@ -185,17 +183,14 @@ func TestTViewList_render(t *testing.T) {
 		Add(vw1).
 		Add(vw2)
 
-	id1 := newID(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := NewPosting(id1).
-		Set([]byte("ViewList_render: Oh dear! This is a first posting."))
+	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
+	p1 := NewPosting(id1, "ViewList_render: Oh dear! This is a first posting.")
 
-	id2 := newID(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := NewPosting(id2).
-		Set([]byte("ViewList_render: Hi there! This is another posting."))
+	id2 := time2id(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
+	p2 := NewPosting(id2, "ViewList_render: Hi there! This is another posting.")
 
-	id3 := newID(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
-	p3 := NewPosting(id3).
-		Set([]byte("ViewList_render: Oh dear! This is a single posting."))
+	id3 := time2id(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
+	p3 := NewPosting(id3, "ViewList_render: Oh dear! This is a single posting.")
 
 	pl1 := NewPostList().
 		Add(p1).
@@ -210,6 +205,7 @@ func TestTViewList_render(t *testing.T) {
 		Set("Lang", "en").
 		Set("Title", "this is the article title").
 		Set("Postings", *pl2)
+
 	type args struct {
 		aName string
 		aData *TemplateData

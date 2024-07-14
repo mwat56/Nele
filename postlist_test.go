@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -14,7 +15,8 @@ import (
 )
 
 func prepareTestFiles() {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	bd, _ := filepath.Abs(PostingBaseDirectory())
 	for i := 1; i < 13; i++ {
 		storeNewPost(bd, i, 1)
@@ -25,12 +27,12 @@ func prepareTestFiles() {
 
 func storeNewPost(aBaseDir string, aDay, aHour int) {
 	t := time.Date(1970, 1, aDay, aHour, aHour, aHour, 0, time.Local)
-	p := NewPosting(newID(t))
+	p := NewPosting(time2id(t), "")
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	_, _ = p.Store()
 
 	t = time.Date(2018, 12, aDay, aHour, aHour, aHour, 0, time.Local)
-	p = NewPosting(newID(t))
+	p = NewPosting(time2id(t), "")
 	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	_, _ = p.Store()
 } // storeNewPost()
@@ -86,7 +88,7 @@ func TestSearchPostings(t *testing.T) {
 
 func TestTPostList_Add(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting("")
+	p1 := NewPosting(0, "")
 	pl1 := NewPostList()
 	wl1 := &TPostList{
 		*p1,
@@ -141,27 +143,27 @@ func TestTPostList_Article(t *testing.T) {
 */
 
 func TestTPostList_Delete(t *testing.T) {
-	p1 := NewPosting("")
+	p1 := NewPosting(0, "")
 	pl1 := NewPostList()
 	wl1 := NewPostList()
 	wb1 := false
 	// ---
-	p2 := NewPosting("")
+	p2 := NewPosting(0, "")
 	pl2 := NewPostList().Add(p2)
 	wl2 := NewPostList()
 	wb2 := true
 	// ---
-	p3 := NewPosting("")
+	p3 := NewPosting(0, "")
 	pl3 := NewPostList().Add(p1).Add(p2).Add(p3)
 	wl3 := NewPostList().Add(p1).Add(p2)
 	wb3 := true
 	// ---
-	p4 := NewPosting("")
+	p4 := NewPosting(0, "")
 	pl4 := NewPostList().Add(p1).Add(p2).Add(p4).Add(p3)
 	wl4 := NewPostList().Add(p1).Add(p2).Add(p3)
 	wb4 := true
 	// ---
-	p5 := NewPosting("")
+	p5 := NewPosting(0, "")
 	pl5 := NewPostList().Add(p1).Add(p2).Add(p3).Add(p4)
 	wl5 := NewPostList().Add(p1).Add(p2).Add(p3).Add(p4)
 	wb5 := false
@@ -226,21 +228,22 @@ func TestTPostList_in(t *testing.T) {
 
 func TestTPostList_IsSorted(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting("11").Set([]byte("11"))
-	p2 := NewPosting("22").Set([]byte("22"))
-	p3 := NewPosting("33").Set([]byte("33"))
+	p1 := NewPosting(11, "11")
+	p2 := NewPosting(22, "22")
+	p3 := NewPosting(33, "33")
 	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
 	pl2 := NewPostList().Add(p3).Add(p2).Add(p1)
 	pl3 := NewPostList().Add(p2).Add(p3).Add(p1).Sort()
+
 	tests := []struct {
 		name string
 		pl   *TPostList
 		want bool
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, false},
-		{" 2", pl2, true},
-		{" 3", pl3, true},
+		{"1", pl1, false},
+		{"2", pl2, true},
+		{"3", pl3, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -253,10 +256,10 @@ func TestTPostList_IsSorted(t *testing.T) {
 
 func TestTPostList_Len(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting("").Set([]byte("11"))
-	p2 := NewPosting("").Set([]byte("22"))
-	p3 := NewPosting("").Set([]byte("33"))
-	p4 := NewPosting("").Set([]byte("44"))
+	p1 := NewPosting(0, "").Set([]byte("11"))
+	p2 := NewPosting(0, "").Set([]byte("22"))
+	p3 := NewPosting(0, "").Set([]byte("33"))
+	p4 := NewPosting(0, "").Set([]byte("44"))
 	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
 	pl2 := NewPostList().Add(p1).Add(p2).Add(p3).Add(p4)
 	tests := []struct {
@@ -336,11 +339,12 @@ func TestTPostList_Newest(t *testing.T) {
 
 func TestTPostList_Sort(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting("11").Set([]byte("11"))
-	p2 := NewPosting("22").Set([]byte("22"))
-	p3 := NewPosting("33").Set([]byte("33"))
+	p1 := NewPosting(11, "11")
+	p2 := NewPosting(22, "22")
+	p3 := NewPosting(33, "33")
 	pl1 := NewPostList().Add(p2).Add(p3).Add(p1)
 	wl1 := NewPostList().Add(p3).Add(p2).Add(p1)
+
 	tests := []struct {
 		name string
 		pl   *TPostList

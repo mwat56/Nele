@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -9,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mwat56/hashtags"
+	ht "github.com/mwat56/hashtags"
 )
 
 func Test_MarkupTags(t *testing.T) {
@@ -53,27 +54,31 @@ func Test_MarkupTags(t *testing.T) {
 	}
 } // Test_MarkupTags()
 
-func TestReplaceTag(t *testing.T) {
-	hashtags.UseBinaryStorage = false
-	l1, _ := hashtags.New(`./TestReplaceTag.db`)
-	type args struct {
-		aList       *hashtags.THashList
+func Test_ReplaceTag(t *testing.T) {
+	SetPersistence(TFSpersistence{})
+
+	ht.UseBinaryStorage = false
+	l1, _ := ht.New(`./TestReplaceTag.db`, false)
+
+	type tArgs struct {
+		aList       *ht.THashTags
 		aSearchTag  string
 		aReplaceTag string
 	}
+
 	tests := []struct {
 		name string
-		args args
+		args tArgs
 	}{
 		// TODO: Add test cases.
-		{" 1", args{l1, ``, ``}},
-		{" 2", args{l1, `@chelseamanning`, `Chelsea_Manning`}},
-		{" 3", args{l1, `chelseamanning`, `@Chelsea_Manning`}},
-		{" 4", args{l1, `@chelseamanning`, `@Chelsea_Manning`}},
+		{" 1", tArgs{l1, ``, ``}},
+		{" 2", tArgs{l1, `@chelseamanning`, `Chelsea_Manning`}},
+		{" 3", tArgs{l1, `chelseamanning`, `@Chelsea_Manning`}},
+		{" 4", tArgs{l1, `@chelseamanning`, `@Chelsea_Manning`}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ReplaceTag(tt.args.aList, tt.args.aSearchTag, tt.args.aReplaceTag)
 		})
 	}
-} // TestReplaceTag()
+} // Test_ReplaceTag()

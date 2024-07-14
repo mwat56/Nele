@@ -1,5 +1,5 @@
 /*
-   Copyright © 2019 M.Watermann, 10247 Berlin, Germany
+   Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
               All rights reserved
           EMail : <support@mwat.de>
 */
@@ -11,14 +11,15 @@ import (
 	"testing"
 )
 
-func TestNewTemplateData(t *testing.T) {
-	d1 := &TemplateData{}
+func Test_NewTemplateData(t *testing.T) {
+	td1 := &TemplateData{}
+
 	tests := []struct {
 		name string
 		want *TemplateData
 	}{
+		{"1", td1},
 		// TODO: Add test cases.
-		{" 1", d1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -27,34 +28,31 @@ func TestNewTemplateData(t *testing.T) {
 			}
 		})
 	}
-} // TestNewTemplateData()
+} // Test_NewTemplateData()
 
-func TestTemplateData_Get(t *testing.T) {
-	d1 := NewTemplateData()
-	(*d1)[`key1`] = `val1`
-	(*d1)[`key3`] = false
-	(*d1)[`key4`] = true
+func Test_TemplateData_Get(t *testing.T) {
+	td1 := NewTemplateData()
+	(*td1)[`key1`] = `val1`
+	(*td1)[`key3`] = false
+	(*td1)[`key4`] = 123.456
 
-	type args struct {
-		aKey string
-	}
 	tests := []struct {
 		name       string
 		dl         TemplateData
-		args       args
-		wantRValue interface{}
+		key        string
+		wantRValue any
 		wantROK    bool
 	}{
+		{"1", *td1, `key1`, `val1`, true},
+		{"2", *td1, `key2`, `val2`, false},
+		{"3", *td1, `key3`, false, true},
+		{"4", *td1, `key4`, 123.456, true},
+		{"5", *td1, `key5`, false, false},
 		// TODO: Add test cases.
-		{" 1", *d1, args{`key1`}, `val1`, true},
-		{" 2", *d1, args{`key2`}, `val2`, false},
-		{" 3", *d1, args{`key3`}, false, true},
-		{" 4", *d1, args{`key4`}, true, true},
-		{" 5", *d1, args{`key5`}, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRValue, gotROK := tt.dl.Get(tt.args.aKey)
+			gotRValue, gotROK := tt.dl.Get(tt.key)
 			if gotROK != tt.wantROK {
 				t.Errorf("TemplateData.Get() gotROK = %v, want %v", gotROK, tt.wantROK)
 				return
@@ -64,24 +62,25 @@ func TestTemplateData_Get(t *testing.T) {
 			}
 		})
 	}
-} // TestTemplateData_Get()
+} // Test_TemplateData_Get()
 
-func TestTemplateData_Set(t *testing.T) {
-	d1 := NewTemplateData()
-	w1 := NewTemplateData()
-	(*w1)["Title"] = "Testing"
-	type args struct {
+func Test_TemplateData_Set(t *testing.T) {
+	td1 := NewTemplateData()
+	wd1 := NewTemplateData()
+	(*wd1)["Title"] = "Testing"
+
+	type tArgs struct {
 		aKey   string
 		aValue interface{}
 	}
 	tests := []struct {
 		name string
 		d    *TemplateData
-		args args
+		args tArgs
 		want *TemplateData
 	}{
+		{" 1", td1, tArgs{"Title", "Testing"}, wd1},
 		// TODO: Add test cases.
-		{" 1", d1, args{"Title", "Testing"}, w1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -90,4 +89,6 @@ func TestTemplateData_Set(t *testing.T) {
 			}
 		})
 	}
-} // TestTemplateData_Set()
+} // Test_TemplateData_Set()
+
+/* _EoF_ */

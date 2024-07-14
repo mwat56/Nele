@@ -7,18 +7,12 @@ Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 package nele
 
 import (
-	"fmt"
-	"os"
-	"path"
+	"errors"
 	"path/filepath"
-	"strings"
-
-	//     "strconv"
 	"sync"
-	//    "sync/atomic"
-	"syscall"
 	"time"
 
+	ht "github.com/mwat56/hashtags"
 	se "github.com/mwat56/sourceerror"
 )
 
@@ -26,43 +20,175 @@ import (
 //lint:file-ignore ST1005 - I prefer capitalisation
 
 type (
-	// TPosting is a single article/posting..
+	// `TPosting` is a single article/posting..
 	TPosting struct {
-		id           uint64    // integer representation of date/time
-		lastModified time.Time // file modification time
-		markdown     []byte    // article contents in Markdown markup
-		persistence  IPersistence
-		mtx          *sync.RWMutex
+		id           uint64        // integer representation of date/time
+		lastModified time.Time     // file modification time
+		markdown     []byte        // article contents in Markdown markup
+		mtx          *sync.RWMutex // pointer to avoid copying warnings
 	}
 
+	// `TPostList` is a list of postings to be injected
+	// into a template/view.
+	TPostList []TPosting
+
+	// This function type is used by `WalkPostings()`.
 	//
+	//	`aList` The hashlist to use (update).
+	//	`aPosting` The posting to handle.
+	TWalkPostFunc func(aList *ht.THashTags, aPosting *TPosting)
+
+	// This function type is used by `Walk()`.
+	//
+	// Parameters:
+	//	- `aID`: The ID of the posting to handle.
+	TWalkFunc func(aID uint64) error
+
+	// `IPersistence` defines a persistence layer for storing `TPosting`
+	// objects.
+	// It uses a CRUD interface with some additional methods as documented
+	// below.
 	IPersistence interface {
-		// `Create()` writes `aPost` to the persistence layer.
+		//
+		// `Create()` creates a new persistent posting.
+		//
+		// If the provided `aPost` is `nil`, an `ErrEmptyPosting` error
+		// is returned.
+		//
+		// Parameters:
+		//
+		//	- `aPost`: The `TPosting` instance containing the article's data.
+		//
+		// Returns:
+		//
+		//	- `int`: The number of bytes written.
+		//	- 'error`: A possible error, or `nil` on success.
 		Create(aPost *TPosting) (int, error)
 
 		//
+		// `Delete()` removes the posting/article from the persistence layer
+		// and returns a possible I/O error.
+		//
+		// Parameters:
+		//
+		//	- `aID`: The unique identifier of the posting to delete.
+		//
+		// Returns:
+		//
+		//	- 'error`: A possible error, or `nil` on success.
 		Read(aID uint64) (*TPosting, error)
 
 		//
+		// `Update()` updates the article's data in the persistence layer.
+		//
+		// It returns the number of bytes written and a possible I/O error.
+		//
+		// If the provided `aPost` is `nil`, an `ErrEmptyPosting` error
+		// is returned.
+		//
+		// Parameters:
+		//
+		//	- `aPost`: A `TPosting` instance containing the article's data.
+		//
+		// Returns:
+		//
+		//	- `int`: The number of bytes written.
+		//	- 'error`:` A possible error, or `nil` on success.
 		Update(aPost *TPosting) (int, error)
 
 		//
+		// `Delete()` removes the posting/article from the persistence layer.
+		//
+		// Parameters:
+		//
+		//	- `aID`: The unique identifier of the posting to delete.
+		//
+		// Returns:
+		//
+		//	 - 'error`: A possible error, or `nil` on success.
 		Delete(aID uint64) error
 
-		// `Exists()` returns whether there is a file with more than zero bytes.
+		//
+		// `Exists()` checks if a post with the given ID exists in the
+		// persistence layer.
+		//
+		// Parameters:
+		//
+		//	- `aID`: The unique identifier of the posting to check.
+		//
+		// Returns:
+		//
+		//	- `bool`: `true` if the post exists, `false` otherwise.
 		Exists(aID uint64) bool
 
+		//
 		// `PathFileName()` returns the posting's complete path-/filename.
+		//
+		// NOTE: The actual definition of the path-/filename depends on
+		// the implementation of this interface. In a file-based persistence
+		// layer it would be a `/path/directory/filename` string.
+		// However, in a database-based persistence layer it would be the
+		// `/path/file` of the database file.
+		//
+		// Parameters:
+		//
+		//	- `aID`: The unique identifier of the posting to handle.
+		//
+		// Returns:
+		//
+		//	- `string`: The path-/filename associated with `aID`.
 		PathFileName(aID uint64) string
 
-		// `PostingCount()` returns the number of postings currently available.
 		//
-		// In case of I/O errors the return value will be 0.
+		// `PostingCount()` returns the number of postings available.
+		//
+		// Returns:
+		//
+		//	 - `uint32`: The number of available postings, or `0`
+		// in case of errors.
 		PostingCount() uint32
+
+		//
+		// `Rename()` renames a posting from its old ID to a new ID.
+		//
+		// Parameters:
+		//
+		//	- aOldID: The unique identifier of the posting to be renamed.
+		//	- aNewID: The new unique identifier for the new posting.
+		//
+		// Returns:
+		//
+		//	- `error`: An error if the operation fails, or `nil` on success.
+		Rename(aOldID, aNewID uint64) error
+
+		//
+		// `SearchPostings()` is looking for `aText` in all article files.
+		//
+		// The returned `TPostList` can be empty because (a) `aText` could
+		// not be compiled into a regular expression, (b) no files to
+		// search were found, or (c) no files matched `aText`.
+		//
+		// Parameters:
+		//
+		//	`aText`: The text to look for in the postings.
+		//
+		// Returns:
+		//
+		//	`*TPostList`: A list of found postings.
+		SearchPostings(aText string) *TPostList
+
+		//
+		// `Walk()` visits all existing postings, calling `aWalkFunc`
+		// for each posting.
+		Walk(aWalkFunc TWalkFunc) error
 	}
 )
 
 var (
+	// `ErrEmptyPosting` is returned when a `nil` posting is passed to
+	// a method.
+	ErrEmptyPosting = errors.New("empty post")
+
 	// `poPostingBaseDirectory` is the base directory for storing articles.
 	//
 	// This variable's value must be set initially before creating any
@@ -76,12 +202,6 @@ var (
 		return dir
 	}()
 
-	/*
-	   // Cache of last/current posting count.
-	   // see `delFile()`, `PostingCount()`, `TPosting.Store()`
-	   µCountCache uint32
-	*/
-
 	// The persistence layer to actually use:
 	poPersistence IPersistence
 )
@@ -89,8 +209,17 @@ var (
 // --------------------------------------------------------------------------
 // public utility functions:
 
+// `Persistence()` returns the persistence layer to actually use creating,
+// updating, deleting, searching, and walking through postings.
+//
+// Returns:
+//   - `IPersistence`: The persistence layer to use for storing/retrieving postings.
+func Persistence() IPersistence {
+	return poPersistence
+} // Persistence()
+
 // `PostingBaseDirectory()` returns the base directory used for
-// storing the articles/postings.
+// storing the postings.
 //
 // Returns:
 // - `string`: The base directory tu use.
@@ -98,8 +227,16 @@ func PostingBaseDirectory() string {
 	return poPostingBaseDirectory
 } // PostingBaseDirectory()
 
+// `SetPersistence()` sets the persistence layer to actually use.
+//
+// Parameters:
+//   - `aPersistence`: The persistence layer to use for storing/retrieving postings.
+func SetPersistence(aPersistence IPersistence) {
+	poPersistence = aPersistence
+} // SetPersistence()
+
 // `SetPostingBaseDirectory()` sets the base directory used for
-// storing the articles/postings.
+// storing the postings.
 //
 // Parameters:
 // - `aBaseDir` The base directory to use for storing articles/postings.
@@ -130,92 +267,9 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 	}
 
 	poPostingBaseDirectory = dir
+
 	return nil
 } // SetPostingBaseDirectory()
-
-// --------------------------------------------------------------------------
-// private helper functions:
-
-// `delFile()` removes `aFileName` from the filesystem
-// returning a possible I/O error.
-//
-// A non-existing file is not considered an error here.
-//
-// Parameters:
-// - `aFileName` The name of the file to delete.
-//
-// Returns:
-// - `error`: Any error that occurred during the deletion process.
-func delFile(aFileName string) error {
-	err := os.Remove(aFileName)
-	if nil != err {
-		if e, ok := err.(*os.PathError); ok && e.Err == syscall.ENOENT {
-			return nil
-		}
-		return se.Wrap(err, 5)
-	}
-	// atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-
-	return nil
-} // delFile()
-
-// `id2dir()` converts a given uint64 to a directory name.
-//
-// The function returns a directory name based on the provided uint64.
-// The directory name is constructed by joining the year and the hexadecimal
-// string representation of the provided uint64, with a "/" separator.
-//
-// Parameters:
-// - `aID`: A posting's ID to be converted to a directory name.
-//
-// Return Value:
-// - `string`: The directory name based on the `aID`.
-func id2dir(aID uint64) string {
-	fname := id2str(aID)
-	// Using the id's first four characters leads to
-	// directories worth about 52 days of data.
-	// We use the year to guard against ID overflows in a directory.
-	dir := fmt.Sprintf(`%04d%s`, id2time(aID).Year(), fname[:3])
-
-	return path.Join(poPostingBaseDirectory, dir)
-} // id2dir()
-
-// `id2filename()` converts a given uint64 to a file name.
-//
-// The function returns a file name based on `aID`.
-// The file name is constructed by joining the directory and the hexadecimal
-// string representation of the provided uint64, with a ".md" extension.
-//
-// Parameters:
-// - `aID`: A posting's ID to be converted to a file name.
-//
-// Return Value:
-// - `string`: The file name based on the provided uint64.
-func id2filename(aID uint64) string {
-	dir := id2dir(aID)
-	fname := id2str(aID)
-
-	return path.Join(dir, fname) + `.md`
-} // id2filename()
-
-// `id2str()` converts a given uint64 to a hexadecimal string.
-//
-// The function returns a hexadecimal string representation of the
-// provided uint64.
-//
-// Parameters:
-// - `aID`: The uint64 value to be converted to a hexadecimal string.
-//
-// Return Value:
-// - `string`: The hexadecimal string representation of `aID`.
-func id2str(aID uint64) (rStr string) {
-	rStr = fmt.Sprintf("%x", aID)
-	if 16 > len(rStr) {
-		rStr = strings.Repeat("0", 16-len(rStr)) + rStr
-	}
-
-	return
-} // id2str()
 
 // `id2time()` returns a date/time represented by `aID`.
 //
@@ -227,27 +281,6 @@ func id2str(aID uint64) (rStr string) {
 func id2time(aID uint64) time.Time {
 	return time.Unix(0, int64(aID))
 } // id2time()
-
-// `mkDir()` creates the directory for storing an article
-// returning the created directory.
-//
-// The directory is created with filemode `0775` (`drwxrwxr-x`).
-//
-// Parameters:
-// - `aID`: The posting's ID.
-//
-// Returns:
-// - `string`: The created directory,
-// - `error`: TAny error that occurred during the creation process.
-func mkDir(aID uint64) (string, error) {
-	fMode := os.ModeDir | 0775
-	dirname := id2dir(aID)
-	if err := os.MkdirAll(filepath.FromSlash(dirname), fMode); nil != err {
-		return "", se.Wrap(err, 1)
-	}
-
-	return dirname, nil
-} // mkDir()
 
 // `time2id()` converts a given `aTime` to an integer representation
 //

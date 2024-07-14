@@ -1,5 +1,5 @@
 /*
-Copyright © 2019, 2023 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
 
 	   All rights reserved
 	EMail : <support@mwat.de>
@@ -60,12 +60,6 @@ type (
 		UserList   bool   // print out a list of current users
 		UserUpdate string // username to update in password list
 	}
-
-	// tArguments is the list structure for the cmdline argument values
-	// merged with the key-value pairs from the INI file.
-	tArguments struct {
-		ini.TSection // embedded INI section
-	}
 )
 
 var (
@@ -77,7 +71,7 @@ var (
 
 	// iniValues is the list for the cmdline arguments and INI values
 	// used during program startup.
-	iniValues tArguments
+	iniValues *ini.TSection // embedded INI section // tArguments
 )
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -92,8 +86,10 @@ var (
 //
 // Otherwise `aBaseDir` gets prepended to `aDir` and returned after cleaning.
 //
-//	`aBaseDir` The base directory to prepend to `aDir`.
-//	`aDir` The directory to make absolute.
+// Parameters:
+//
+//   - `aBaseDir` The base directory to prepend to `aDir`.
+//   - `aDir` The directory to make absolute.
 func absolute(aBaseDir, aDir string) string {
 	if 0 == len(aDir) {
 		aDir, _ = filepath.Abs(`./`)
@@ -113,6 +109,9 @@ func absolute(aBaseDir, aDir string) string {
 // string representation of the current `TAppArgs` instance.
 //
 // NOTE: This method is meant mostly for debugging purposes.
+//
+// Returns:
+//   - `string`: The string representation of the current app configuration.
 func (aa TAppArgs) String() string {
 	return strings.Replace(
 		strings.Replace(
@@ -133,6 +132,8 @@ var (
 )
 
 // `kmg2Num()` returns a 'B|KB|MB|GB` string as an integer.
+//
+// Returns:
 func kmg2Num(aString string) (rInt int64) {
 	matches := cfKmgRE.FindStringSubmatch(aString)
 	if 2 < len(matches) {
@@ -294,16 +295,28 @@ func copyAppArgs2IniData() {
 // This function is meant to be called first thing in the application's
 // `main()` function.
 func InitConfig() {
+	// `InitConfig()` calls `flag.parse()` which in turn will cause
+	// errors when run with `go test …`.
 	const appName string = `nele`
-	iniValues = tArguments{*ini.ReadIniData(appName)}
+	section, _ := ini.ReadIniData(appName)
+	iniValues = section
 
 	readCmdlineArgs()
+
 	parseCmdlineArgs()
+
 	copyAppArgs2IniData()
 } // InitConfig()
 
 // `parseCmdlineArgs()` parses the actual commandline arguments.
 func parseCmdlineArgs() {
+	defer func() {
+		// make sure a `panic` won't kill the program
+		if err := recover(); nil != err {
+			return
+		}
+	}()
+
 	flag.CommandLine.Usage = ShowHelp
 	_ = flag.CommandLine.Parse(os.Args[1:])
 } // parseCmdlineArgs()
@@ -347,6 +360,12 @@ func readCmdlineArgs() {
 		ok bool
 		s  string // temp. value
 	)
+	defer func() {
+		// make sure a `panic` won't kill the program
+		if err := recover(); nil != err {
+			ok = false
+		}
+	}()
 
 	if s, ok = iniValues.AsString(`dataDir`); (ok) && (0 < len(s)) {
 		AppArgs.DataDir, _ = filepath.Abs(s)
@@ -493,8 +512,7 @@ func readCmdlineArgs() {
 	flag.CommandLine.StringVar(&AppArgs.UserUpdate, `uu`, AppArgs.UserUpdate,
 		"<userName> User update: update a username in the password file")
 
-	iniValues.Clear()           // release unneeded memory
-	iniValues = tArguments{nil} // dito
+	iniValues.Clear() // release unneeded memory
 } // readCmdlineArgs()
 
 // ShowHelp lists the commandline options to `Stderr`.

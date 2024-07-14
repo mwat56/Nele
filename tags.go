@@ -1,7 +1,8 @@
 /*
-   Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
 package nele
 
@@ -14,53 +15,12 @@ package nele
 import (
 	"fmt"
 	"html/template"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 
-	"github.com/mwat56/hashtags"
+	ht "github.com/mwat56/hashtags"
 )
-
-type (
-	// This function type is used by `walkAllPosts()`.
-	//
-	//	`aList` The hashlist to use (update).
-	//	`aPosting` The posting to handle.
-	tWalkPostFunc func(aList *hashtags.THashList, aPosting *TPosting)
-)
-
-// `goWalkAllPosts()` visits all existing postings and calling `aWalkFunc`
-// for each article.
-//
-//	`aList` The hashlist to use/update.
-//	`aWalkFunc` The function to call for each posting.
-func goWalkAllPosts(aList *hashtags.THashList, aWalkFunc tWalkPostFunc) {
-	var ( // re-use variables
-		dName, id, pName string
-		dNames, fNames   []string
-		err              error
-	)
-	if dNames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
-		return // we can't recover from this :-(
-	}
-
-	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
-			continue // it might be a file (not a directory) …
-		}
-		if 0 == len(fNames) {
-			continue // skip empty directory
-		}
-		for _, pName = range fNames {
-			id = strings.TrimPrefix(pName, dName+"/")
-			aWalkFunc(aList, NewPosting(id[:len(id)-3])) // strip name extension
-		}
-	}
-	_, _ = aList.Store()
-} // goWalkAllPosts()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
@@ -70,19 +30,20 @@ var (
 	htEntityRE = regexp.MustCompile(`(#[0-9]+;)`)
 
 	// match: #hashtag|@mention
-	// htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}\d_§-]+)(.?|$)`)
-	//                                            11111111111111111  2222
 	htHashMentionRE = regexp.MustCompile(`(?i)([@#][\p{L}’'\d_§-]+)(.?|$)`)
 	//                                         1111111111111111111  2222
-	// Note: compare with `github.com/mwat56/hashtags/hashtags.go`
-
+	// NOTE: compare with `github.com/mwat56/hashtags/`
 )
+
+// --------------------------------------------------------------------------
 
 // AddTagID checks a newly added `aPosting` for #hashtags and @mentions.
 //
-//	`aList` The hashlist to use (update).
-//	`aPosting` The new posting to handle.
-func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
+// Parameters:
+//
+//	`aList`: The hashlist to use (update).
+//	`aPosting`: The new posting to handle.
+func AddTagID(aList *ht.THashTags, aPosting *TPosting) {
 	go aList.IDparse(aPosting.ID(), aPosting.Markdown())
 
 	runtime.Gosched() // get the background operation started
@@ -90,15 +51,24 @@ func AddTagID(aList *hashtags.THashList, aPosting *TPosting) {
 
 // InitHashlist initialises the hash list.
 //
-//	`aList` The list of #hashtags/@mentions to update.
-func InitHashlist(aList *hashtags.THashList) {
-	doInitHashlist := func(aHL *hashtags.THashList, aPosting *TPosting) {
-		if 0 < aPosting.Len() {
-			aHL.IDparse(aPosting.ID(), aPosting.Markdown())
+// Parameters:
+//
+//	`aList`: The list of #hashtags/@mentions to update.
+func InitHashlist(aList *ht.THashTags) {
+	wf := func(aID uint64) error {
+		post := NewPosting(aID, "")
+		if err := post.Load(); nil != err {
+			// we ignore the error here ...
+			return nil
 		}
-	} // doInitHashlist()
 
-	go goWalkAllPosts(aList, doInitHashlist)
+		if 0 < post.Len() {
+			aList.IDparse(aID, post.Markdown())
+		}
+		return nil
+	} // wf()
+
+	go poPersistence.Walk(wf)
 	runtime.Gosched() // get the background operation started
 } // InitHashlist()
 
@@ -117,13 +87,13 @@ var (
 // #hashtags/@mentions.
 //
 //	`aList` The list of #hashtags/@mentions to use.
-func MarkupCloud(aList *hashtags.THashList) []template.HTML {
+func MarkupCloud(aList *ht.THashTags) []template.HTML {
 	var (
 		class string // re-use variable
 		idx   int
-		item  hashtags.TCountItem
+		item  ht.TCountItem
 	)
-	list := aList.CountedList()
+	list := aList.List()
 	tl := make([]template.HTML, len(list))
 	for idx, item = range list {
 		if 7 > item.Count { // b000111
@@ -137,7 +107,7 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 		}
 
 		tl[idx] = template.HTML(` <a href="` +
-			htListLookup['#' == item.Tag[0]] + item.Tag[1:] +
+			htListLookup[ht.MarkHash == item.Tag[0]] + item.Tag[1:] +
 			`" class="` + class + `" title=" ` +
 			fmt.Sprintf("%d * %s", item.Count, item.Tag[1:]) +
 			` ">` + item.Tag + `</a>`) // #nosec G203
@@ -149,10 +119,12 @@ func MarkupCloud(aList *hashtags.THashList) []template.HTML {
 // MarkupTags returns `aPage` with all #hashtags/@mentions marked up
 // as a HREF links.
 //
-//	`aPage` The HTML page to process.
+// Parameters:
+//
+//	`aPage`: The HTML page to process.
 func MarkupTags(aPage []byte) []byte {
 	var ( // re-use variables
-		cnt, l       int
+		cnt, hits    int
 		err          error
 		re           *regexp.Regexp
 		repl, search string
@@ -161,7 +133,7 @@ func MarkupTags(aPage []byte) []byte {
 	linkMatches := htAHrefRE.FindAll(aPage, -1)
 	if (nil != linkMatches) || (0 < len(linkMatches)) {
 		// (1) replace the links with a dummy text:
-		for l, cnt = len(linkMatches), 0; cnt < l; cnt++ {
+		for hits, cnt = len(linkMatches), 0; cnt < hits; cnt++ {
 			search = regexp.QuoteMeta(string(linkMatches[cnt]))
 			if re, err = regexp.Compile(search); nil == err {
 				repl = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
@@ -187,7 +159,8 @@ func MarkupTags(aPage []byte) []byte {
 				hash = hash[:len(hash)-1]
 				suffix = `_`
 			}
-			if '#' == hash[0] {
+
+			if ht.MarkHash == hash[0] {
 				if 0 < len(sub[2]) {
 					switch sub[2][0] {
 					case '"':
@@ -222,57 +195,68 @@ func MarkupTags(aPage []byte) []byte {
 		})
 
 	// (3) replace the link dummies with the real markup:
-	for l, cnt = len(linkMatches), 0; cnt < l; cnt++ {
+	for hits, cnt = len(linkMatches), 0; cnt < hits; cnt++ {
 		search = fmt.Sprintf(`</-%d-%d-%d-%d-/>`, cnt, cnt, cnt, cnt)
 		if re, err = regexp.Compile(search); nil == err {
-			result = re.ReplaceAllLiteralString(result, string(linkMatches[cnt]))
+			result = re.ReplaceAllLiteralString(result,
+				string(linkMatches[cnt]))
 		}
 	}
 
 	return []byte(result)
 } // MarkupTags()
 
-// ReadHashlist reads all postings to (re-)build the list of
+// `ReadHashlist()` reads all postings to (re-)build the list of
 // #hashtags/@mentions disregarding any pre-existing list.
 //
-//	`aList` The list of #hashtags/@mentions to build.
-func ReadHashlist(aList *hashtags.THashList) {
+// Parameters:
+//
+//	`aList`: The list of #hashtags/@mentions to build.
+func ReadHashlist(aList *ht.THashTags) {
 	InitHashlist(aList.Clear())
 } // ReadHashlist()
 
 // RemoveIDTags removes `aID` from `aList's` items.
 //
-//	`aList` The hashlist to update.
-//	`aID` The ID of the posting to remove.
-func RemoveIDTags(aList *hashtags.THashList, aID string) {
+// Parameters:
+//
+//	`aList`: The hashlist to update.
+//	`aID`: The ID of the posting to remove.
+func RemoveIDTags(aList *ht.THashTags, aID uint64) {
 	go aList.IDremove(aID)
+
 	runtime.Gosched() // get the background operation started
 } // RemoveIDTags()
 
 // RenameIDTags renames all references of `aOldID` to `aNewID`.
 //
-//	`aList` The hashlist to update.
-//	`aOldID` The posting's old ID.
-//	`aNewID` The posting's new ID.
-func RenameIDTags(aList *hashtags.THashList, aOldID, aNewID string) {
+// Parameters:
+//
+//	`aList`: The hashlist to update.
+//	`aOldID`: The posting's old ID.
+//	`aNewID`: The posting's new ID.
+func RenameIDTags(aList *ht.THashTags, aOldID, aNewID uint64) {
 	go aList.IDrename(aOldID, aNewID)
+
 	runtime.Gosched() // get the background operation started
 } // RenameIDTags()
 
 // ReplaceTag replaces the #tags/@mentions in `aList`.
 //
-//	`aList` The hashlist to update.
-//	`aSearchTag` The old #tag/@mention to find.
-//	`aReplaceTag` The new #tag/@mention to use.
-func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
+// Parameters:
+//
+//	`aList`: The hashlist to update.
+//	`aSearchTag`: The old #tag/@mention to find.
+//	`aReplaceTag`: The new #tag/@mention to use.
+func ReplaceTag(aList *ht.THashTags, aSearchTag, aReplaceTag string) {
 	if (nil == aList) || (0 == len(aSearchTag)) || (0 == len(aReplaceTag)) {
 		return
 	}
 
 	switch aSearchTag[0] {
-	case '#', '@':
+	case ht.MarkHash, ht.MarkMention:
 		switch aReplaceTag[0] {
-		case '#', '@':
+		case ht.MarkHash, ht.MarkMention:
 			// nothing to do
 		default:
 			return
@@ -281,33 +265,51 @@ func ReplaceTag(aList *hashtags.THashList, aSearchTag, aReplaceTag string) {
 		return
 	}
 
-	doReplaceTag := func(aHL *hashtags.THashList, aPosting *TPosting) {
-		if 0 == aPosting.Len() {
-			return
-		}
-		searchRE, err := regexp.Compile(`(?i)\` + aSearchTag)
-		if nil != err {
-			return
-		}
-		if !searchRE.Match(aPosting.Markdown()) {
-			return
+	searchRE, err := regexp.Compile(`(?i)\` + aSearchTag)
+	if nil != err {
+		return //se.Wrap(err, 2)
+	}
+
+	wf := func(aID uint64) error {
+		post := NewPosting(aID, "")
+		if err := post.Load(); nil != err {
+			// no contents, no joy ...
+			return nil
 		}
 
-		txt := searchRE.ReplaceAllLiteral(aPosting.Markdown(), []byte(aReplaceTag))
-		_, _ = aPosting.Set(txt).Store()
-		aHL.IDremove(aPosting.ID()).IDparse(aPosting.ID(), txt)
-	} // doReplaceTag()
+		if 0 == post.Len() {
+			// no contents, no joy ...
+			return nil
+		}
 
-	go goWalkAllPosts(aList, doReplaceTag)
-	runtime.Gosched() // get the background operation started
+		if !searchRE.Match(post.Markdown()) {
+			return nil
+		}
+
+		nMarkdown := searchRE.ReplaceAllLiteral(
+			post.Markdown(),
+			[]byte(aReplaceTag))
+
+		post.Set(nMarkdown).Store()
+
+		aList.IDupdate(aID, nMarkdown)
+
+		return nil
+	} // wf()
+
+	poPersistence.Walk(wf)
+	// runtime.Gosched() // get the background operation started
 } // ReplaceTag()
 
 // UpdateTags updates the #hashtag/@mention references of `aPosting`.
 //
-//	`aList` The hashlist to update.
-//	`aPosting` The new posting to process.
-func UpdateTags(aList *hashtags.THashList, aPosting *TPosting) {
+// Parameters:
+//
+//	`aList`: The hashlist to update.
+//	`aPosting`: The new posting to process.
+func UpdateTags(aList *ht.THashTags, aPosting *TPosting) {
 	go aList.IDupdate(aPosting.ID(), aPosting.Markdown())
+
 	runtime.Gosched() // get the background operation started
 } // UpdateTags()
 

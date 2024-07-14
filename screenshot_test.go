@@ -1,5 +1,5 @@
 /*
-Copyright © 2022, 2023 M.Watermann, 10247 Berlin, Germany
+Copyright © 2022, 2024  M.Watermann, 10247 Berlin, Germany
 
 	    All rights reserved
 	EMail : <support@mwat.de>
@@ -40,23 +40,20 @@ func Test_checkScreenshotURLs(t *testing.T) {
 	}
 	t4 := []byte(`> @Google holt sich [Anti-Gewerkschafts-Beratung](https://www.heise.de/newsticker/meldung/Google-holt-sich-Anti-Gewerkschafts-Beratung-4593692.html?view=print).`)
 
-	type args struct {
-		aTxt []byte
-	}
 	tests := []struct {
 		name      string
-		args      args
+		text      []byte
 		wantRList tImgURLlist
 	}{
 		// TODO: Add test cases.
-		{" 1", args{t1}, l1},
-		{" 2", args{t2}, l2},
-		{" 3", args{t3}, l3},
-		{" 4", args{t4}, l1},
+		{" 1", t1, l1},
+		{" 2", t2, l2},
+		{" 3", t3, l3},
+		{" 4", t4, l1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotRList := checkScreenshotURLs(tt.args.aTxt); !reflect.DeepEqual(gotRList, tt.wantRList) {
+			if gotRList := checkScreenshotURLs(tt.text); !reflect.DeepEqual(gotRList, tt.wantRList) {
 				t.Errorf("checkForImgURL() = %v,\nwant %v", gotRList, tt.wantRList)
 			}
 		})
@@ -64,83 +61,69 @@ func Test_checkScreenshotURLs(t *testing.T) {
 } // Test_checkScreenshotURLs()
 
 func Test_checkScreenshots(t *testing.T) {
+	prep4Tests()
 	screenshot.SetImageDir("/tmp/")
 	screenshot.SetImageAge(1)
-	p1 := NewPosting("15d9c2334fce3991")
-	p2 := NewPosting("15d9393f4f5f3bb4")
 
-	type args struct {
-		aPosting *TPosting
-	}
+	id1 := str2id("15d9c2334fce3991")
+	p1 := NewPosting(id1, "")
+	id2 := str2id("15d9393f4f5f3bb4")
+	p2 := NewPosting(id2, "")
+
 	tests := []struct {
 		name string
-		args args
+		post *TPosting
 	}{
 		// TODO: Add test cases.
-		{" 1", args{p1}},
-		{" 2", args{p2}},
+		{" 1", p1},
+		{" 2", p2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			checkScreenshots(tt.args.aPosting)
+			checkScreenshots(tt.post)
 		})
 	}
 } // Test_checkScreenshots()
-
-func Test_goUpdateAllLinkScreenshots(t *testing.T) {
-	screenshot.SetImageDir("/tmp/")
-	screenshot.SetImageAge(1)
-	type args struct {
-		aPostingBaseDir string
-		aImageURLdir    string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-		{" 1", args{`/tmp/`, `/img/`}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			goUpdateAllLinkScreenshots(tt.args.aPostingBaseDir /*, tt.args.aImageURLdir*/)
-			time.Sleep(time.Second)
-		})
-	}
-	time.Sleep(time.Second)
-} // Test_goUpdateAllLinkScreenshots()
 
 func Test_goSetLinkScreenshots(t *testing.T) {
 	screenshot.SetImageDir("/tmp/")
 	screenshot.SetImageAge(1)
 	imgURLdir := "/img/"
-	p1 := NewPosting("15d678172cfc527a")
+
+	id := str2id("15d678172cfc527a")
+	p1 := NewPosting(id, "")
 	_ = p1.Load()
-	p2 := NewPosting("15d9c2334fce3991")
+	id = str2id("15d9c2334fce3991")
+	p2 := NewPosting(id, "")
 	_ = p2.Load()
-	p3 := NewPosting("15d9393f4f5f3bb4")
+	id = str2id("15d9393f4f5f3bb4")
+	p3 := NewPosting(id, "")
 	_ = p3.Load()
-	p4 := NewPosting("15d93196ab1b2899")
+	id = str2id("15d93196ab1b2899")
+	p4 := NewPosting(id, "")
 	_ = p4.Load()
-	p5 := NewPosting("15d8b372f3186303")
+	id = str2id("15d8b372f3186303")
+	p5 := NewPosting(id, "")
 	_ = p5.Load()
-	p6 := NewPosting("15dbb86d6c2cdc2c")
+	id = str2id("15dbb86d6c2cdc2c")
+	p6 := NewPosting(id, "")
 	_ = p6.Load()
-	type args struct {
+
+	type tArgs struct {
 		aPosting        *TPosting
 		aImageDirectory string
 	}
 	tests := []struct {
 		name string
-		args args
+		args tArgs
 	}{
 		// TODO: Add test cases.
-		{" 1", args{p1, imgURLdir}},
-		{" 2", args{p2, imgURLdir}},
-		{" 3", args{p3, imgURLdir}},
-		{" 4", args{p4, imgURLdir}},
-		{" 5", args{p5, imgURLdir}},
-		{" 6", args{p6, imgURLdir}},
+		{" 1", tArgs{p1, imgURLdir}},
+		{" 2", tArgs{p2, imgURLdir}},
+		{" 3", tArgs{p3, imgURLdir}},
+		{" 4", tArgs{p4, imgURLdir}},
+		{" 5", tArgs{p5, imgURLdir}},
+		{" 6", tArgs{p6, imgURLdir}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -148,6 +131,30 @@ func Test_goSetLinkScreenshots(t *testing.T) {
 		})
 	}
 } // Test_goSetLinkScreenshots()
+
+func Test_goUpdateAllLinkScreenshots(t *testing.T) {
+	screenshot.SetImageDir("/tmp/")
+	screenshot.SetImageAge(1)
+
+	type tArgs struct {
+		aPostingBaseDir string
+		aImageURLdir    string
+	}
+	tests := []struct {
+		name string
+		args tArgs
+	}{
+		// TODO: Add test cases.
+		{" 1", tArgs{`/tmp/`, `/img/`}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			goUpdateAllLinkScreenshots()
+			time.Sleep(time.Second)
+		})
+	}
+	time.Sleep(time.Second)
+} // Test_goUpdateAllLinkScreenshots()
 
 func Test_prepPostText(t *testing.T) {
 	imageURLdir := `/img/`
@@ -167,18 +174,18 @@ func Test_prepPostText(t *testing.T) {
 	i2 := `httpswwwexampleorgtwo`
 	w2 := []byte("bla \n> [![link text two (a)](/img/httpswwwexampleorgtwo)](https://www.example.org/two/)\n bla\n > bla [„link text three“](https://www.example.org/three) bla")
 
-	type args struct {
+	type tArgs struct {
 		aPosting   []byte
 		aImageName string
 	}
 	tests := []struct {
 		name      string
-		args      args
+		args      tArgs
 		wantRText []byte
 	}{
 		// TODO: Add test cases.
-		{" 1", args{p1, i1}, w1},
-		{" 2", args{p2, i2}, w2},
+		{" 1", tArgs{p1, i1}, w1},
+		{" 2", tArgs{p2, i2}, w2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -258,24 +265,22 @@ func Test_ssImageRE(t *testing.T) {
 	}
 } // Test_ssImageRE()
 
-func TestRemovePageScreenshots(t *testing.T) {
+func Test_RemovePageScreenshots(t *testing.T) {
 	screenshot.SetImageDir("/tmp/")
-	t1 := NewPosting("")
-	t2 := NewPosting("")
-	type args struct {
-		aPosting *TPosting
-	}
+	t1 := NewPosting(0, "")
+	t2 := NewPosting(0, "")
+
 	tests := []struct {
 		name string
-		args args
+		post *TPosting
 	}{
 		// TODO: Add test cases.
-		{" 1", args{t1}},
-		{" 2", args{t2}},
+		{" 1", t1},
+		{" 2", t2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RemovePageScreenshots(tt.args.aPosting)
+			RemovePageScreenshots(tt.post)
 		})
 	}
 } // TestRemovePageScreenshots()
