@@ -9,7 +9,7 @@ require (
 	github.com/mwat56/apachelogger v1.7.0
 	github.com/mwat56/cssfs v0.2.7
 	github.com/mwat56/errorhandler v1.1.11
-	github.com/mwat56/hashtags v0.9.1
+	github.com/mwat56/hashtags v0.9.2
 	github.com/mwat56/ini v1.9.0
 	github.com/mwat56/jffs v0.1.4
 	github.com/mwat56/passlist v1.3.11
