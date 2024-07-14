@@ -16,10 +16,13 @@
 	- [Usage](#usage)
 		- [Commandline postings](#commandline-postings)
 		- [Authentication](#authentication)
-		- [User/password file & handling](#userpassword-file--handling)
+		- [User/password file \& handling](#userpassword-file--handling)
 		- [Page/link previews](#pagelink-previews)
 	- [Configuration](#configuration)
 	- [URLs](#urls)
+		- [Static URLs](#static-urls)
+		- [Common URLs](#common-urls)
+		- [Internal URLs](#internal-urls)
 	- [Files](#files)
 		- [CSS](#css)
 		- [Fonts](#fonts)
@@ -568,13 +571,13 @@ The following external libraries were used building `Nele`:
 * [Jffs](https://github.com/mwat56/jffs)
 * [PassList](https://github.com/mwat56/passlist)
 * [ScreenShot](https://github.com/mwat56/screenshot)
+* [SourceError](https://github.com/mwat56/sourceerror)
 * [UploadHandler](https://github.com/mwat56/uploadhandler)
 * [WhiteSpace](https://github.com/mwat56/whitespace)
-* [wkHtmlToImage](https://wkhtmltopdf.org/)
 
 ## Licence
 
-    Copyright © 2019, 2022 M.Watermann, 10247 Berlin, Germany
+    Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
                     All rights reserved
                 EMail : <support@mwat.de>
 
@@ -585,3 +588,4 @@ The following external libraries were used building `Nele`:
 > You should have received a copy of the GNU General Public License along with this program.  If not, see the [GNU General Public License](http://www.gnu.org/licenses/gpl.html) for details.
 
 ----
+[![GFDL](https://www.gnu.org/graphics/gfdl-logo-tiny.png)](http://www.gnu.org/copyleft/fdl.html)

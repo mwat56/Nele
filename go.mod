@@ -45,6 +45,7 @@ replace (
 	github.com/mwat56/passlist => ../passlist
 	github.com/mwat56/screenshot => ../screenshot
 	github.com/mwat56/sessions => ../sessions
+	github.com/mwat56/sourceerror => ../sourceerror
 	github.com/mwat56/uploadhandler => ../uploadhandler
 	github.com/mwat56/whitespace => ../whitespace
 )
