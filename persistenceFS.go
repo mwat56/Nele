@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/mwat56/apachelogger"
-	ht "github.com/mwat56/hashtags"
 	se "github.com/mwat56/sourceerror"
 )
 
@@ -574,47 +573,14 @@ func (fsp TFSpersistence) Update(aPost *TPosting) (int, error) {
 	return fsp.store(aPost, os.O_WRONLY|os.O_TRUNC)
 } // Update()
 
-// `WalkPostings()` visits all existing postings, calling `aWalkFunc`
-// for each article.
-//
-// Parameters:
-//
-//   - `aList`: The hashlist to use/update.
-//   - `aWalkFunc`: The function to call for each posting.
-func (fsp TFSpersistence) WalkPostings(aList *ht.THashTags,
-	aWalkFunc TWalkPostFunc) {
-	var ( // re-use variables
-		dName, pName   string
-		dNames, fNames []string
-		id             uint64
-		err            error
-	)
-
-	if dNames, err = filepath.Glob(poPostingBaseDirectory + "/*"); nil != err {
-		return // we can't recover from this :-(
-	}
-
-	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); nil != err {
-			continue // it might be a file (not a directory) …
-		}
-
-		if 0 == len(fNames) {
-			continue // skip empty directory
-		}
-
-		for _, pName = range fNames {
-			pName = path.Base(pName)
-			id = str2id(pName[:len(pName)-3]) // exclude extension `.md`
-
-			aWalkFunc(aList, NewPosting(id, ""))
-		}
-	}
-	_, _ = aList.Store()
-} // WalkPostings()
-
 // `Walk()` visits all existing postings, calling `aWalkFunc`
 // for each posting.
+//
+// Parameters:
+//   - `aWalkFunc`: The function to call for each posting.
+//
+// Returns:
+//   - `error`: a possible error occurring the traversal process.
 func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
 	fswf := func(aPath string, aDir fs.DirEntry, aErr error) error {
 		if aErr != nil {

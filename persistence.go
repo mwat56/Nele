@@ -180,6 +180,12 @@ type (
 		//
 		// `Walk()` visits all existing postings, calling `aWalkFunc`
 		// for each posting.
+		//
+		// Parameters:
+		//	- `aWalkFunc`: The function to call for each posting.
+		//
+		// Returns:
+		//	- `error`: a possible error occurring the traversal process.
 		Walk(aWalkFunc TWalkFunc) error
 	}
 )
