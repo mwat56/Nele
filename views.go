@@ -10,7 +10,6 @@ package nele
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -29,11 +28,6 @@ type (
 		// The template as returned by a `NewView()` function call.
 		vTpl *template.Template
 	}
-
-	// `TViewList` is a list of `TView` instances (to be used as a
-	// template pool).
-	// It's a map indexed by a name pointing to a view instance.
-	TViewList map[string]*TView
 
 	// Internal type to track changes in certain template vars.
 	tDataChange struct {
@@ -90,13 +84,6 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 		vTpl:  tpl,
 	}, nil
 } // NewView()
-
-// `NewViewList()` returns a new (empty) `TViewList` instance.
-func NewViewList() *TViewList {
-	result := make(TViewList, 16)
-
-	return &result
-} // NewViewlist()
 
 // --------------------------------------------------------------------------
 // helper data and functions
@@ -182,92 +169,6 @@ func (v *TView) RenderedPage(aData *TemplateData) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-} // RenderedPage()
-
-// --------------------------------------------------------------------------
-// TViewList methods
-
-// `Add()` appends `aView` to the list.
-//
-// The view's name (as specified in the `NewView()` function call)
-// is used as the view's key in this list.
-//
-// Parameters:
-//
-//   - `aView` is the view to add to this list.
-//
-// Returns:
-func (vl *TViewList) Add(aView *TView) *TViewList {
-	(*vl)[aView.vName] = aView
-
-	return vl
-} // Add()
-
-// `Get()` returns the view with `aName`.
-//
-// If `aName` doesn't exist, the return value is `nil`.
-// The second value (ok) is a `bool` that is `true` if `aName`
-// exists in the list, and `false` if not.
-//
-// Parameters:
-//
-//   - `aName` is the name (key) of the `TView` object to retrieve.
-//
-// Returns:
-func (vl *TViewList) Get(aName string) (*TView, bool) {
-	if result, ok := (*vl)[aName]; ok {
-		return result, true
-	}
-
-	return nil, false
-} // Get()
-
-// `render()` is the core of `Render()` with a slightly different API
-// (`io.Writer` instead of `http.ResponseWriter`) for easier testing.
-//
-// Parameters:
-//
-// Returns:
-func (vl *TViewList) render(aName string, aWriter io.Writer, aData *TemplateData) error {
-	if view, ok := (*vl)[aName]; ok {
-		return view.render(aWriter, aData)
-	}
-
-	return fmt.Errorf("template/view '%s' not found", aName)
-} // render()
-
-// Render executes the template with the key `aName`.
-//
-// If an error occurs executing the template or writing its output,
-// execution stops, and the method returns without writing anything
-// to the output `aWriter`.
-//
-// Parameters:
-//
-//   - `aName`: The name of the template/view to use.
-//   - `aWriter`: A `http.ResponseWriter` to handle the executed template.
-//   - `aData`: A list of data to be injected into the template.
-//
-// Returns:
-func (vl *TViewList) Render(aName string, aWriter http.ResponseWriter, aData *TemplateData) error {
-	return vl.render(aName, aWriter, aData)
-} // Render()
-
-// RenderedPage returns the rendered template/page with the key `aName`.
-//
-// Parameters:
-//
-//   - `aName` is the name of the template/view to use.
-//   - `aData` is a list of data to be injected into the template.
-//
-// Returns:
-func (vl *TViewList) RenderedPage(aName string, aData *TemplateData) ([]byte, error) {
-
-	if view, ok := (*vl)[aName]; ok {
-		return view.RenderedPage(aData)
-	}
-
-	return nil, fmt.Errorf("template/view '%s' not found", aName)
 } // RenderedPage()
 
 /* _EoF_ */
