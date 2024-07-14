@@ -277,16 +277,6 @@ func (p *TPosting) Load() error {
 	return nil
 } // Load()
 
-// `makeDir()` creates the directory for storing the article
-// returning the article's path/file-name but w/o filename extension.
-//
-// The directory is created with filemode `0775` (`drwxrwxr-x`).
-//
-// Returns:
-func (p *TPosting) makeDir() (string, error) {
-	return "", errors.New("TPosting.makeDir() need redirect to persistence layer")
-} // makeDir()
-
 // `PathFileName()` returns the article's complete path-/filename.
 //
 // Returns:
