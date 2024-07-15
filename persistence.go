@@ -8,6 +8,7 @@ package nele
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -270,6 +271,11 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 	dir, err := filepath.Abs(aBaseDir)
 	if nil != err {
 		return se.Wrap(err, 2)
+	}
+
+	fMode := os.ModeDir | 0775
+	if err := os.MkdirAll(dir, fMode); nil != err {
+		return se.Wrap(err, 1)
 	}
 
 	poPostingBaseDirectory = dir
