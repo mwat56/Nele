@@ -50,6 +50,38 @@ func (vl *TViewList) Add(aView *TView) *TViewList {
 	return vl
 } // Add()
 
+// `equals()` compares the current `TViewList` with another `TViewList` for
+// equality. It checks if the symbolic names of both views are identical.
+//
+// Parameters:
+//
+//   - `aViewList`: The `TView` instance to compare with the current one.
+//
+// Returns:
+//
+//   - `bool`: `true` if the symbolic names of both viewlists are identical.
+func (vl *TViewList) equals(aViewList *TViewList) bool {
+	if nil == vl {
+		return (nil == aViewList)
+	}
+	if len(*vl) != len(*aViewList) {
+		return false
+	}
+
+	// Check if the values are equal for each key
+	for key, myView := range *vl {
+		otherView, ok := (*aViewList)[key]
+		if !ok {
+			return false
+		}
+		if !myView.equals(otherView) {
+			return false
+		}
+	}
+
+	return true
+} // equals()
+
 // `Get()` returns the view with `aName`.
 //
 // If `aName` doesn't exist, the return value is `nil`.
@@ -83,7 +115,7 @@ func (vl *TViewList) render(aName string, aWriter io.Writer, aData *TemplateData
 	return fmt.Errorf("template/view '%s' not found", aName)
 } // render()
 
-// Render executes the template with the key `aName`.
+// `Render()` executes the template with the key `aName`.
 //
 // If an error occurs executing the template or writing its output,
 // execution stops, and the method returns without writing anything
@@ -100,7 +132,7 @@ func (vl *TViewList) Render(aName string, aWriter http.ResponseWriter, aData *Te
 	return vl.render(aName, aWriter, aData)
 } // Render()
 
-// RenderedPage returns the rendered template/page with the key `aName`.
+// `RenderedPage()` returns the rendered template/page with the key `aName`.
 //
 // Parameters:
 //

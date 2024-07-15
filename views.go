@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	se "github.com/mwat56/sourceerror"
 	"github.com/mwat56/whitespace"
 )
 
@@ -38,13 +39,6 @@ type (
 // --------------------------------------------------------------------------
 // constructor functions:
 
-// `newChange()` returns a new change structure.
-func newChange() *tDataChange {
-	return &tDataChange{
-		`{{$}}`, // ensure that first change is recognised
-	}
-} // newChange()
-
 // `NewView()` returns a new `TView` with `aName`.
 //
 // `aName` serves as both the main template's name as well as the
@@ -64,11 +58,11 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 	)
 
 	if bd, err = filepath.Abs(aBaseDir); nil != err {
-		return nil, err
+		return nil, se.Wrap(err, 1)
 	}
 
 	if files, err = filepath.Glob(bd + "/layout/*.gohtml"); nil != err {
-		return nil, err
+		return nil, se.Wrap(err, 1)
 	}
 
 	files = append(files, bd+`/`+aName+`.gohtml`)
@@ -76,7 +70,7 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 	if tpl, err = template.New(aName).
 		Funcs(viewFunctionMap).
 		ParseFiles(files...); nil != err {
-		return nil, err
+		return nil, se.Wrap(err, 3)
 	}
 
 	return &TView{
@@ -84,6 +78,13 @@ func NewView(aBaseDir, aName string) (*TView, error) {
 		vTpl:  tpl,
 	}, nil
 } // NewView()
+
+// `newChange()` returns a new change structure.
+func newChange() *tDataChange {
+	return &tDataChange{
+		`{{$}}`, // ensure that first change is recognised
+	}
+} // newChange()
 
 // --------------------------------------------------------------------------
 // helper data and functions
@@ -130,6 +131,29 @@ func (c *tDataChange) Changed(aNext string) bool {
 
 // --------------------------------------------------------------------------
 // TView methods
+
+// `equals()` compares the current `TView` with another `TView` for
+// equality. It checks if the symbolic names of both views are identical.
+//
+// Parameters:
+//
+//   - `aView: The `TView` instance to compare with the current one.
+//
+// Returns:
+//
+//   - `bool`: `true` if the symbolic names of both views are identical.
+func (v *TView) equals(aView *TView) bool {
+	if nil == v {
+		return (nil == aView)
+	}
+	if v.vName == aView.vName {
+		return true
+	}
+
+	//TODO: check the embedded template
+
+	return false
+} // equals()
 
 // `render()` is the core of `Render()` with a slightly different API
 // (`io.Writer` instead of `http.ResponseWriter`) for easier testing.

@@ -6,61 +6,89 @@ Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 */
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 import (
 	"io"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 )
 
 func Test_NewViewList(t *testing.T) {
-	vl := &TViewList{}
+	prep4Tests()
+	vl1 := make(TViewList, 16)
 
 	tests := []struct {
 		name string
 		want *TViewList
 	}{
-		{"1", vl},
+		{"1", &vl1},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewViewList(); !reflect.DeepEqual(got, tt.want) {
+			if got := NewViewList(); !got.equals(tt.want) {
 				t.Errorf("NewViewList() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 } // Test_NewViewList()
 
-func TestTViewList_Add(t *testing.T) {
-	vname1 := "index"
-	vw1, _ := NewView("./views/", vname1)
+func Test_TViewList_Add(t *testing.T) {
+	prep4Tests()
+
+	vw1, _ := NewView("./views/", "index")
+
 	vl1 := NewViewList()
 	rl1 := NewViewList().Add(vw1)
-	type args struct {
-		aName string
-		aView *TView
-	}
+
 	tests := []struct {
 		name string
 		vl   *TViewList
-		args args
+		view *TView
 		want *TViewList
 	}{
 		// TODO: Add test cases.
-		{" 1", vl1, args{vname1, vw1}, rl1},
+		{" 1", vl1, vw1, rl1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.vl.Add(tt.args.aView); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.vl.Add(tt.view); !got.equals(tt.want) {
 				t.Errorf("TViewList.Add() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-} // TestTViewList_Add()
+} // Test_TViewList_Add()
+
+func Test_TViewList_equals(t *testing.T) {
+	prep4Tests()
+
+	vl0 := NewViewList()
+	tv1, _ := NewView("./views/", "index")
+	vl1 := NewViewList().Add(tv1)
+
+	tv2, _ := NewView("./views/", "404")
+	vl2 := NewViewList().Add(tv2)
+
+	tests := []struct {
+		name  string
+		mList *TViewList
+		oList *TViewList
+		want  bool
+	}{
+		{"0", vl0, vl0, true},
+		{"1", vl0, vl1, false},
+		{"2", vl1, vl2, false},
+		{"3", vl2, vl2, true},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.mList.equals(tt.oList); got != tt.want {
+				t.Errorf("TViewList.equals() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+} // Test_TViewList_equals()
 
 func TestTViewList_render(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")

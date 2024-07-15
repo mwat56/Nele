@@ -6,8 +6,6 @@ Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 */
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 import (
 	"io"
 	"os"
@@ -77,6 +75,33 @@ func Test_NewView(t *testing.T) {
 	}
 } // Test_NewView()
 
+func Test_TView_equals(t *testing.T) {
+	prep4Tests()
+
+	tv1, _ := NewView("./views/", "index")
+	tv2, _ := NewView("./views/", "404")
+
+	tests := []struct {
+		name string
+		tv   *TView
+		view *TView
+		want bool
+	}{
+		{"1", tv1, tv2, false},
+		{"2", tv2, tv1, false},
+		{"3", tv1, tv1, true},
+		{"4", tv2, tv2, true},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.tv.equals(tt.view); got != tt.want {
+				t.Errorf("TView.equals() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+} // Test_TView_equals()
+
 func Test_TView_render(t *testing.T) {
 	SetPostingBaseDirectory("/tmp/postings/")
 
@@ -127,6 +152,5 @@ func Test_TView_render(t *testing.T) {
 		})
 	}
 } // Test_TView_render()
-
 
 /* _EoF_ */
