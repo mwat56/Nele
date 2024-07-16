@@ -163,22 +163,6 @@ type (
 		Rename(aOldID, aNewID uint64) error
 
 		//
-		// `SearchPostings()` is looking for `aText` in all article files.
-		//
-		// The returned `TPostList` can be empty because (a) `aText` could
-		// not be compiled into a regular expression, (b) no files to
-		// search were found, or (c) no files matched `aText`.
-		//
-		// Parameters:
-		//
-		//	`aText`: The text to look for in the postings.
-		//
-		// Returns:
-		//
-		//	`*TPostList`: A list of found postings.
-		SearchPostings(aText string) *TPostList
-
-		//
 		// `Walk()` visits all existing postings, calling `aWalkFunc`
 		// for each posting.
 		//
