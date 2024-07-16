@@ -57,30 +57,25 @@ func TestNewPostList(t *testing.T) {
 } // TestNewPostList()
 
 func TestSearchPostings(t *testing.T) {
-	bd := PostingBaseDirectory()
 	prepareTestFiles()
-	type args struct {
-		aBaseDir string
-		aText    string
-	}
+
 	tests := []struct {
 		name string
-		args args
+		text string
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", args{bd, "16"}, 24},
-		{" 2", args{bd, "8"}, 50},
-		{" 3", args{bd, "1\\d+"}, 72},
-		{" 4", args{bd, "10\\d+"}, 0},
-		{" 5", args{bd, "08\\s+08"}, 2},
-		{" 6", args{bd, bd}, 72},
-		{" 7", args{bd, "postings"}, 72},
+		{"1", "16", 24},
+		{"2", "8", 50},
+		{"3", "1\\d+", 72},
+		{"4", "10\\d+", 0},
+		{"5", "08\\s+08", 2},
+		{"6", "postings", 72},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SearchPostings(tt.args.aText); got.Len() != tt.want {
-				t.Errorf("Search() = %v, want %v", got.Len(), tt.want)
+			if got := SearchPostings(tt.text); got.Len() != tt.want {
+				t.Errorf("SearchPostings() = %v, want %v", got.Len(), tt.want)
 			}
 		})
 	}
@@ -282,25 +277,27 @@ func TestTPostList_Len(t *testing.T) {
 
 func TestTPostList_Month(t *testing.T) {
 	prepareTestFiles()
+
 	pl1 := NewPostList()
 	pl2 := NewPostList()
 	pl3 := NewPostList()
 	pl4 := NewPostList()
-	type args struct {
+
+	type tArgs struct {
 		aYear  int
 		aMonth time.Month
 	}
 	tests := []struct {
 		name string
 		pl   *TPostList
-		args args
+		args tArgs
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{1970, 1}, 36},
-		{" 2", pl2, args{2018, 12}, 36},
-		{" 3", pl3, args{1970, 6}, 0},
-		{" 4", pl4, args{2018, 12}, 36},
+		{" 1", pl1, tArgs{1970, 1}, 36},
+		{" 2", pl2, tArgs{2018, 12}, 36},
+		{" 3", pl3, tArgs{1970, 6}, 0},
+		{" 4", pl4, tArgs{2018, 12}, 36},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -313,6 +310,7 @@ func TestTPostList_Month(t *testing.T) {
 
 func TestTPostList_Newest(t *testing.T) {
 	prepareTestFiles()
+
 	pl1 := NewPostList()
 	type args struct {
 		aNumber int
@@ -325,13 +323,19 @@ func TestTPostList_Newest(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{10, 0}, false},
-		{" 2", pl1, args{10, 10}, false},
+		{"1", pl1, args{10, 0}, false},
+		{"2", pl1, args{10, 10}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.pl.Newest(tt.args.aNumber, tt.args.aStart); (err != nil) != tt.wantErr {
-				t.Errorf("TPostList.Newest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TPostList.Newest() error = %v, wantErr %v",
+					err, tt.wantErr)
+				return
+			}
+			if pLen := tt.pl.Len(); tt.args.aNumber < pLen {
+				t.Errorf("TPostList.Newest() number = %d, wanted %d",
+					tt.pl.Len(), tt.args.aNumber)
 			}
 		})
 	}

@@ -1,5 +1,5 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
 	    All rights reserved
 	EMail : <support@mwat.de>
@@ -14,11 +14,8 @@ package nele
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/mwat56/apachelogger"
@@ -48,36 +45,32 @@ func NewPostList() *TPostList {
 
 // Add appends `aPosting` to the list.
 //
-//	`aPosting` contains the actual posting's text.
+// Parameters:
+//   - `aPosting` contains the actual posting's text.
+//
+// Returns:
+//   - `*TPostList`: The updated list.
 func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 	*pl = append(*pl, *aPosting)
 
 	// We need an explicit return value (despite the in-place
-	// modification of `pl`) ro allow for command chaining like
+	// modification of `pl`) to allow for command chaining like
 	// `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
 	return pl
 } // Add()
 
-/*
-//TODO remove unused method
-// Article adds the posting identified by `aID` to the list.
-//
-//	`aID` is the ID of the posting to add to this list.
-func (pl *TPostList) Article(aID uint64) *TPostList {
-	bgAddPosting(pl, aID)
-
-	return pl
-} // Article()
-*/
-
 // Day adds all postings of the current day to the list.
+//
+// Returns:
+//   - `*TPostList`: A list with the postings of the current day.
 func (pl *TPostList) Day() *TPostList {
 	t := time.Now()
 	y, m, d := t.Year(), t.Month(), t.Day()
+
 	tLo := time.Date(y, m, d, 0, 0, 0, -1, time.Local)
 	tHi := time.Date(y, m, d+1, 0, 0, 0, 0, time.Local)
 
-	return pl.prepareWalk(tLo, tHi)
+	return pl.doTimeWalk(tLo, tHi)
 } // Day()
 
 // Delete removes `aPosting` from the list, returning the (possibly
@@ -100,52 +93,37 @@ func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
 	return pl, false // `aPosting` not found in list
 } // Delete()
 
-var (
-	// RegEx to check a posting's filename
-	plFilenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
-)
-
-// `doWalk()` traverses `aActDir` adding every valid posting
-// to the list.
+// `doTimeWalk()` computes the first and last directory to process.
 //
 // Parameters:
+//   - `aLo` is the earliest ID time to use.
+//   - `aHi` is the latest ID time to use.
 //
-//   - `aActDir`: The root directory for the traversal.
-//   - `aLo`: The earliest ID time to use.
-//   - `aHi`: The latest ID time to use.
-func (pl *TPostList) doWalk(aActDir string, aLo, aHi time.Time) {
+// Returns:
+//   - `*TPostList`: A list with postings between `aLo` and `aHi`.
+func (pl *TPostList) doTimeWalk(aLo, aHi time.Time) *TPostList {
+	if tn := time.Now(); tn.Before(aHi) {
+		aHi = tn // exclude postings from the future ;-)
+	}
 
-	//
-	//TODO: delegate this to persistence layer
-	//
+	wf := func(aID uint64) error {
+		tID := id2time(aID)
+		if tID.After(aLo) && tID.Before(aHi) {
+			bgAddPosting(pl, aID)
+		}
 
-	// We ignore all possible errors since we can't do anything about
-	// them anyway and simply exclude those files from our list.
-	walk := func(aPath string, aInfo os.FileInfo, aErr error) error {
-		if (nil != aErr) || (0 == aInfo.Size()) || (aInfo.IsDir()) {
-			return aErr
-		}
-		if plFilenameRE.Match([]byte(aInfo.Name())) {
-			fName := aInfo.Name()
-			fName = fName[:len(fName)-3] // w/o dot/file extension
-			fID := filename2id(fName)
-			tID := id2time(fID)
-			if tID.After(aLo) && tID.Before(aHi) {
-				bgAddPosting(pl, fID)
-			}
-		}
 		return nil
-	} // walk
+	} // wf()
+	poPersistence.Walk(wf)
 
-	_ = filepath.Walk(aActDir, walk)
-} // doWalk()
+	return pl
+} // doTimeWalk()
 
 // `Index()` returns the 0-based list index of `aPosting`.
 // In case `aPosting` was not found in list the return value
 // will be `-1`.
 //
 // Parameters:
-//
 //   - `aPosting` is the posting to lookup in this list.
 //
 // Returns:
@@ -181,11 +159,11 @@ func (pl *TPostList) Len() int {
 // `Month()` adds all postings of `aMonth` to the list.
 //
 // Parameters:
-//
 //   - `aYear`: The year to lookup; if zero the current year is used.
 //   - `aMonth`: The year's month to lookup; if zero the current month is used.
 //
 // Returns:
+//   - `*TPostList`: A list with the postings of the given year and month.
 func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 	var (
 		y int
@@ -207,103 +185,30 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 	tLo = time.Date(y, m, 1, 0, 0, 0, 0, time.Local)
 	tHi := time.Date(y, m+1, 1, 0, 0, 0, -1, time.Local)
 
-	return pl.prepareWalk(tLo, tHi)
+	return pl.doTimeWalk(tLo, tHi)
 } // Month()
 
-// Newest adds the last `aNumber` of postings to the list.
+// `Newest()` adds the last `aNumber` of postings to the list.
 //
 // The resulting list is sorted in descending order (newest first)
 // with at most `aNumber` posts.
 //
 // Parameters:
-//
 //   - `aNumber` The number of articles to show.
 //   - `aStart` The start number to use.
 //
 // Returns:
 func (pl *TPostList) Newest(aNumber, aStart int) error {
-	var ( // re-use variables
-		counter        int
-		dName, pName   string
-		dNames, fNames []string
-		err            error
-	)
-
-	//
-	//TODO: delegate this to persistence layer
-	//
-
-	if dNames, err = filepath.Glob(PostingBaseDirectory() + "/*"); nil != err {
-		return err
-	}
-
-	// Sort the directory names to have the youngest entry first:
-	sort.Slice(dNames,
-		func(i, j int) bool {
-			return (dNames[i] > dNames[j]) // descending
-		})
-
-	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); (nil != err) || (0 == len(fNames)) {
-			continue // skip empty directory
+	wf := func(aID uint64) error {
+		if len(*pl) < aNumber {
+			bgAddPosting(pl, aID)
 		}
 
-		// Sort the file names to have the youngest post first:
-		sort.Slice(fNames,
-			func(i, j int) bool {
-				return (fNames[i] > fNames[j]) // descending
-			})
-		for _, pName = range fNames {
-			counter++
-			if counter <= aStart {
-				continue
-			}
-			pName = strings.TrimPrefix(pName, dName+"/")
-			id := filename2id(pName[:len(pName)-3]) // strip name extension
-			bgAddPosting(pl, id)
-			if len(*pl) >= aNumber {
-				return nil
-			}
-		}
-	}
+		return nil
+	} // wf()
 
-	// Reaching this point of execution means:
-	// there are less than `aNumber` posts available.
-	return nil
+	return poPersistence.Walk(wf)
 } // Newest()
-
-// `prepareWalk()` computes the first and last directory to process.
-//
-// Parameters:
-//
-//   - `aLo` is the earliest ID time to use.
-//   - `aHi` is the latest ID time to use.
-//
-// Returns:
-func (pl *TPostList) prepareWalk(aLo, aHi time.Time) *TPostList {
-	if tn := time.Now(); tn.Before(aHi) {
-		aHi = tn // exclude postings from the future ;-)
-	}
-
-	//
-	// TODO: refer to the persistence layer
-	//
-
-	lID, hID := time2id(aLo), time2id(aHi)
-	dirLo, dirHi := id2dir(lID), id2dir(hID)
-
-	if dirLo == dirHi {
-		// both, the first and last postings, are in the same directory
-		pl.doWalk(dirLo, aLo, aHi)
-	} else {
-		pl.doWalk(dirLo, aLo, aHi)
-		// A single directory holds about 52 days worth of files;
-		// so even a whole month can't use more than two directories.
-		pl.doWalk(dirHi, aLo, aHi)
-	}
-
-	return pl
-} // prepareWalk()
 
 // `Sort()` returns the list sorted by posting IDs (i.e. date/time)
 // in descending order.
@@ -319,12 +224,12 @@ func (pl *TPostList) Sort() *TPostList {
 // `Week()` adds all postings of the current week to the list.
 //
 // Parameters:
-//
 //   - `aYear` The year to lookup; if zero the current year is used.
 //   - `aMonth` The year's month to lookup; if zero the current month is used.
 //   - `aDay` The month's day to lookup; if zero the current day is used.
 //
 // Returns:
+//   - `*TPostList`: A list with the postings of the given year, month, and day.
 func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	var y, d int
 	var m time.Month
@@ -357,7 +262,7 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 	tLo = time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 	tHi := tLo.Add((time.Hour * 24 * 7) + 1)
 
-	return pl.prepareWalk(tLo, tHi)
+	return pl.doTimeWalk(tLo, tHi)
 } // Week()
 
 // --------------------------------------------------------------------------
@@ -380,7 +285,7 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 	} else {
 		aPostList.Add(post)
 	}
-	// `Load()` errors are ignored since we can't do anything about it here.
+	// errors are ignored since we can't do anything about it here.
 } // bgAddPosting()
 
 // `SearchPostings()` traverses the directories holding the postings
@@ -391,12 +296,34 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 // search were found, or (c) no files matched `aText`.
 //
 // Parameters:
-//
 //   - `aText`: The text to look for in the postings.
 //
 // Returns:
+//   - `*TPostList`: The found list.
 func SearchPostings(aText string) *TPostList {
-	return poPersistence.SearchPostings(aText)
+	result := NewPostList()
+
+	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
+	if nil != err {
+		return result // empty list
+	}
+
+	wf := func(aID uint64) error {
+		post := NewPosting(aID, "")
+		if err := post.Load(); nil != err {
+			return nil
+		}
+		if !pattern.Match(post.markdown) {
+			return nil
+		}
+		result.Add(post)
+
+		return nil
+	} // wf()
+
+	poPersistence.Walk(wf)
+
+	return result
 } // SearchPostings()
 
 /* _EoF_ */
