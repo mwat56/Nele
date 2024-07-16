@@ -9,7 +9,6 @@ package nele
 import (
 	"bytes"
 	"fmt"
-	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -78,12 +77,11 @@ var (
 // Returns:
 //   - `error`: Any error that occurred during the deletion process.
 func delFile(aFileName string) error {
-	err := os.Remove(aFileName)
-	if nil != err {
+	if err := os.Remove(aFileName); nil != err {
 		if e, ok := err.(*os.PathError); ok && e.Err == syscall.ENOENT {
 			return nil
 		}
-		return se.Wrap(err, 5)
+		return se.Wrap(err, 4)
 	}
 
 	return nil
@@ -455,60 +453,6 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 	return nil
 } // Rename()
 
-// `SearchPostings()` traverses the directories holding the postings
-// looking for `aText` in all article files.
-//
-// The returned `TPostList` can be empty because (a) `aText` could
-// not be compiled into a regular expression, (b) no files to
-// search were found, or (c) no files matched `aText`.
-//
-//	`aText` is the text to look for in the postings.
-func (fsp TFSpersistence) SearchPostings(aText string) *TPostList {
-	var ( // re-use variables
-		dName, fName   string
-		dNames, fNames []string
-		err            error
-		fTxt           []byte
-		id             uint64
-		p              *TPosting
-		pattern        *regexp.Regexp
-	)
-	result := NewPostList()
-
-	//TODO: utilise builtin function:
-	// _ = filepath.Walk(aActDir, walk)
-
-	if pattern, err = regexp.Compile(fmt.Sprintf("(?s)%s", aText)); nil != err {
-		return result // empty list
-	}
-
-	if dNames, err = filepath.Glob(poPostingBaseDirectory + "/*"); nil != err {
-		return result
-	}
-
-	for _, dName = range dNames {
-		if fNames, err = filepath.Glob(dName + "/*.md"); (nil != err) || (0 == len(fNames)) {
-			continue // no files found
-		}
-
-		for _, fName = range fNames {
-			fTxt, err = os.ReadFile(fName) // #nosec G304
-			if (nil != err) || (!pattern.Match(fTxt)) {
-				// We 'eat' possible errors here, thus
-				// implicitly assuming them to be a no-match.
-				continue
-			}
-
-			fName = path.Base(fName)
-			id = str2id(fName[:len(fName)-3]) // exclude extension `.md`
-			p = NewPosting(id, string(fTxt))
-			result.Add(p)
-		}
-	}
-
-	return result
-} // SearchPostings()
-
 // `store()` writes the article's Markdown to disk returning
 // the number of bytes written and a possible I/O error.
 //
@@ -582,27 +526,33 @@ func (fsp TFSpersistence) Update(aPost *TPosting) (int, error) {
 // Returns:
 //   - `error`: a possible error occurring the traversal process.
 func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
-	fswf := func(aPath string, aDir fs.DirEntry, aErr error) error {
-		if aErr != nil {
-			if os.IsNotExist(aErr) {
-				return nil
-			}
-			return se.Wrap(aErr, 5)
-		}
-		if !aDir.IsDir() {
-			id := filename2id(aDir.Name())
+	var (
+		// RegEx to check a posting's filename
+		filenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
+	)
 
-			return aWalkFunc(id)
-		}
-
-		return nil
-	} // fswf
-
-	// Get the file system interface for the root directory
-	fileSystem := os.DirFS(poPostingBaseDirectory)
-
-	if err := fs.WalkDir(fileSystem, poPostingBaseDirectory, fswf); nil != err {
+	dNames, err := filepath.Glob(poPostingBaseDirectory + "/*")
+	if nil != err {
 		return se.Wrap(err, 1)
+	}
+
+	for _, dName := range dNames {
+		fNames, err := filepath.Glob(dName + "/*.md")
+		if (nil != err) || (0 == len(fNames)) {
+			continue // no files found
+		}
+
+		for _, fName := range fNames {
+			fn := path.Base(fName)
+			if !filenameRE.Match([]byte(fn)) {
+				continue // no proper filename
+			}
+			fn = fn[:len(fn)-3] // exclude extension `.md`
+
+			if err := aWalkFunc(str2id(fn)); nil != err {
+				return se.Wrap(err, 1)
+			}
+		}
 	}
 
 	return nil
