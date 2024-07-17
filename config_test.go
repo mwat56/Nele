@@ -7,6 +7,7 @@ Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
 package nele
 
 import (
+	"os"
 	"testing"
 
 	ht "github.com/mwat56/hashtags"
@@ -26,9 +27,11 @@ func prep4Tests() {
 	// errors when run with `go test …`.
 	InitConfig()
 
-	SetPersistence(TFSpersistence{})
+	// make sure we've got a clean slate for every test:
+	tmpDir := "/tmp/postings/"
+	os.RemoveAll(tmpDir)
 
-	SetPostingBaseDirectory("/tmp/postings/")
+	SetPostingBaseDirectory(tmpDir)
 } // prep4Tests()
 
 // --------------------------------------------------------------------------
