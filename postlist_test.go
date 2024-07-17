@@ -195,6 +195,41 @@ func TestTPostList_Delete(t *testing.T) {
 	}
 } // TestTPostList_Delete()
 
+func TestTPostList_insert(t *testing.T) {
+	prepareTestFiles()
+
+	p1 := NewPosting(111, "> 111")
+	p2 := NewPosting(222, "> 222")
+	p3 := NewPosting(333, "> 333")
+	p4 := NewPosting(444, "> 444")
+	p5 := NewPosting(188, "> 188")
+
+	pl1 := NewPostList()
+	pl2 := NewPostList().Add(p3).Add(p2).Add(p1)
+	pl3 := NewPostList().Add(p1).Add(p2).Add(p3) //.Sort()
+
+	tests := []struct {
+		name string
+		pl   *TPostList
+		post *TPosting
+		want bool
+	}{
+		{"1", pl1, p1, true},  // first entry
+		{"2", pl2, p4, true},  // after last entry
+		{"3", pl3, p2, false}, // middle existing
+		{"4", pl2, p5, true},  // middle/new
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.pl.insert(tt.post); got != tt.want {
+				t.Errorf("%q: TPostList.insert() = %v, want %v",
+					tt.name, got, tt.want)
+			}
+		})
+	}
+} // TestTPostList_insert()
+
 func TestTPostList_IsSorted(t *testing.T) {
 	prepareTestFiles()
 
@@ -203,22 +238,23 @@ func TestTPostList_IsSorted(t *testing.T) {
 	p3 := NewPosting(33, "33")
 	pl1 := NewPostList().Add(p3).Add(p1).Add(p2)
 	pl2 := NewPostList().Add(p3).Add(p2).Add(p1)
-	pl3 := NewPostList().Add(p2).Add(p3).Add(p1).Sort()
+	pl3 := NewPostList().Add(p2).Add(p3).Add(p1) // .Sort()
 
 	tests := []struct {
 		name string
 		pl   *TPostList
 		want bool
 	}{
-		// TODO: Add test cases.
-		{"1", pl1, false},
+		{"1", pl1, true},
 		{"2", pl2, true},
 		{"3", pl3, true},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.pl.IsSorted(); got != tt.want {
-				t.Errorf("TPostList.IsSorted() = %v, want %v", got, tt.want)
+				t.Errorf("%q: TPostList.IsSorted() = %v, want %v",
+					tt.name, got, tt.want)
 			}
 		})
 	}
@@ -320,9 +356,9 @@ func TestTPostList_Newest(t *testing.T) {
 func TestTPostList_Sort(t *testing.T) {
 	prepareTestFiles()
 
-	p1 := NewPosting(11, "11")
-	p2 := NewPosting(22, "22")
-	p3 := NewPosting(33, "33")
+	p1 := NewPosting(11, "> 11")
+	p2 := NewPosting(22, "> 22")
+	p3 := NewPosting(33, "> 33")
 	pl1 := NewPostList().Add(p2).Add(p3).Add(p1)
 	wl1 := NewPostList().Add(p3).Add(p2).Add(p1)
 
@@ -331,13 +367,14 @@ func TestTPostList_Sort(t *testing.T) {
 		pl   *TPostList
 		want *TPostList
 	}{
+		{"1", pl1, wl1},
 		// TODO: Add test cases.
-		{" 1", pl1, wl1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.pl.Sort(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPostList.Sort() =\n%v,\nwant %v", got, tt.want)
+				t.Errorf("%q: TPostList.Sort() =\n%v\n>>> want >>>\n%v",
+					tt.name, got, tt.want)
 			}
 		})
 	}

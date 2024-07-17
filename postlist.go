@@ -74,12 +74,17 @@ func NewPostList() *TPostList {
 // Returns:
 //   - `*TPostList`: The updated list.
 func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
-	*pl = append(*pl, *aPosting)
+	// we can ignore the return values here, since the only `false`
+	// result means, that the posting is already in the list.
+	pl.insert(aPosting)
 
-	// We need an explicit return value (despite the in-place
-	// modification of `pl`) to allow for command chaining like
-	// `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
-	return pl.Sort()
+	return pl
+	// *pl = append(*pl, *aPosting)
+
+	// // We need an explicit return value (despite the in-place
+	// // modification of `pl`) to allow for command chaining like
+	// // `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
+	// return pl.Sort()
 } // Add()
 
 // `Day()` adds all postings of the current day to the list.
@@ -106,10 +111,11 @@ func (pl *TPostList) Day() *TPostList {
 //   - `*TPostList`: The updated list.
 //   - `bool`: Whether `aPosting` was successfully removed.
 func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
-	idx := pl.Index(aPosting)
-	if 0 > idx {
+	idx, ok := pl.findIndex(aPosting)
+	if !ok {
 		return pl, false // `aPosting` not found in list
 	}
+
 	if 0 == idx {
 		*pl = (*pl)[1:] // remove first list entry
 	} else if (len(*pl) - 1) == idx { // len - 1: because list is zero-based
@@ -147,24 +153,71 @@ func (pl *TPostList) doTimeWalk(aLo, aHi time.Time) *TPostList {
 	return pl
 } // doTimeWalk()
 
-// `Index()` returns the 0-based list index of `aPosting`.
-// In case `aPosting` was not found in list the return value
-// will be `-1`.
+// `findIndex()` returns the 0-based list index of `aPosting`.
+// In case `aPosting` was not found in list the return value will be
+// `-1, false`, or a positive index and `false` giving the list position
+// where the given posting should be in the list.
 //
 // Parameters:
 //   - `aPosting` is the posting to lookup in this list.
 //
 // Returns:
 //   - `int`: The index of `aPosting` in this list, or `-1` if not found.
-func (pl *TPostList) Index(aPosting *TPosting) int {
+//   - `bool`: Whether `aPosting` was found in this list or not.
+func (pl *TPostList) findIndex(aPosting *TPosting) (int, bool) {
 	for idx, post := range *pl {
 		if post.id == aPosting.id {
-			return idx
+			return idx, true
+		}
+		if post.id < aPosting.id {
+			return idx, false
 		}
 	}
 
-	return -1
-} // Index()
+	return -1, false
+} // findIndex()
+
+// `insert()` adds `aPosting` to the list while keeping the list sorted.
+//
+// Parameters:
+//   - `aPosting`: The posting to insert into the list.
+//
+// Returns:
+//   - `bool`: `true` if `aPosting` was inserted, or `false` otherwise.
+func (pl *TPostList) insert(aPosting *TPosting) bool {
+	lLen := len(*pl)
+	if 0 == lLen { // empty list
+		*pl = append(*pl, *aPosting)
+		return true
+	}
+
+	// Find the index of the given ID:
+	idx, ok := pl.findIndex(aPosting)
+	if ok {
+		// posting already in list: no insertion required
+		return false
+	}
+
+	if 0 > idx {
+		// add new entry at the very end
+		*pl = append(*pl, *aPosting) // add new ID
+		return true
+	}
+
+	if lLen == idx {
+		// insert new entry at the very beginning
+		*pl = append(*pl, TPosting{})
+		copy((*pl)[1:], (*pl)[0:])
+		(*pl)[0] = *aPosting
+		return true
+	}
+
+	*pl = append(*pl, TPosting{}) // make room to insert new ID
+	copy((*pl)[idx+1:], (*pl)[idx:])
+	(*pl)[idx] = *aPosting
+
+	return true
+} // insert()
 
 // `IsSorted()` returns whether the list is sorted (in descending order).
 //
@@ -257,6 +310,20 @@ func (pl *TPostList) Sort() *TPostList {
 	return pl
 } // Sort()
 
+// `String()` returns a stringified version of the postlist instance.
+//
+// Note: This is mainly for debugging purposes and has no real life use.
+//
+// Returns:
+//   - `string`: The stringified version of the current postlist.
+func (pl *TPostList) String() (rStr string) {
+	for idx, post := range *pl {
+		rStr += fmt.Sprintf("[%d]\n%s\n", idx, post.String())
+	}
+
+	return
+} // String()
+
 // `Week()` adds all postings of the current week to the list.
 //
 // Parameters:
@@ -318,7 +385,7 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 		apachelogger.Err("TPostList.bgAddPosting()",
 			fmt.Sprintf("TPosting.Load(%s): %v", id2str(aID), err))
 	} else {
-		aPostList.Add(post)
+		aPostList.insert(post)
 	}
 	// errors are ignored since we can't do anything about it here.
 } // bgAddPosting()
@@ -351,7 +418,7 @@ func SearchPostings(aText string) *TPostList {
 		if !pattern.Match(post.markdown) {
 			return nil
 		}
-		result.Add(post)
+		result.insert(post)
 
 		return nil
 	} // wf()
