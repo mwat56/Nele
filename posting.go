@@ -358,19 +358,14 @@ func (p *TPosting) Store() (int, error) {
 	return poPersistence.Create(p)
 } // Store()
 
-// `String()` returns a stringified version of the posting object.
+// `String()` returns a stringified version of the posting instance.
 //
 // Note: This is mainly for debugging purposes and has no real life use.
 //
 // Returns:
 //   - `string`: The stringified version of the current posting.
-func (p *TPosting) String() (rStr string) {
-	if nil == p {
-		return
-	}
-	rStr = id2str(p.id) + `: [[` + string(p.Markdown()) + `]]`
-
-	return
+func (p *TPosting) String() string {
+	return id2str(p.id) + `: [[` + string(p.Markdown()) + `]]`
 } // String()
 
 // `Time()` returns the posting's date/time.
