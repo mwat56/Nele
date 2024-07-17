@@ -6,12 +6,6 @@ Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 */
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
-/*
- * This file provides list_of_post related functions and methods.
- */
-
 import (
 	"fmt"
 	"regexp"
@@ -21,6 +15,8 @@ import (
 	"github.com/mwat56/apachelogger"
 )
 
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+
 /* * /
 const (
 	//TODO make this a `TPostList` property:
@@ -29,6 +25,33 @@ const (
 	plNone       int = 0
 )
 /* */
+
+/* Defined in `persistence.go`:
+type (
+	TPosting struct {
+		id           uint64    // integer representation of date/time
+		lastModified time.Time // file modification time
+		markdown     []byte    // article contents in Markdown markup
+	}
+
+	TPostList []TPosting
+
+	TWalkFunc func(aID uint64) error
+
+	IPersistence interface {
+		Create(aPost *TPosting) (int, error)
+		Read(aID uint64) (*TPosting, error)
+		Update(aPost *TPosting) (int, error)
+		Delete(aID uint64) error
+
+		Count() uint32
+		Exists(aID uint64) bool
+		PathFileName(aID uint64) string
+		Rename(aOldID, aNewID uint64) error
+		Walk(aWalkFunc TWalkFunc) error
+	}
+)
+*/
 
 // --------------------------------------------------------------------------
 // constructor function:
@@ -43,7 +66,7 @@ func NewPostList() *TPostList {
 // --------------------------------------------------------------------------
 // TPostList methods:
 
-// Add appends `aPosting` to the list.
+// `Add()` appends `aPosting` to the list.
 //
 // Parameters:
 //   - `aPosting` contains the actual posting's text.
@@ -56,10 +79,10 @@ func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 	// We need an explicit return value (despite the in-place
 	// modification of `pl`) to allow for command chaining like
 	// `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
-	return pl
+	return pl.Sort()
 } // Add()
 
-// Day adds all postings of the current day to the list.
+// `Day()` adds all postings of the current day to the list.
 //
 // Returns:
 //   - `*TPostList`: A list with the postings of the current day.
@@ -73,27 +96,32 @@ func (pl *TPostList) Day() *TPostList {
 	return pl.doTimeWalk(tLo, tHi)
 } // Day()
 
-// Delete removes `aPosting` from the list, returning the (possibly
+// `Delete()` removes `aPosting` from the list, returning the (possibly
 // modified) list and whether the operation war successful.
 //
-//	`aPosting` is the posting o remove from this list.
+// Parameters:
+//   - `aPosting`: The posting to remove from this list.
+//
+// Returns:
+//   - `*TPostList`: The updated list.
+//   - `bool`: Whether `aPosting` was successfully removed.
 func (pl *TPostList) Delete(aPosting *TPosting) (*TPostList, bool) {
-	if idx := pl.Index(aPosting); 0 <= idx {
-		if 0 == idx {
-			*pl = (*pl)[1:] // remove first list entry
-		} else if (len(*pl) - 1) == idx { // len - 1: because list is zero-based
-			*pl = (*pl)[:idx] // omit last list entry
-		} else {
-			*pl = append((*pl)[:idx], (*pl)[idx+1:]...)
-		}
-
-		return pl, true // `aPosting` found and removed
+	idx := pl.Index(aPosting)
+	if 0 > idx {
+		return pl, false // `aPosting` not found in list
+	}
+	if 0 == idx {
+		*pl = (*pl)[1:] // remove first list entry
+	} else if (len(*pl) - 1) == idx { // len - 1: because list is zero-based
+		*pl = (*pl)[:idx] // omit last list entry
+	} else {
+		*pl = append((*pl)[:idx], (*pl)[idx+1:]...)
 	}
 
-	return pl, false // `aPosting` not found in list
+	return pl, true // `aPosting` found and removed
 } // Delete()
 
-// `doTimeWalk()` computes the first and last directory to process.
+// `doTimeWalk()` computes the first and last posting to process.
 //
 // Parameters:
 //   - `aLo` is the earliest ID time to use.
@@ -138,10 +166,10 @@ func (pl *TPostList) Index(aPosting *TPosting) int {
 	return -1
 } // Index()
 
-// `IsSorted()` returns `true` if the list is sorted (in descending order),
-// or `false` otherwise.
+// `IsSorted()` returns whether the list is sorted (in descending order).
 //
 // Returns:
+//   - `bool`: `true` if the list is sorted in descending order.
 func (pl *TPostList) IsSorted() bool {
 	return sort.SliceIsSorted(*pl, func(i, j int) bool {
 		// return ((*pl)[i].id < (*pl)[j].id) // ascending
@@ -152,6 +180,8 @@ func (pl *TPostList) IsSorted() bool {
 // `Len()` returns the number of postings stored in this list.
 //
 // Returns:
+//
+//	`int`: The number of postings in the current list.
 func (pl *TPostList) Len() int {
 	return len(*pl)
 } // Len()
@@ -198,10 +228,13 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 //   - `aStart` The start number to use.
 //
 // Returns:
+//   - `error`: A possible error during processing of the request.
 func (pl *TPostList) Newest(aNumber, aStart int) error {
 	wf := func(aID uint64) error {
 		if len(*pl) < aNumber {
 			bgAddPosting(pl, aID)
+		} else {
+			return ErrSkipAll
 		}
 
 		return nil
@@ -212,6 +245,9 @@ func (pl *TPostList) Newest(aNumber, aStart int) error {
 
 // `Sort()` returns the list sorted by posting IDs (i.e. date/time)
 // in descending order.
+//
+// Returns:
+//   - `*TPostList`: The current list of postings in descending order.
 func (pl *TPostList) Sort() *TPostList {
 	sort.Slice(*pl, func(i, j int) bool {
 		// return ((*pl)[i].id < (*pl)[j].id) // ascending
@@ -273,7 +309,6 @@ func (pl *TPostList) Week(aYear int, aMonth time.Month, aDay int) *TPostList {
 // The data associated with `aID` is loaded from storage.
 //
 // Parameters:
-//
 //   - `aPostList`: The `TPostList` instance to add to.
 //   - `aID` is the identifier of the new posting to add.
 func bgAddPosting(aPostList *TPostList, aID uint64) {
