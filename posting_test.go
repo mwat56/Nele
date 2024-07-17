@@ -6,65 +6,13 @@ Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 */
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 import (
 	"reflect"
-	"sync"
 	"testing"
 	"time"
 )
 
-/* * /
-func Test_time2id(t *testing.T) {
-	ct000 := time.Date(2019, 10, 22, 0, 0, 0, 0, time.Local)
-	ct001 := time.Date(2019, 10, 23, 0, 0, 0, 0, time.Local)
-	ct052 := time.Date(2019, 12, 13, 0, 0, 0, 0, time.Local)
-	ct053 := time.Date(2019, 12, 14, 0, 0, 0, 0, time.Local)
-	ct104 := time.Date(2020, 2, 3, 0, 0, 0, 0, time.Local)
-	ct105 := time.Date(2020, 2, 4, 0, 0, 0, 0, time.Local)
-	ct158 := time.Date(2020, 3, 27, 0, 0, 0, 0, time.Local)
-	ct159 := time.Date(2020, 3, 28, 0, 0, 0, 0, time.Local)
-	ct209 := time.Date(2020, 5, 18, 0, 0, 0, 0, time.Local)
-	ct210 := time.Date(2020, 5, 19, 0, 0, 0, 0, time.Local)
-	ct261 := time.Date(2020, 7, 9, 0, 0, 0, 0, time.Local)
-	ct262 := time.Date(2020, 7, 10, 0, 0, 0, 0, time.Local)
-	ct313 := time.Date(2020, 8, 30, 0, 0, 0, 0, time.Local)
-	ct314 := time.Date(2020, 8, 31, 0, 0, 0, 0, time.Local)
-	ct365 := time.Date(2020, 10, 21, 0, 0, 0, 0, time.Local)
-	ct366 := time.Date(2020, 10, 22, 0, 0, 0, 0, time.Local)
-
-	tests := []struct {
-		name string
-		tIme time.Time
-		want uint64
-	}{
-		{"000", ct000, "15cfc8750b2fc000"},
-		{"001", ct001, "15d017099c7ec000"},
-		{"052", ct052, "15dfc1e8bff46000"},
-		{"053", ct053, "15e0107d51436000"},
-		{"104", ct104, "15efb81644006000"},
-		{"105", ct105, "15f006aad54f6000"},
-		{"158", ct158, "15fffcd8595b6000"},
-		{"159", ct159, "16004b6ceaaa6000"},
-		{"209", ct209, "160fefbfacaec000"},
-		{"210", ct210, "16103e543dfdc000"},
-		{"261", ct261, "161fe5ed30bac000"},
-		{"262", ct262, "16203481c209c000"},
-		{"313", ct313, "162fdc1ab4c6c000"},
-		{"314", ct314, "16302aaf4615c000"},
-		{"365", ct365, "163fd24838d2c000"},
-		{"366", ct366, "164020dcca21c000"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := time2id(tt.tIme); got != tt.want {
-				t.Errorf("time2id() = [%v], want [%v]", got, tt.want)
-			}
-		})
-	}
-} // Test_time2id()
-/* */
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func Test_NewPosting(t *testing.T) {
 	prep4Tests()
@@ -75,7 +23,6 @@ func Test_NewPosting(t *testing.T) {
 		id:           id1,
 		lastModified: time.Now(),
 		markdown:     md,
-		mtx:          new(sync.RWMutex),
 	}
 
 	tests := []struct {
@@ -98,28 +45,9 @@ func Test_NewPosting(t *testing.T) {
 	}
 } // Test_NewPosting()
 
-// func TestPostingCount(t *testing.T) {
-// 	SetPostingBaseDirectory(`./postings/`)
-// 	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-// 	tests := []struct {
-// 		name       string
-// 		wantRCount uint32
-// 	}{
-// 		// TODO: Add test cases.
-// 		{" 1", 1832},
-// 		{" 2", 1832},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if gotRCount := PostingCount(); gotRCount != tt.wantRCount {
-// 				t.Errorf("PostingCount() = %v, want %v", gotRCount, tt.wantRCount)
-// 			}
-// 		})
-// 	}
-// } // TestPostingCount()
-
 func Test_TPosting_After(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	id1 := time2id(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
 	p1 := NewPosting(id1, "")
 	id2 := time2id(time.Date(2019, 1, 1, 0, 0, 0, 0, time.Local))
@@ -146,7 +74,8 @@ func Test_TPosting_After(t *testing.T) {
 } // Test_TPosting_After()
 
 func Test_TPosting_Before(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	id1 := time2id(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
 	p1 := NewPosting(id1, "")
 	id2 := time2id(time.Date(2019, 1, 1, 0, 0, 0, 0, time.Local))
@@ -172,8 +101,39 @@ func Test_TPosting_Before(t *testing.T) {
 	}
 } // Test_TPosting_Before()
 
+func TestTPosting_ChangeID(t *testing.T) {
+	prep4Tests()
+
+	p1 := NewPosting(0, "> one")
+	p1.Store()
+	id2 := time2id(time.Now()) + 1
+
+	tests := []struct {
+		name    string
+		post    *TPosting
+		id      uint64
+		wantErr bool
+	}{
+		{"1", p1, id2, false},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &TPosting{
+				id:           tt.post.id,
+				lastModified: tt.post.lastModified,
+				markdown:     tt.post.markdown,
+			}
+			if err := p.ChangeID(tt.id); (err != nil) != tt.wantErr {
+				t.Errorf("TPosting.ChangeID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+} // TestTPosting_ChangeID()
+
 func Test_TPosting_Clear(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	id := time2id(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
 	p1 := NewPosting(id, "")
 	rp := p1.clone()
@@ -204,7 +164,8 @@ func Test_TPosting_Clear(t *testing.T) {
 } // Tes_tTPosting_Clear()
 
 func Test_TPosting_clone(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	id := time2id(time.Date(2019, 4, 14, 0, 0, 0, 0, time.Local))
 	t1 := "Oh dear! This is a posting."
 	p1 := NewPosting(id, t1)
@@ -260,7 +221,8 @@ func Test_TPosting_Delete(t *testing.T) {
 } // Test_TPosting_Delete()
 
 func Test_TPosting_Equal(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
+
 	id1 := time2id(time.Date(2019, 1, 1, 0, 0, 0, -1, time.Local))
 	p1 := NewPosting(id1, "")
 
@@ -288,7 +250,7 @@ func Test_TPosting_Equal(t *testing.T) {
 } // TestTPosting_Equal()
 
 func Test_TPosting_Exists(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	id1 := time2id(time.Date(2019, 1, 1, 0, 0, 0, 1, time.Local))
 	p1 := NewPosting(id1, "")
@@ -321,7 +283,7 @@ func Test_TPosting_Exists(t *testing.T) {
 } // Test_TPosting_Exists()
 
 func Test_TPosting_Load(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	p1 := NewPosting(id1, "")
@@ -352,46 +314,8 @@ func Test_TPosting_Load(t *testing.T) {
 	}
 } // Test_TPosting_Load()
 
-/*
-func Test_TPosting_makeDir(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
-
-	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
-	p1 := NewPosting(id1, "")
-	rp1 := "/tmp/postings/2019158/158d2fcc0ff16000"
-
-	id2 := time2id(time.Date(2019, 5, 4, 0, 0, 0, 0, time.Local))
-	p2 := NewPosting(id2, "")
-	rp2 := "/tmp/postings/2019159/159b4b37fb6ac000"
-
-	tests := []struct {
-		name    string
-		post    *TPosting
-		want    string
-		wantErr bool
-	}{
-		{"1", p1, rp1, false},
-		{"2", p2, rp2, false},
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.post.makeDir()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TPosting.makeDir() error = %v, wantErr %v",
-					err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("TPosting.makeDir() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-} // Test_TPosting_makeDir()
-*/
-
 func Test_TPosting_Markdown(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 1, time.Local))
 	md1 := "Markdown: this is a nonsensical posting"
@@ -423,7 +347,7 @@ func Test_TPosting_Markdown(t *testing.T) {
 } // Test_TPosting_Markdown()
 
 func Test_TPosting_pathFileName(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))
 	p1 := NewPosting(id1, "")
@@ -452,7 +376,7 @@ func Test_TPosting_pathFileName(t *testing.T) {
 } // TestTPosting_pathFileName()
 
 func Test_TPosting_Set(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 1, time.Local))
 	md1 := []byte("Set: this is obviously nonsense")
@@ -488,7 +412,7 @@ func Test_TPosting_Set(t *testing.T) {
 } // Test_TPosting_Set
 
 func Test_TPosting_Store(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	var len1 int
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 1, time.Local))
@@ -525,7 +449,7 @@ func Test_TPosting_Store(t *testing.T) {
 } // Test_TPosting_Store()
 
 func Test_TPosting_Time(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prep4Tests()
 
 	tm1 := time.Date(2019, 3, 19, 0, 0, 0, 1, time.Local)
 	p1 := NewPosting(time2id(tm1), "")
@@ -555,3 +479,5 @@ func Test_TPosting_Time(t *testing.T) {
 		})
 	}
 } // Test_TPosting_Time()
+
+/* _EoF_ */

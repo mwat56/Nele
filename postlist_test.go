@@ -38,7 +38,8 @@ func storeNewPost(aBaseDir string, aDay, aHour int) {
 } // storeNewPost()
 
 func TestNewPostList(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	wl1 := &TPostList{}
 	tests := []struct {
 		name string
@@ -82,7 +83,8 @@ func TestSearchPostings(t *testing.T) {
 } // TestSearchPostings()
 
 func TestTPostList_Add(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	p1 := NewPosting(0, "")
 	pl1 := NewPostList()
 	wl1 := &TPostList{
@@ -138,6 +140,8 @@ func TestTPostList_Article(t *testing.T) {
 */
 
 func TestTPostList_Delete(t *testing.T) {
+	prepareTestFiles()
+
 	p1 := NewPosting(0, "")
 	pl1 := NewPostList()
 	wl1 := NewPostList()
@@ -191,38 +195,9 @@ func TestTPostList_Delete(t *testing.T) {
 	}
 } // TestTPostList_Delete()
 
-/*
-func TestTPostList_in(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
-	p1 := NewPosting("").Set([]byte("# Hello World!"))
-	p2 := NewPosting("").Set([]byte("I trust you're feeling good."))
-	p3 := NewPosting("").Set([]byte("Goodbye!"))
-	pl1 := NewPostList().Add(p1).Add(p2).Add(p3)
-	wl1 := &TPostList{
-		*p1,
-		*p2,
-		*p3,
-	}
-	tests := []struct {
-		name string
-		pl   *TPostList
-		want *TPostList
-	}{
-		// TODO: Add test cases.
-		{" 1", pl1, wl1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.pl.in(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TPostList.in() = %v,\nwant %v", got, tt.want)
-			}
-		})
-	}
-} // TestTPostList_in()
-*/
-
 func TestTPostList_IsSorted(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	p1 := NewPosting(11, "11")
 	p2 := NewPosting(22, "22")
 	p3 := NewPosting(33, "33")
@@ -250,7 +225,8 @@ func TestTPostList_IsSorted(t *testing.T) {
 } // TestTPostList_IsSorted()
 
 func TestTPostList_Len(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	p1 := NewPosting(0, "").Set([]byte("11"))
 	p2 := NewPosting(0, "").Set([]byte("22"))
 	p3 := NewPosting(0, "").Set([]byte("33"))
@@ -342,7 +318,8 @@ func TestTPostList_Newest(t *testing.T) {
 } // TestTPostList_Newest()
 
 func TestTPostList_Sort(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	p1 := NewPosting(11, "11")
 	p2 := NewPosting(22, "22")
 	p3 := NewPosting(33, "33")
@@ -368,11 +345,12 @@ func TestTPostList_Sort(t *testing.T) {
 
 func TestTPostList_Week(t *testing.T) {
 	prepareTestFiles()
+
 	pl1 := NewPostList()
 	pl2 := NewPostList()
 	pl3 := NewPostList()
 	pl4 := NewPostList()
-	// pl5 := NewPostList()
+
 	type args struct {
 		aYear  int
 		aMonth time.Month
@@ -385,10 +363,10 @@ func TestTPostList_Week(t *testing.T) {
 		want int
 	}{
 		// TODO: Add test cases.
-		{" 1", pl1, args{0, 0, 0}, 0},
-		{" 2", pl2, args{1970, 1, 1}, 12},
-		{" 3", pl3, args{2018, 12, 1}, 6},
-		{" 4", pl4, args{2018, 12, 8}, 21},
+		{"1", pl1, args{1, 1, 1}, 0},
+		{"2", pl2, args{1970, 1, 1}, 12},
+		{"3", pl3, args{2018, 12, 1}, 6},
+		{"4", pl4, args{2018, 12, 8}, 21},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -398,3 +376,5 @@ func TestTPostList_Week(t *testing.T) {
 		})
 	}
 } // TestTPostList_Week()
+
+/* _EoF_ */

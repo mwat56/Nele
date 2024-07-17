@@ -14,6 +14,8 @@ import (
 )
 
 func Test_MarkupTags(t *testing.T) {
+	prep4Tests()
+
 	p1 := []byte(`bla #hash1 bla _@mention1_ bla&#39; <a href="page#fragment">bla</a>&nbsp;
 	[link text](http://host.com/page#frag2) #hash2`)
 
@@ -55,7 +57,7 @@ func Test_MarkupTags(t *testing.T) {
 } // Test_MarkupTags()
 
 func Test_ReplaceTag(t *testing.T) {
-	SetPersistence(TFSpersistence{})
+	prep4Tests()
 
 	ht.UseBinaryStorage = false
 	l1, _ := ht.New(`./TestReplaceTag.db`, false)
@@ -82,3 +84,5 @@ func Test_ReplaceTag(t *testing.T) {
 		})
 	}
 } // Test_ReplaceTag()
+
+/* _EoF_ */
