@@ -8,13 +8,16 @@ package nele
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -25,41 +28,44 @@ import (
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
+/* Defined in `persistence.go`:
 type (
+	TPosting struct {
+		id           uint64    // integer representation of date/time
+		lastModified time.Time // file modification time
+		markdown     []byte    // article contents in Markdown markup
+	}
 
-	/* Defined in `persistence.go`:
+	TPostList []TPosting
 
-		TPosting struct {
-			id           uint64    // integer representation of date/time
-			lastModified time.Time // file modification time
-			markdown     []byte    // article contents in Markdown markup
-			mtx          *sync.RWMutex
-		}
+	TWalkFunc func(aID uint64) error
 
-		TPostList []TPosting
+	IPersistence interface {
+		Create(aPost *TPosting) (int, error)
+		Read(aID uint64) (*TPosting, error)
+		Update(aPost *TPosting) (int, error)
+		Delete(aID uint64) error
 
-		IPersistence interface {
-			Create(aPost *TPosting) (int, error)
-			Read(aID uint64) (*TPosting, error)
-			Update(aPost *TPosting) (int, error)
-			Delete(aID uint64) error
+		Count() uint32
+		Exists(aID uint64) bool
+		PathFileName(aID uint64) string
+		Rename(aOldID, aNewID uint64) error
+		Walk(aWalkFunc TWalkFunc) error
+	}
+)
+*/
 
-			Exists(aID uint64) bool
-			PathFileName(aID uint64) string
-			PostingCount() uint32
-		}
-	)
-	*/
-
+type (
 	// `TFSpersistence` is a file-based `IPersistence` implementation.
 	TFSpersistence struct {
-		_ struct{}
+		_   struct{}
+		mtx *sync.RWMutex // pointer to avoid copying warnings
 	}
 )
 
 var (
 	// Cache of last/current posting count.
-	// see `delFile()`, `PostingCount()`, `TPosting.Store()`
+	// see `[delFile]`, `[Count]`, `[TPosting.Store]`
 	µCountCache uint32
 )
 
@@ -87,6 +93,7 @@ func delFile(aFileName string) error {
 	return nil
 } // delFile()
 
+/*
 // `filename2id()` converts a given file name to a `uint64` identifier.
 //
 // The file name is expected to be in hexadecimal format.
@@ -116,27 +123,30 @@ func filename2id(aFilename string) uint64 {
 
 	return str2id(aFilename)
 } // filename2id()
+*/
 
-// // `filename2time()` converts a given file name to a `Time` value.
-// //
-// // The file name is expected to be in hexadecimal format.
-// //
-// // The function first extracts the base name of the file using path.Base().
-// // Then, it attempts to parse the base name as a uint64 using
-// // strconv.ParseUint().
-// //
-// // The parsed uint64 is then used to create a Time value using time.Unix.
-// //
-// // Parameters:
-// //   - `aFilename`: The file name to be converted.
-// //
-// // Return Value:
-// //   - (time.Time) The Time value corresponding to the input file name.
-// func filename2time(aFilename string) time.Time {
-// 	id := filename2id(aFilename)
+/*
+// `filename2time()` converts a given file name to a `Time` value.
+//
+// The file name is expected to be in hexadecimal format.
+//
+// The function first extracts the base name of the file using path.Base().
+// Then, it attempts to parse the base name as a uint64 using
+// strconv.ParseUint().
+//
+// The parsed uint64 is then used to create a Time value using time.Unix.
+//
+// Parameters:
+//   - `aFilename`: The file name to be converted.
+//
+// Return Value:
+//   - (time.Time) The Time value corresponding to the input file name.
+func filename2time(aFilename string) time.Time {
+	id := filename2id(aFilename)
 
-// 	return time.Unix(0, int64(id))
-// } // filename2time()
+	return time.Unix(0, int64(id))
+} // filename2time()
+*/
 
 // `id2dir()` converts a given uint64 to a directory name.
 //
@@ -166,10 +176,10 @@ func id2dir(aID uint64) string {
 // string representation of the provided uint64, with a ".md" extension.
 //
 // Parameters:
-// - `aID`: A posting's ID to be converted to a file name.
+//   - `aID`: A posting's ID to be converted to a file name.
 //
 // Return Value:
-// - `string`: The file name based on the provided uint64.
+//   - `string`: The file name based on the provided uint64.
 func id2filename(aID uint64) string {
 	dir := id2dir(aID)
 	fname := id2str(aID)
@@ -258,95 +268,17 @@ func init() {
 // It does not take any parameters.
 //
 // Returns:
-//
 //   - `*TFSpersistence`: A persistence instance instance.
 func NewFSpersistence() *TFSpersistence {
 	return &TFSpersistence{
-		//        basepath: aBasepath,
+		mtx: new(sync.RWMutex),
 	}
 } // NewFSpersistence()
 
 // --------------------------------------------------------------------------
 // TFSpersistence methods
 
-// `Create()` creates a new posting in the filesystem.
-//
-// If the provided `aPost` is `nil`, an `ErrEmptyPosting` error
-// is returned.
-//
-// Parameters:
-//
-//   - `aPost`: The `TPosting` instance containing the article's data.
-//
-// Returns:
-//
-//   - `int`: The number of bytes written to the file.
-//   - 'error`:` A possible error, or `nil` on success.
-//
-// Side Effects:
-//   - Invalidates the internal count cache.
-func (fsp TFSpersistence) Create(aPost *TPosting) (int, error) {
-	if nil == aPost {
-		return 0, se.Wrap(ErrEmptyPosting, 1)
-	}
-
-	return fsp.store(aPost, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
-} // Create()
-
-// `Delete()` removes the posting/article from the filesystem
-// and returns a possible I/O error.
-//
-// Parameters:
-//   - `aID`: The unique identifier of the posting to delete.
-//
-// Returns:
-//   - 'error`: A possible I/O error, or `nil` on success.
-//
-// Side Effects:
-//   - Invalidates the count cache.
-func (fsp TFSpersistence) Delete(aID uint64) (rErr error) {
-	if rErr = delFile(id2filename(aID)); nil == rErr {
-		atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
-	}
-
-	return
-} // Delete()
-
-// `Exists()` checks if a file with the given ID exists in the filesystem.
-//
-// It returns a boolean value indicating whether the file exists.
-//
-// Parameters:
-//   - `aID`: The unique identifier of the posting to check.
-//
-// Returns:
-//   - `bool`: `true` if the file exists, `false` otherwise.
-func (fsp TFSpersistence) Exists(aID uint64) bool {
-	fName := id2filename(aID)
-	fi, err := os.Stat(fName)
-	if (nil != err) || (!fi.Mode().IsRegular()) {
-		return false
-	}
-
-	return (0 < fi.Size())
-} // Exists()
-
-// `PathFileName()` returns the posting's complete path-/filename.
-//
-// The returned path-/filename is in the format:
-//
-//	<base_directory>/<posting_id>.md
-//
-// Parameters:
-//   - `aID`: The unique identifier of the posting to handle.
-//
-// Returns:
-//   - `*string`: The path-/filename associated with `aID`.
-func (fsp TFSpersistence) PathFileName(aID uint64) string {
-	return id2filename(aID)
-} // PathFileName()
-
-// `PostingCount()` returns the number of postings currently available.
+// `Count()` returns the number of postings currently available.
 //
 // NOTE: This method is very resource intensive as it has to count all the
 // posts stored in the filesystem.
@@ -356,7 +288,10 @@ func (fsp TFSpersistence) PathFileName(aID uint64) string {
 //
 // Side Effects:
 //   - Updates the count cache.
-func (fsp TFSpersistence) PostingCount() (rCount uint32) {
+func (fsp TFSpersistence) Count() (rCount uint32) {
+	fsp.mtx.RLock()
+	defer fsp.mtx.RUnlock()
+
 	if rCount = atomic.LoadUint32(&µCountCache); 0 < rCount {
 		return
 	}
@@ -381,7 +316,96 @@ func (fsp TFSpersistence) PostingCount() (rCount uint32) {
 	atomic.StoreUint32(&µCountCache, rCount)
 
 	return
-} // PostingCount()
+} // Count()
+
+// `Create()` creates a new posting in the filesystem.
+//
+// If the provided `aPost` is `nil`, an `ErrEmptyPosting` error
+// is returned.
+//
+// Parameters:
+//   - `aPost`: The `TPosting` instance containing the article's data.
+//
+// Returns:
+//   - `int`: The number of bytes written to the file.
+//   - 'error`:` A possible error, or `nil` on success.
+//
+// Side Effects:
+//   - Invalidates the internal count cache.
+func (fsp TFSpersistence) Create(aPost *TPosting) (int, error) {
+	if nil == aPost {
+		return 0, se.Wrap(ErrEmptyPosting, 1)
+	}
+	fsp.mtx.Lock()
+	defer fsp.mtx.Unlock()
+
+	return fsp.store(aPost, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+} // Create()
+
+// called by [Delete] and [store], both of which are already locked
+func (fsp TFSpersistence) delete(aID uint64) error {
+	err := delFile(id2filename(aID))
+	if nil == err {
+		atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+	}
+
+	return err
+} // delete()
+
+// `Delete()` removes the posting/article from the filesystem
+// and returns a possible I/O error.
+//
+// Parameters:
+//   - `aID`: The unique identifier of the posting to delete.
+//
+// Returns:
+//   - 'error`: A possible I/O error, or `nil` on success.
+//
+// Side Effects:
+//   - Invalidates the internal count cache.
+func (fsp TFSpersistence) Delete(aID uint64) error {
+	fsp.mtx.Lock()
+	defer fsp.mtx.Unlock()
+
+	return fsp.delete(aID)
+} // Delete()
+
+// `Exists()` checks if a file with the given ID exists in the filesystem.
+//
+// It returns a boolean value indicating whether the file exists.
+//
+// Parameters:
+//   - `aID`: The unique identifier of the posting to check.
+//
+// Returns:
+//   - `bool`: `true` if the file exists, `false` otherwise.
+func (fsp TFSpersistence) Exists(aID uint64) bool {
+	fsp.mtx.RLock()
+	defer fsp.mtx.RUnlock()
+
+	fName := id2filename(aID)
+	fi, err := os.Stat(fName)
+	if (nil != err) || (!fi.Mode().IsRegular()) {
+		return false
+	}
+
+	return (0 < fi.Size())
+} // Exists()
+
+// `PathFileName()` returns the posting's complete path-/filename.
+//
+// The returned path-/filename is in the format:
+//
+//	<base_directory>/<posting_id>.md
+//
+// Parameters:
+//   - `aID`: The unique identifier of the posting to handle.
+//
+// Returns:
+//   - `*string`: The path-/filename associated with `aID`.
+func (fsp TFSpersistence) PathFileName(aID uint64) string {
+	return id2filename(aID)
+} // PathFileName()
 
 // `Read()` reads the posting from disk, returning a possible I/O error.
 //
@@ -394,6 +418,9 @@ func (fsp TFSpersistence) PostingCount() (rCount uint32) {
 //   - `*TPosting`: The `TPosting` instance containing the article's data, or `nil` if the file does not exist.
 //   - 'error`: A possible I/O error, or `nil` on success.
 func (fsp TFSpersistence) Read(aID uint64) (*TPosting, error) {
+	fsp.mtx.Lock()
+	defer fsp.mtx.Unlock()
+
 	var ( // re-use variables
 		bs  []byte
 		err error
@@ -431,6 +458,9 @@ func (fsp TFSpersistence) Read(aID uint64) (*TPosting, error) {
 // Returns:
 //   - `error`: An error if the operation fails, or `nil` on success.
 func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
+	fsp.mtx.Lock()
+	defer fsp.mtx.Unlock()
+
 	oName := id2filename(aOldID)
 	nName := id2filename(aNewID)
 	nDir := id2dir(aNewID)
@@ -467,6 +497,7 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 // Side Effects:
 // - Invalidates the internal count cache.
 func (fsp TFSpersistence) store(aPost *TPosting, aMode int) (int, error) {
+	// Locking is done by `Create()` and `Update()`.
 	var ( // re-use variables
 		err    error
 		mdFile *os.File
@@ -477,7 +508,7 @@ func (fsp TFSpersistence) store(aPost *TPosting, aMode int) (int, error) {
 	}
 
 	if 0 == len(aPost.markdown) {
-		return 0, fsp.Delete(aPost.id)
+		return 0, fsp.delete(aPost.id)
 	}
 
 	fName := id2filename(aPost.id)
@@ -513,6 +544,8 @@ func (fsp TFSpersistence) Update(aPost *TPosting) (int, error) {
 	if nil == aPost {
 		return 0, se.Wrap(ErrEmptyPosting, 1)
 	}
+	fsp.mtx.Lock()
+	defer fsp.mtx.Unlock()
 
 	return fsp.store(aPost, os.O_WRONLY|os.O_TRUNC)
 } // Update()
@@ -526,6 +559,9 @@ func (fsp TFSpersistence) Update(aPost *TPosting) (int, error) {
 // Returns:
 //   - `error`: a possible error occurring the traversal process.
 func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
+	// fsp.mtx.Lock()
+	// defer fsp.mtx.Unlock()
+
 	var (
 		// RegEx to check a posting's filename
 		filenameRE = regexp.MustCompile(`[0-9a-fA-F]{16}\.md`)
@@ -536,12 +572,27 @@ func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
 		return se.Wrap(err, 1)
 	}
 
+	// Sort the directory names to have the youngest entry first:
+	sortStr := func(a, b string) int {
+		if a < b {
+			return 1
+		}
+		if a > b {
+			return -1
+		}
+		return 0
+	}
+	slices.SortFunc(dNames, sortStr)
+
+dirLoop:
 	for _, dName := range dNames {
 		fNames, err := filepath.Glob(dName + "/*.md")
 		if (nil != err) || (0 == len(fNames)) {
 			continue // no files found
 		}
+		slices.SortFunc(fNames, sortStr)
 
+	fileLoop:
 		for _, fName := range fNames {
 			fn := path.Base(fName)
 			if !filenameRE.Match([]byte(fn)) {
@@ -550,7 +601,13 @@ func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
 			fn = fn[:len(fn)-3] // exclude extension `.md`
 
 			if err := aWalkFunc(str2id(fn)); nil != err {
-				return se.Wrap(err, 1)
+				if errors.Is(err, ErrSkipAll) {
+					break dirLoop
+				}
+				if errors.Is(err, ErrSkipFiles) {
+					break fileLoop
+				}
+				return se.Wrap(err, 2)
 			}
 		}
 	}
