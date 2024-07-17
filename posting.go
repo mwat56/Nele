@@ -1,5 +1,5 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
 		All rights reserved
 	EMail : <support@mwat.de>
@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"sync"
 	"time"
 
 	"github.com/mwat56/apachelogger"
@@ -19,7 +18,6 @@ import (
 )
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
-//lint:file-ignore ST1005 - I prefer capitalisation
 
 /* Defined in `persistence.go`:
 type (
@@ -27,10 +25,11 @@ type (
 		id           uint64    // integer representation of date/time
 		lastModified time.Time // file modification time
 		markdown     []byte    // article contents in Markdown markup
-		mtx          *sync.RWMutex
 	}
 
 	TPostList []TPosting
+
+	TWalkFunc func(aID uint64) error
 
 	IPersistence interface {
 		Create(aPost *TPosting) (int, error)
@@ -38,9 +37,11 @@ type (
 		Update(aPost *TPosting) (int, error)
 		Delete(aID uint64) error
 
+		Count() uint32
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
-		PostingCount() uint32
+		Rename(aOldID, aNewID uint64) error
+		Walk(aWalkFunc TWalkFunc) error
 	}
 )
 */
@@ -67,7 +68,6 @@ func NewPosting(aID uint64, aText string) *TPosting {
 		id:           aID,
 		lastModified: time.Now(),
 		markdown:     []byte(aText),
-		mtx:          new(sync.RWMutex),
 	}
 } // NewPosting()
 
@@ -78,10 +78,10 @@ func NewPosting(aID uint64, aText string) *TPosting {
 // identified by `aID`.
 //
 // Parameters:
-//
-//   - `aID` is the ID of another posting to compare.
+//   - `aID`: The ID of another posting to compare.
 //
 // Returns:
+//   - `bool`: Whether the current posting is older than `aID`.
 func (p *TPosting) After(aID uint64) bool {
 	return (p.id > aID)
 } // After()
@@ -90,10 +90,10 @@ func (p *TPosting) After(aID uint64) bool {
 // identified by `aID`.
 //
 // Parameters:
-//
-//   - `aID` is the ID of another posting to compare.
+//   - `aID`: The ID of another posting to compare.
 //
 // Returns:
+//   - `bool`: Whether the current posting is younger than `aID`.
 func (p *TPosting) Before(aID uint64) bool {
 	return (p.id < aID)
 } // Before()
@@ -101,27 +101,22 @@ func (p *TPosting) Before(aID uint64) bool {
 // `ChangeID()` changes the ID of the current posting including the
 // persistence layer.
 //
+// Note: This method is provided for rare cases when a posting's ID
+// has to be changed.
+//
 // Parameters:
+//   - `aID`: is the ID of another posting to compare.
 //
 // Returns:
+//   - `error`: A possible error during processing the request.
 func (p *TPosting) ChangeID(aID uint64) error {
 	oldID := p.id
 	p.id = aID
 
-	if poPersistence.Exists(aID) {
-		if _, err := poPersistence.Update(p); nil != err {
-			p.id = oldID
-			return err
-		}
-	} else if _, err := poPersistence.Create(p); nil != err {
+	if err := poPersistence.Rename(oldID, aID); nil != err {
 		p.id = oldID
-		return err
-	}
 
-	if poPersistence.Exists(oldID) {
-		if err := poPersistence.Delete(oldID); nil != err {
-			return err
-		}
+		return err
 	}
 
 	return nil
@@ -133,15 +128,14 @@ func (p *TPosting) ChangeID(aID uint64) error {
 // posting/article; for that call the `Delete()` method.
 //
 // Returns:
+//   - `*TPosting`: The current posting without any text.
 func (p *TPosting) Clear() *TPosting {
 	if nil == p {
 		return p
 	}
 
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
-
 	p.markdown = nil
+	p.lastModified = time.Now()
 
 	return p
 } // Clear()
@@ -149,31 +143,33 @@ func (p *TPosting) Clear() *TPosting {
 // `clone()` returns a copy of this posting/article.
 //
 // Returns:
+//   - `*TPosting`: A clone of the current posting.
 func (p *TPosting) clone() *TPosting {
 	return &TPosting{
 		id:           p.id,
 		lastModified: p.lastModified,
 		markdown:     bytes.TrimSpace(p.markdown),
-		mtx:          new(sync.RWMutex),
 	}
 } // clone()
 
 // `Date()` returns the posting's date as a formatted string (`yyyy-mm-dd`).
 //
 // Returns:
+//   - `string`: The posting's creation date in string format.
 func (p *TPosting) Date() string {
 	y, m, d := id2time(p.id).Date()
 
-	return fmt.Sprintf("%d-%02d-%02d", y, m, d)
+	return fmt.Sprintf("%04d-%02d-%02d", y, m, d)
 } // Date()
 
 // `Delete()` removes the posting/article from the persistence layer
 // returning a possible I/O error.
 //
 // This method does NOT empty the markdown text of the object;
-// for that call the `Clear()` method.
+// for that call the `[Clear]` method.
 //
 // Returns:
+//   - `error`: A possible error during processing the request.
 func (p *TPosting) Delete() error {
 	return poPersistence.Delete(p.id)
 } // Delete()
@@ -181,37 +177,26 @@ func (p *TPosting) Delete() error {
 // `Equal()` reports whether this posting is of the same time as `aID`.
 //
 // Parameters:
-//
-//   - `aID` The ID of the posting to compare with this one.
+//   - `aID`: The ID of the posting to compare with this one.
 //
 // Returns:
+//   - `bool`: `true` if the posting is of the same as `aID`.
 func (p *TPosting) Equal(aID uint64) bool {
 	return (p.id == aID)
 } // Equal()
 
-// // `dir()` returns the fully qualified name of the directory where this
-// // posting is stored.
-// //
-// // Returns:
-// func (p *TPosting) dir() string {
-// 	fname := poPersistence.PathFileName(p.id)
-
-// 	return path.Dir(fname)
-// } // dir()
-
 // `Exists()` returns whether there is a file with more than zero bytes.
 //
 // Returns:
+//   - `bool`: `true` if the posting exists in the persistence layer.
 func (p *TPosting) Exists() bool {
 	return poPersistence.Exists(p.id)
 } // Exists()
 
 // `ID()` returns the article's identifier.
 //
-// This method allows the template to validate and use
-// the placeholder `.ID`
-//
 // Returns:
+//   - `uint64`: The posting's unique ID.
 func (p *TPosting) ID() uint64 {
 	return p.id
 } // ID()
@@ -232,24 +217,26 @@ func (p *TPosting) IDstr() string {
 
 // `LastModified()` returns the last-modified date/time of the posting.
 //
+// The format of the returned string would be like
+// "Mon, 02 Jan 2006 15:04:05 MST"
+//
 // Returns:
+//   - `string`: The article's last modified date.
 func (p *TPosting) LastModified() string {
 	return p.lastModified.Format(time.RFC1123)
 } // LastModified()
 
 // `Len()` returns the current length of the posting's Markdown text.
 //
-// If the markup is not already in memory this methods calls
-// `TPosting.Load()` to read the text data from the filesystem.
+// If the markup is not already in memory this method calls
+// `[Load]` to read the text data from the persistence layer.
 //
 // Returns:
+//   - `int`: The current length of the posting's text.
 func (p *TPosting) Len() int {
 	if nil == p {
 		return 0
 	}
-
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 
 	if result := len(p.markdown); 0 < result {
 		return result
@@ -266,6 +253,7 @@ func (p *TPosting) Len() int {
 // `Load()` reads the Markdown from disk, returning a possible I/O error.
 //
 // Returns:
+//   - `error`: A possible error during processing the request.
 func (p *TPosting) Load() error {
 	pp, err := poPersistence.Read(p.id)
 	if nil != err {
@@ -279,7 +267,14 @@ func (p *TPosting) Load() error {
 
 // `PathFileName()` returns the article's complete path-/filename.
 //
+// NOTE: The actual definition of the path-/filename depends on
+// the implementation of this interface. In a file-based persistence
+// layer it would be a `/path/directory/filename` string. However,
+// in a database-based persistence layer it would be the `/path/file`
+// of the database file.
+//
 // Returns:
+//   - `string`: The current posting's path-/filename.
 func (p *TPosting) PathFileName() string {
 	return poPersistence.PathFileName(p.id)
 } // PathFileName()
@@ -294,6 +289,7 @@ func (p *TPosting) PathFileName() string {
 // The resulting HTML is returned as a `template.HTML` value.
 //
 // Returns:
+//   - `template.HTML`: The HTML markup of the current posting's text.
 func (p *TPosting) Post() template.HTML {
 	// make sure we have the most recent version:
 	return template.HTML(MarkupTags(MDtoHTML(p.Markdown()))) // #nosec G203
@@ -301,17 +297,15 @@ func (p *TPosting) Post() template.HTML {
 
 // `Markdown()` returns the Markdown of this article.
 //
-// If the markup is not already in memory this methods calls
-// `TPosting.Load()` to read the text data from the filesystem.
+// If the markdown is not already in memory this methods calls
+// `[Load]` to read the text data from the persistence layer.
 //
 // Returns:
+//   - `[]byte`: The current posting's text.
 func (p *TPosting) Markdown() []byte {
 	if nil == p {
 		return []byte(``)
 	}
-
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 
 	if 0 < len(p.markdown) { // that's the easy path …
 		return p.markdown
@@ -327,16 +321,14 @@ func (p *TPosting) Markdown() []byte {
 // `Set()` assigns the article's Markdown text.
 //
 // Parameters:
-//
-//   - `aMarkdown`: The actual Markdown text of the article to assign.
+//   - `aMarkdown`: The actual Markdown text to assign.
 //
 // Returns:
+//   - `*TPosting`: The updated posting.
 func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 	if nil == p {
 		return p
 	}
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
 
 	if 0 < len(aMarkdown) {
 		if p.markdown = bytes.TrimSpace(aMarkdown); nil == p.markdown {
@@ -353,9 +345,11 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 // `Store()` writes the article's Markdown to disk returning
 // the number of bytes written and a possible I/O error.
 //
-// The file is created on disk with mode `0640` (`-rw-r-----`).
+// The actual storing is delegated to the persistence layer.
 //
 // Returns:
+//   - `int`: The number of bytes written.
+//   - 'error`: A possible error, or `nil` on success.
 func (p *TPosting) Store() (int, error) {
 	if nil == p {
 		return 0, se.Wrap(errors.New("nil point"), 1)
@@ -369,6 +363,7 @@ func (p *TPosting) Store() (int, error) {
 // Note: This is mainly for debugging purposes and has no real life use.
 //
 // Returns:
+//   - `string`: The stringified version of the current posting.
 func (p *TPosting) String() (rStr string) {
 	if nil == p {
 		return
@@ -381,6 +376,7 @@ func (p *TPosting) String() (rStr string) {
 // `Time()` returns the posting's date/time.
 //
 // Returns:
+//   - `time.Time`: The current posting's creation time.
 func (p *TPosting) Time() time.Time {
 	return id2time(p.id)
 } // Time()
