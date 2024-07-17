@@ -33,7 +33,7 @@ type (
 		CertPem       string // private TLS certificate
 		DataDir       string // base directory of application's data
 		delWhitespace bool   // remove whitespace from generated pages
-		dump          bool   // Debug: dump this structure to `StdOut`
+		Dump          bool   // Debug: dump this structure to `StdOut`
 		ErrorLog      string // (optional) name of page error logfile
 		GZip          bool   // send compressed data to remote browser
 		HashFile      string // file with hashtag/mention database
@@ -272,7 +272,7 @@ func copyAppArgs2IniData() {
 		AppArgs.UserFile = absolute(AppArgs.DataDir, AppArgs.UserFile)
 	}
 
-	if AppArgs.dump {
+	if AppArgs.Dump {
 		// Print out the arguments and terminate:
 		log.Fatalf("runtime arguments:\n%s", AppArgs.String())
 	}
@@ -297,7 +297,9 @@ func copyAppArgs2IniData() {
 func InitConfig() {
 	// `InitConfig()` calls `flag.parse()` which in turn will cause
 	// errors when run with `go test …`.
+
 	const appName string = `nele`
+
 	section, _ := ini.ReadIniData(appName)
 	iniValues = section
 
@@ -306,6 +308,11 @@ func InitConfig() {
 	parseCmdlineArgs()
 
 	copyAppArgs2IniData()
+
+	// Set a default value for the storage layer
+	fsp := NewFSpersistence()
+	//TODO: make this configurable
+	SetPersistence(IPersistence(*fsp))
 } // InitConfig()
 
 // `parseCmdlineArgs()` parses the actual commandline arguments.
@@ -406,7 +413,7 @@ func readCmdlineArgs() {
 		"<boolean> Delete superfluous whitespace in generated pages")
 
 	// Debug aid:
-	flag.CommandLine.BoolVar(&AppArgs.dump, `d`, AppArgs.dump, `dump`)
+	flag.CommandLine.BoolVar(&AppArgs.Dump, `d`, AppArgs.Dump, `dump`)
 
 	if s, ok = iniValues.AsString(`errorLog`); (ok) && (0 < len(s)) {
 		AppArgs.ErrorLog = absolute(AppArgs.DataDir, s)
