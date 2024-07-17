@@ -2,9 +2,9 @@
 *.bak
 *.css.min
 *.db
+*.gz
 *.ini
 *.log
-*.log.gz
 *.min.css
 *~
 .git/
