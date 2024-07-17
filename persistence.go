@@ -10,10 +10,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
-	ht "github.com/mwat56/hashtags"
 	se "github.com/mwat56/sourceerror"
 )
 
@@ -23,21 +21,14 @@ import (
 type (
 	// `TPosting` is a single article/posting..
 	TPosting struct {
-		id           uint64        // integer representation of date/time
-		lastModified time.Time     // file modification time
-		markdown     []byte        // article contents in Markdown markup
-		mtx          *sync.RWMutex // pointer to avoid copying warnings
+		id           uint64    // integer representation of date/time
+		lastModified time.Time // file modification time
+		markdown     []byte    // article contents in Markdown markup
 	}
 
 	// `TPostList` is a list of postings to be injected
 	// into a template/view.
 	TPostList []TPosting
-
-	// This function type is used by `WalkPostings()`.
-	//
-	//	`aList` The hashlist to use (update).
-	//	`aPosting` The posting to handle.
-	TWalkPostFunc func(aList *ht.THashTags, aPosting *TPosting)
 
 	// This function type is used by `Walk()`.
 	//
@@ -110,6 +101,15 @@ type (
 		Delete(aID uint64) error
 
 		//
+		// `Count()` returns the number of postings available.
+		//
+		// Returns:
+		//
+		//	 - `uint32`: The number of available postings, or `0`
+		// in case of errors.
+		Count() uint32
+
+		//
 		// `Exists()` checks if a post with the given ID exists in the
 		// persistence layer.
 		//
@@ -139,16 +139,6 @@ type (
 		//
 		//	- `string`: The path-/filename associated with `aID`.
 		PathFileName(aID uint64) string
-
-		//
-		// `PostingCount()` returns the number of postings available.
-		//
-		// Returns:
-		//
-		//	 - `uint32`: The number of available postings, or `0`
-		// in case of errors.
-		PostingCount() uint32
-
 		//
 		// `Rename()` renames a posting from its old ID to a new ID.
 		//
@@ -179,6 +169,12 @@ var (
 	// `ErrEmptyPosting` is returned when a `nil` posting is passed to
 	// a method.
 	ErrEmptyPosting = errors.New("empty post")
+
+	// `ErrSkipAll` can be used by a `TWalkFunc` to skip the [Walk].
+	ErrSkipAll = errors.New("signal skipping the remaining directory walk")
+
+	// `ErrSkipFiles` can be used by a `TWalkFunc` to skip the [Walk].
+	ErrSkipFiles = errors.New("signal skipping the remaining file walk")
 
 	// `poPostingBaseDirectory` is the base directory for storing articles.
 	//
