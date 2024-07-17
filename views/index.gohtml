@@ -13,7 +13,7 @@
 		{{- if $lastDate.Changed $date -}}
 			<dt>{{$date}}</dt>
 		{{- end -}}
-		{{- $ID := $post.ID -}}
+		{{- $ID := $post.IDstr -}}
 		{{- if eq $lang "de" -}}
 			{{- $title = "zum Artikel springen" -}}
 		{{- else -}}
