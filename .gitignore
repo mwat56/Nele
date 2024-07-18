@@ -6,6 +6,7 @@
 *.ini
 *.log
 *.min.css
+*.sql
 *~
 .git/
 .github/
