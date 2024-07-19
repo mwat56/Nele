@@ -48,12 +48,10 @@ type (
 		// is returned.
 		//
 		// Parameters:
-		//
 		//	- `aPost`: The `TPosting` instance containing the article's data.
 		//
 		// Returns:
-		//
-		//	- `int`: The number of bytes written.
+		//	- `int`: The number of bytes stored.
 		//	- 'error`: A possible error, or `nil` on success.
 		Create(aPost *TPosting) (int, error)
 
@@ -62,11 +60,9 @@ type (
 		// and returns a possible I/O error.
 		//
 		// Parameters:
-		//
 		//	- `aID`: The unique identifier of the posting to delete.
 		//
 		// Returns:
-		//
 		//	- 'error`: A possible error, or `nil` on success.
 		Read(aID uint64) (*TPosting, error)
 
@@ -79,11 +75,9 @@ type (
 		// is returned.
 		//
 		// Parameters:
-		//
 		//	- `aPost`: A `TPosting` instance containing the article's data.
 		//
 		// Returns:
-		//
 		//	- `int`: The number of bytes written.
 		//	- 'error`:` A possible error, or `nil` on success.
 		Update(aPost *TPosting) (int, error)
@@ -92,11 +86,9 @@ type (
 		// `Delete()` removes the posting/article from the persistence layer.
 		//
 		// Parameters:
-		//
 		//	- `aID`: The unique identifier of the posting to delete.
 		//
 		// Returns:
-		//
 		//	 - 'error`: A possible error, or `nil` on success.
 		Delete(aID uint64) error
 
@@ -104,10 +96,9 @@ type (
 		// `Count()` returns the number of postings available.
 		//
 		// Returns:
-		//
-		//	 - `uint32`: The number of available postings, or `0`
+		//	 - `int`: The number of available postings, or `0`
 		// in case of errors.
-		Count() uint32
+		Count() int
 
 		//
 		// `Exists()` checks if a post with the given ID exists in the
@@ -132,23 +123,20 @@ type (
 		// `/path/file` of the database file.
 		//
 		// Parameters:
-		//
 		//	- `aID`: The unique identifier of the posting to handle.
 		//
 		// Returns:
-		//
 		//	- `string`: The path-/filename associated with `aID`.
 		PathFileName(aID uint64) string
+
 		//
 		// `Rename()` renames a posting from its old ID to a new ID.
 		//
 		// Parameters:
-		//
 		//	- aOldID: The unique identifier of the posting to be renamed.
 		//	- aNewID: The new unique identifier for the new posting.
 		//
 		// Returns:
-		//
 		//	- `error`: An error if the operation fails, or `nil` on success.
 		Rename(aOldID, aNewID uint64) error
 
@@ -174,7 +162,7 @@ var (
 	ErrSkipAll = errors.New("signal skipping the remaining directory walk")
 
 	// `ErrSkipFiles` can be used by a `TWalkFunc` to skip the [Walk].
-	ErrSkipFiles = errors.New("signal skipping the remaining file walk")
+	// ErrSkipFiles = errors.New("signal skipping the remaining file walk")
 
 	// `poPostingBaseDirectory` is the base directory for storing articles.
 	//

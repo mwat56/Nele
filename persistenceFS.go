@@ -46,7 +46,7 @@ type (
 		Update(aPost *TPosting) (int, error)
 		Delete(aID uint64) error
 
-		Count() uint32
+		Count() int
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
 		Rename(aOldID, aNewID uint64) error
@@ -66,7 +66,7 @@ type (
 var (
 	// Cache of last/current posting count.
 	// see `[delFile]`, `[Count]`, `[TPosting.Store]`
-	µCountCache uint32
+	µCountCache int32
 )
 
 // --------------------------------------------------------------------------
@@ -198,12 +198,13 @@ func id2filename(aID uint64) string {
 // Returns:
 //   - `string`: The hexadecimal string representation of `aID`.
 func id2str(aID uint64) (rStr string) {
-	rStr = fmt.Sprintf("%x", aID)
-	if 16 > len(rStr) {
-		rStr = strings.Repeat("0", 16-len(rStr)) + rStr
-	}
+	return fmt.Sprintf("%016x", aID)
+	// rStr = fmt.Sprintf("%x", aID)
+	// if 16 > len(rStr) {
+	// 	rStr = strings.Repeat("0", 16-len(rStr)) + rStr
+	// }
 
-	return
+	// return
 } // id2str
 
 // `mkDir()` creates the directory for storing an article
@@ -284,22 +285,23 @@ func NewFSpersistence() *TFSpersistence {
 // posts stored in the filesystem.
 //
 // Returns:
-//   - `uint32`: The number of available postings, or `0` in case of I/O errors.
+//   - `int32`: The number of available postings, or `0` in case of I/O errors.
 //
 // Side Effects:
 //   - Updates the count cache.
-func (fsp TFSpersistence) Count() (rCount uint32) {
+func (fsp TFSpersistence) Count() int {
 	fsp.mtx.RLock()
 	defer fsp.mtx.RUnlock()
 
-	if rCount = atomic.LoadUint32(&µCountCache); 0 < rCount {
-		return
+	if result := atomic.LoadInt32(&µCountCache); 0 < result {
+		return int(result)
 	}
 
 	var ( // re-use variable
 		err            error
 		dName          string
 		dNames, fNames []string
+		result         int32
 	)
 	// Apparently there's no current value ready so we compute a new one.
 	// Instead of doing this in _one_ glob we actually do it in two
@@ -310,12 +312,12 @@ func (fsp TFSpersistence) Count() (rCount uint32) {
 	}
 	for _, dName = range dNames {
 		if fNames, err = filepath.Glob(dName + `/*.md`); nil == err {
-			rCount += uint32(len(fNames))
+			result += int32(len(fNames))
 		}
 	}
-	atomic.StoreUint32(&µCountCache, rCount)
+	atomic.StoreInt32(&µCountCache, result)
 
-	return
+	return int(result)
 } // Count()
 
 // `Create()` creates a new posting in the filesystem.
@@ -346,7 +348,7 @@ func (fsp TFSpersistence) Create(aPost *TPosting) (int, error) {
 func (fsp TFSpersistence) delete(aID uint64) error {
 	err := delFile(id2filename(aID))
 	if nil == err {
-		atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+		atomic.StoreInt32(&µCountCache, 0) // invalidate count cache
 	}
 
 	return err
@@ -410,11 +412,9 @@ func (fsp TFSpersistence) PathFileName(aID uint64) string {
 // `Read()` reads the posting from disk, returning a possible I/O error.
 //
 // Parameters:
-//
 //   - `aID`: The unique identifier of the posting to be read.
 //
 // Returns:
-//
 //   - `*TPosting`: The `TPosting` instance containing the article's data, or `nil` if the file does not exist.
 //   - 'error`: A possible I/O error, or `nil` on success.
 func (fsp TFSpersistence) Read(aID uint64) (*TPosting, error) {
@@ -518,7 +518,7 @@ func (fsp TFSpersistence) store(aPost *TPosting, aMode int) (int, error) {
 	}
 	defer mdFile.Close()
 
-	atomic.StoreUint32(&µCountCache, 0) // invalidate count cache
+	atomic.StoreInt32(&µCountCache, 0) // invalidate count cache
 	aPost.lastModified = time.Now()
 
 	return mdFile.Write(aPost.markdown)
@@ -592,7 +592,7 @@ dirLoop:
 		}
 		slices.SortFunc(fNames, sortStr)
 
-	fileLoop:
+		// fileLoop:
 		for _, fName := range fNames {
 			fn := path.Base(fName)
 			if !filenameRE.Match([]byte(fn)) {
@@ -604,10 +604,10 @@ dirLoop:
 				if errors.Is(err, ErrSkipAll) {
 					break dirLoop
 				}
-				if errors.Is(err, ErrSkipFiles) {
-					break fileLoop
-				}
-				return se.Wrap(err, 2)
+				// if errors.Is(err, ErrSkipFiles) {
+				// 	break fileLoop
+				// }
+				return se.Wrap(err, 7)
 			}
 		}
 	}
