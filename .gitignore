@@ -20,6 +20,7 @@ bla.mwat.de.*
 blog.*
 blog_local.sh
 certs/*
+check_fts5*
 error.*
 img/*
 logs/
