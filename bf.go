@@ -1,15 +1,13 @@
 /*
-   Copyright © 2020 M.Watermann, 10247 Berlin, Germany
-              All rights reserved
-          EMail : <support@mwat.de>
-*/
+Copyright © 2020, 2024  M.Watermann, 10247 Berlin, Germany
 
+	    All rights reserved
+	EMail : <support@mwat.de>
+*/
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 /*
- * This file provides a function to convert NarkDown to HTML.
+ * This file provides a function to convert MarkDown to HTML.
  */
 
 import (
@@ -20,6 +18,8 @@ import (
 	bf "github.com/russross/blackfriday/v2"
 	// bf "gopkg.in/russross/blackfriday.v2"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 var (
 	// Instead of creating this objects with every call to `MDtoHTML()`
@@ -64,13 +64,17 @@ var (
 	bfPreCodeRE2 = regexp.MustCompile(`(?s)\s*(<pre)><code (class="language-\w+")>(.*?)\s*</code>(</pre>)\s*`)
 
 	// RegEx to correct back markup since Blackfriday v2.1.0';
-	// see `mdToHTML()`
+	// see `MDtoHTML()`
 	bfSupRE = regexp.MustCompile(`<span aria-label='Return'>.*</span>`)
 )
 
-// MDtoHTML converts the `aMarkdown` data and returns HTML data.
+// `MDtoHTML()` converts the `aMarkdown` data and returns HTML data.
 //
-//	`aMarkdown` The raw Markdown text to convert.
+// Parameters:
+//   - `aMarkdown` The raw Markdown text to convert.
+//
+// Returns:
+//   - `[]byte`: The generated HTML data.
 func MDtoHTML(aMarkdown []byte) (rHTML []byte) {
 	var i int // re-use variable
 	bfMtx.Lock()
@@ -87,7 +91,6 @@ func MDtoHTML(aMarkdown []byte) (rHTML []byte) {
 	}
 
 	rHTML = bfPreCodeRE1.ReplaceAll(rHTML, []byte("$1\n$2\n$3"))
-
 	if i = bytes.Index(rHTML, bfPreCode); 0 > i {
 		return // no need for the second RegEx execution
 	}

@@ -1,17 +1,17 @@
 /*
-   Copyright © 2020 M.Watermann, 10247 Berlin, Germany
-              All rights reserved
-          EMail : <support@mwat.de>
+Copyright © 2020, 2024  M.Watermann, 10247 Berlin, Germany
+
+	    All rights reserved
+	EMail : <support@mwat.de>
 */
-
 package nele
-
-//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 import (
 	"reflect"
 	"testing"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func TestMDtoHTML(t *testing.T) {
 	md1 := []byte(`
@@ -32,6 +32,7 @@ tell application &quot;Foo&quot;
 	beep
 end tell
 </pre><hr>`)
+
 	md2 := []byte(`
 ---
 
@@ -50,6 +51,7 @@ end tell
 </pre><p>That&rsquo;s an example of AppleScript</p>
 
 <hr>`)
+
 	md3 := []byte("Hello `world`!")
 	ht3 := []byte(`<p>Hello <code>world</code>!</p>`)
 
@@ -89,17 +91,20 @@ text
 		args args
 		want []byte
 	}{
+		{"1", args{md1}, ht1},
+		{"2", args{md2}, ht2},
+		{"3", args{md3}, ht3},
+		{"4", args{md4}, ht4},
 		// TODO: Add test cases.
-		{" 1", args{md1}, ht1},
-		{" 2", args{md2}, ht2},
-		{" 3", args{md3}, ht3},
-		{" 4", args{md4}, ht4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := MDtoHTML(tt.args.aMarkdown); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MDtoHTML() = [%s],\nwant [%s]", got, tt.want)
+				t.Errorf("%q: MDtoHTML() = \n%s\n>>> want >>>\n%s",
+					tt.name, got, tt.want)
 			}
 		})
 	}
 } // TestMDtoHTML()
+
+/* _EoF_ */
