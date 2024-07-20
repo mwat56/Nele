@@ -6,8 +6,6 @@ Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
 */
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-
 /*
 * This file provides functions related to #hashtags/@mentions.
  */
@@ -21,6 +19,8 @@ import (
 
 	ht "github.com/mwat56/hashtags"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 var (
 	// RegEx to find PREformatted parts in an HTML page.
@@ -37,23 +37,21 @@ var (
 
 // --------------------------------------------------------------------------
 
-// AddTagID checks a newly added `aPosting` for #hashtags and @mentions.
+// `AddTagID()` checks a newly added `aPosting` for #hashtags and @mentions.
 //
 // Parameters:
-//
-//	`aList`: The hashlist to use (update).
-//	`aPosting`: The new posting to handle.
+//   - `aList`: The hashlist to use (update).
+//   - `aPosting`: The new posting to handle.
 func AddTagID(aList *ht.THashTags, aPosting *TPosting) {
 	go aList.IDparse(aPosting.ID(), aPosting.Markdown())
 
 	runtime.Gosched() // get the background operation started
 } // AddTagID()
 
-// InitHashlist initialises the hash list.
+// `InitHashlist()` initialises the hash list.
 //
 // Parameters:
-//
-//	`aList`: The list of #hashtags/@mentions to update.
+//   - `aList`: The list of #hashtags/@mentions to update.
 func InitHashlist(aList *ht.THashTags) {
 	wf := func(aID uint64) error {
 		post := NewPosting(aID, "")
@@ -65,6 +63,7 @@ func InitHashlist(aList *ht.THashTags) {
 		if 0 < post.Len() {
 			aList.IDparse(aID, post.Markdown())
 		}
+
 		return nil
 	} // wf()
 
@@ -83,10 +82,12 @@ var (
 	}
 )
 
-// MarkupCloud returns a list with the markup of all existing
+// `MarkupCloud()` returns a list with the markup of all existing
 // #hashtags/@mentions.
 //
-//	`aList` The list of #hashtags/@mentions to use.
+// Parameters:
+//
+//	`aList`: The list of #hashtags/@mentions to use.
 func MarkupCloud(aList *ht.THashTags) []template.HTML {
 	var (
 		class string // re-use variable
@@ -116,12 +117,11 @@ func MarkupCloud(aList *ht.THashTags) []template.HTML {
 	return tl
 } // MarkupCloud()
 
-// MarkupTags returns `aPage` with all #hashtags/@mentions marked up
+// `MarkupTags()` returns `aPage` with all #hashtags/@mentions marked up
 // as a HREF links.
 //
 // Parameters:
-//
-//	`aPage`: The HTML page to process.
+//   - `aPage`: The HTML page to process.
 func MarkupTags(aPage []byte) []byte {
 	var ( // re-use variables
 		cnt, hits    int
@@ -210,44 +210,40 @@ func MarkupTags(aPage []byte) []byte {
 // #hashtags/@mentions disregarding any pre-existing list.
 //
 // Parameters:
-//
-//	`aList`: The list of #hashtags/@mentions to build.
+//   - `aList`: The list of #hashtags/@mentions to build.
 func ReadHashlist(aList *ht.THashTags) {
 	InitHashlist(aList.Clear())
 } // ReadHashlist()
 
-// RemoveIDTags removes `aID` from `aList's` items.
+// `RemoveIDTags()` removes `aID` from `aList's` items.
 //
 // Parameters:
-//
-//	`aList`: The hashlist to update.
-//	`aID`: The ID of the posting to remove.
+//   - `aList`: The hashlist to update.
+//   - `aID`: The ID of the posting to remove.
 func RemoveIDTags(aList *ht.THashTags, aID uint64) {
 	go aList.IDremove(aID)
 
 	runtime.Gosched() // get the background operation started
 } // RemoveIDTags()
 
-// RenameIDTags renames all references of `aOldID` to `aNewID`.
+// `RenameIDTags()` renames all references of `aOldID` to `aNewID`.
 //
 // Parameters:
-//
-//	`aList`: The hashlist to update.
-//	`aOldID`: The posting's old ID.
-//	`aNewID`: The posting's new ID.
+//   - `aList`: The hashlist to update.
+//   - `aOldID`: The posting's old ID.
+//   - `aNewID`: The posting's new ID.
 func RenameIDTags(aList *ht.THashTags, aOldID, aNewID uint64) {
 	go aList.IDrename(aOldID, aNewID)
 
 	runtime.Gosched() // get the background operation started
 } // RenameIDTags()
 
-// ReplaceTag replaces the #tags/@mentions in `aList`.
+// `ReplaceTag()` replaces the #tags/@mentions in `aList`.
 //
 // Parameters:
-//
-//	`aList`: The hashlist to update.
-//	`aSearchTag`: The old #tag/@mention to find.
-//	`aReplaceTag`: The new #tag/@mention to use.
+//   - `aList`: The hashlist to update.
+//   - `aSearchTag`: The old #tag/@mention to find.
+//   - `aReplaceTag`: The new #tag/@mention to use.
 func ReplaceTag(aList *ht.THashTags, aSearchTag, aReplaceTag string) {
 	if (nil == aList) || (0 == len(aSearchTag)) || (0 == len(aReplaceTag)) {
 		return
@@ -301,12 +297,11 @@ func ReplaceTag(aList *ht.THashTags, aSearchTag, aReplaceTag string) {
 	// runtime.Gosched() // get the background operation started
 } // ReplaceTag()
 
-// UpdateTags updates the #hashtag/@mention references of `aPosting`.
+// `UpdateTags()` updates the #hashtag/@mention references of `aPosting`.
 //
 // Parameters:
-//
-//	`aList`: The hashlist to update.
-//	`aPosting`: The new posting to process.
+//   - `aList`: The hashlist to update.
+//   - `aPosting`: The new posting to process.
 func UpdateTags(aList *ht.THashTags, aPosting *TPosting) {
 	go aList.IDupdate(aPosting.ID(), aPosting.Markdown())
 
