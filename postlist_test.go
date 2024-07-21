@@ -1,9 +1,10 @@
 /*
 Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -13,6 +14,8 @@ import (
 	"testing"
 	"time"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func prepareTestFiles() {
 	prep4Tests()
@@ -110,34 +113,6 @@ func TestTPostList_Add(t *testing.T) {
 		})
 	}
 } // TestTPostList_Add()
-
-/*
-func TestTPostList_Article(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
-	pl1 := NewPostList()
-	pl2 := NewPostList()
-	type args struct {
-		aID string
-	}
-	tests := []struct {
-		name string
-		pl   *TPostList
-		args args
-		want int
-	}{
-		// TODO: Add test cases.
-		{" 1", pl1, args{"156dfb3d4f4d7000"}, 1},
-		{" 2", pl2, args{"1234567890123456"}, 0},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.pl.Article(tt.args.aID); got.Len() != tt.want {
-				t.Errorf("TPostList.Article() = %v, want %v", got.Len(), tt.want)
-			}
-		})
-	}
-} // TestTPostList_Article()
-*/
 
 func TestTPostList_Delete(t *testing.T) {
 	prepareTestFiles()

@@ -1,14 +1,14 @@
 /*
 Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"time"
 
@@ -48,6 +48,7 @@ type (
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
 		Rename(aOldID, aNewID uint64) error
+		Search(aText string, aOffset, aLimit uint) (*TPostList, error)
 		Walk(aWalkFunc TWalkFunc) error
 	}
 )
@@ -58,7 +59,7 @@ type (
 
 // NewPostList returns a new (empty) TPostList instance.
 func NewPostList() *TPostList {
-	result := make(TPostList, 0, 32)
+	result := make(TPostList, 0, 64)
 
 	return &result
 } // NewPostList()
@@ -75,16 +76,10 @@ func NewPostList() *TPostList {
 //   - `*TPostList`: The updated list.
 func (pl *TPostList) Add(aPosting *TPosting) *TPostList {
 	// we can ignore the return values here, since the only `false`
-	// result means, that the posting is already in the list.
+	// result means, that the posting is already in the list:
 	pl.insert(aPosting)
 
 	return pl
-	// *pl = append(*pl, *aPosting)
-
-	// // We need an explicit return value (despite the in-place
-	// // modification of `pl`) to allow for command chaining like
-	// // `list := NewPostList().Add(p3).Add(p1).Add(p2)`.
-	// return pl.Sort()
 } // Add()
 
 // `Day()` adds all postings of the current day to the list.
@@ -390,8 +385,8 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 	// errors are ignored since we can't do anything about it here.
 } // bgAddPosting()
 
-// `SearchPostings()` traverses the directories holding the postings
-// looking for `aText` in all article files.
+// `SearchPostings()` traverses all postings looking for `aText`
+// in the respective post's text.
 //
 // The returned `TPostList` can be empty because (a) `aText` could
 // not be compiled into a regular expression, (b) no files to
@@ -403,27 +398,7 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 // Returns:
 //   - `*TPostList`: The found list.
 func SearchPostings(aText string) *TPostList {
-	result := NewPostList()
-
-	pattern, err := regexp.Compile(fmt.Sprintf("(?s)%s", aText))
-	if nil != err {
-		return result // empty list
-	}
-
-	wf := func(aID uint64) error {
-		post := NewPosting(aID, "")
-		if err := post.Load(); nil != err {
-			return nil
-		}
-		if !pattern.Match(post.markdown) {
-			return nil
-		}
-		result.insert(post)
-
-		return nil
-	} // wf()
-
-	poPersistence.Walk(wf)
+	result, _ := poPersistence.Search(aText, 0, 0)
 
 	return result
 } // SearchPostings()
