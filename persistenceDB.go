@@ -1,9 +1,10 @@
 /*
 Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -531,6 +532,10 @@ const (
 func (dbp TDBpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList, error) {
 	dbp.mtx.RLock()
 	defer dbp.mtx.RUnlock()
+
+	if 0 == aLimit {
+		aLimit = 1 << 31
+	}
 
 	var (
 		err    error
