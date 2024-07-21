@@ -22,7 +22,7 @@ require (
 )
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20240709201219-e202069cc16b // indirect
+	github.com/chromedp/cdproto v0.0.0-20240721024200-dac8efcb39ce // indirect
 	github.com/chromedp/chromedp v0.9.5 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
