@@ -1,9 +1,10 @@
 /*
 Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -16,13 +17,12 @@ import (
 )
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
-//lint:file-ignore ST1005 - I prefer capitalisation
 
 type (
 	// `TPosting` is a single article/posting..
 	TPosting struct {
 		id           uint64    // integer representation of date/time
-		lastModified time.Time // file modification time
+		lastModified time.Time // last text modification time
 		markdown     []byte    // article contents in Markdown markup
 	}
 
@@ -141,6 +141,22 @@ type (
 		Rename(aOldID, aNewID uint64) error
 
 		//
+		// `Search()` retrieves a list of postings based on a search term.
+		//
+		// The returned `TPostList` type is a slice of `TPosting` instances,
+		// where `TPosting` is a struct representing a single posting.
+		//
+		// Parameters:
+		//   - `aText`: The search query string.
+		//   - `aOffset`: An offset in the database result set of the search results.
+		//   - `aLimit`: The maximum number of search results to return.
+		//
+		// Returns:
+		//   - `*TPostList`: The list of search results, or `nil` in case of errors.
+		//   - `error`: If the search operation fails, or `nil` on success.
+		Search(aText string, aOffset, aLimit uint) (*TPostList, error)
+
+		//
 		// `Walk()` visits all existing postings, calling `aWalkFunc`
 		// for each posting.
 		//
@@ -161,9 +177,6 @@ var (
 	// `ErrSkipAll` can be used by a `TWalkFunc` to skip the [Walk].
 	ErrSkipAll = errors.New("signal skipping the remaining directory walk")
 
-	// `ErrSkipFiles` can be used by a `TWalkFunc` to skip the [Walk].
-	// ErrSkipFiles = errors.New("signal skipping the remaining file walk")
-
 	// `poPostingBaseDirectory` is the base directory for storing articles.
 	//
 	// This variable's value must be set initially before creating any
@@ -171,7 +184,7 @@ var (
 	// After that it should be considered `read/only`.
 	// Its default value is `./postings`.
 	//
-	// - see `PostingBaseDirectory()`, `SetPostingBaseDirectory()`
+	//	- see [PostingBaseDirectory], [SetPostingBaseDirectory]
 	poPostingBaseDirectory = func() string {
 		dir, _ := filepath.Abs(`./postings`)
 		return dir
@@ -197,7 +210,7 @@ func Persistence() IPersistence {
 // storing the postings.
 //
 // Returns:
-// - `string`: The base directory tu use.
+//   - `string`: The base directory tu use.
 func PostingBaseDirectory() string {
 	return poPostingBaseDirectory
 } // PostingBaseDirectory()
@@ -214,10 +227,10 @@ func SetPersistence(aPersistence IPersistence) {
 // storing the postings.
 //
 // Parameters:
-// - `aBaseDir` The base directory to use for storing articles/postings.
+//   - `aBaseDir` The base directory to use for storing articles/postings.
 //
 // Returns:
-// - `error`: Any error that occurred during the setting of the base directory.
+//   - `error`: Any error that might have occurred.
 //
 // Example:
 //
@@ -251,26 +264,29 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 	return nil
 } // SetPostingBaseDirectory()
 
+// --------------------------------------------------------------------------
+// internal helper functions:
+
 // `id2time()` returns a date/time represented by `aID`.
 //
 // Parameters:
-// - `aID`: A posting's ID to be converted to a `time.Time`.
+//   - `aID`: A posting's ID to be converted to a `time.Time`.
 //
 // Returns:
-// - `time.Time`: The UnixNano value of the provided time.Time.
+//   - `time.Time`: The UnixNano time value of the provided `aID`.
 func id2time(aID uint64) time.Time {
 	return time.Unix(0, int64(aID))
 } // id2time()
 
-// `time2id()` converts a given `aTime` to an integer representation
+// `time2id()` converts a given `aTime` to an integer representation.
 //
-// The function returns the UnixNano value of the provided time.Time.
+// The function returns the UnixNano value of the provided `aTime`.
 //
 // Parameters:
-// - `aTime` (time.Time) The time to be converted to a uint64 integer.
+//   - `aTime`: The time to be converted to a `uint64` integer.
 //
 // Return Value:
-// - `uint64`: The UnixNano value of the provided time.Time.
+//   - `uint64`: The UnixNano value of the provided time.Time.
 func time2id(aTime time.Time) uint64 {
 	return uint64(aTime.UnixNano())
 } // time2id()

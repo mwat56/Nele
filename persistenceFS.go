@@ -1,9 +1,10 @@
 /*
 Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -482,6 +483,54 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 
 	return nil
 } // Rename()
+
+// `Search()` retrieves a list of postings based on a search term.
+//
+// The returned `TPostList` type is a slice of `TPosting` instances, where
+// `TPosting` is a struct representing a single posting.
+//
+// Parameters:
+//   - `aText`: The search query string.
+//   - `aOffset`: An offset in the database result set of the search results.
+//   - `aLimit`: The maximum number of search results to return.
+//
+// Returns:
+//   - `*TPostList`: The list of search results, or `nil` in case of errors.
+//   - `error`: If the search operation fails, or `nil` on success.
+func (fsp TFSpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList, error) {
+	fsp.mtx.RLock()
+	defer fsp.mtx.RUnlock()
+
+	var lCnt, oCnt uint
+	result := NewPostList()
+	if 0 == aLimit {
+		aLimit = 1 << 31
+	}
+
+	wf := func(aID uint64) error {
+		oCnt++
+		if oCnt < aOffset {
+			// starting offset not reached yet
+			return nil
+		}
+		lCnt++
+		if lCnt > aLimit {
+			return ErrSkipAll
+		}
+		post := NewPosting(aID, "")
+		if err := post.Load(); nil != err {
+			lCnt--
+			return nil
+		}
+		result.insert(post)
+
+		return nil
+	} // wf()
+
+	fsp.Walk(wf)
+
+	return result, nil
+} // Search()
 
 // `store()` writes the article's Markdown to disk returning
 // the number of bytes written and a possible I/O error.
