@@ -1,17 +1,18 @@
 /*
-   Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
-                  All rights reserved
-              EMail : <support@mwat.de>
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
+
+			All rights reserved
+		EMail : <support@mwat.de>
 */
 
 package nele
-
-//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 import (
 	"testing"
 	"time"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func Test_NewPageHandler(t *testing.T) {
 	prep4Tests()

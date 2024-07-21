@@ -1,9 +1,10 @@
 /*
 Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -89,7 +90,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
 
 	if AppArgs.Screenshot {
-		UpdateScreenshots(PostingBaseDirectory()) // background operation
+		UpdateScreenshots() // background operation
 	}
 
 	if 0 == len(AppArgs.UserFile) {
@@ -333,26 +334,38 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	path, tail, rID := URLparts(aRequest.URL.Path)
 	switch strings.ToLower(path) { // handle URLs case-insensitive
 
-	case "a", "ap": // add a new post
+	case `a`:
+		http.Redirect(aWriter, aRequest, "/ap/",
+			http.StatusMovedPermanently)
+
+	case `ap`: // add a new post
 		ph.handleReply(`ap`, aWriter,
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "certs": // this files are handled internally
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/n/",
+			http.StatusMovedPermanently)
 
 	case "css":
 		ph.cssFS.ServeHTTP(aWriter, aRequest)
 
-	case "d", "dp": // change date
+	case `d`: // date change
+		http.Redirect(aWriter, aRequest, "/dp/"+tail, http.StatusMovedPermanently)
+
+	case `dp`: // change date
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(rID, tail)
-		if !p.Exists() {
+
+		p := NewPosting(rID, "")
+		if err := p.Load(); nil != err {
+			apachelogger.Err("TPageHandler.handleGET(dp)",
+				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
+
 		t := p.Time()
 		date := p.Date()
 		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
@@ -365,13 +378,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("YMD", date) // #nosec G203
 		ph.handleReply("dp", aWriter, pageData)
 
-	case "e", "ep": // edit a single posting
+	case `e`:
+		http.Redirect(aWriter, aRequest, "/ep/"+tail, http.StatusMovedPermanently)
+
+	case `ep`: // edit a single posting
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
 		p := NewPosting(rID, "")
 		if err := p.Load(); nil != err {
+			apachelogger.Err("TPageHandler.handleGET(ep)",
+				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
@@ -388,12 +406,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("YMD", date) // #nosec G203
 		ph.handleReply("ep", aWriter, pageData)
 
-	case "faq", "faq.html":
+	case `faq`:
 		ph.handleReply(`faq`, aWriter, pageData)
 
+	case `faq.html`:
+		http.Redirect(aWriter, aRequest, "/faq/",
+			http.StatusMovedPermanently)
+
 	case "favicon.ico":
-		http.Redirect(aWriter, aRequest,
-			`/img/`+path,
+		http.Redirect(aWriter, aRequest, `/img/`+path,
 			http.StatusMovedPermanently)
 
 	case "fonts":
@@ -407,12 +428,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case `i`, `il`: // (re-)init the hashList
+	case `i`:
+		http.Redirect(aWriter, aRequest, "/il/",
+			http.StatusMovedPermanently)
+
+	case `il`: // (re-)init the hashList
 		if nil != ph.hashList {
 			ph.handleReply(`il`, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 		}
 
 	case "img":
@@ -422,7 +448,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleReply(`imprint`, aWriter, pageData)
 
 	case `index`, `index.html`, `index.php`, `index.shtml`:
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/n/",
+			http.StatusMovedPermanently)
 
 		/*
 			case "js":
@@ -432,7 +459,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 	case "licence", "license", "lizenz":
 		ph.handleReply(`licence`, aWriter, pageData)
 
-	case `m`, `mw`: // handle a given month
+	case `m`: // handle a given month
 		var (
 			d, y   int
 			m      time.Month
@@ -457,6 +484,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set(`Robots`, robots).
 				Set(`weekURL`, "/w/"+date))
 
+	case `mw`:
+		http.Redirect(aWriter, aRequest, "/m/", http.StatusMovedPermanently)
+
 	case "ml": // @mention list
 		if 0 < len(tail) {
 			ph.handleTagMentions(ph.hashList.MentionList("@"+tail),
@@ -465,21 +495,27 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
 
-	case "n", "np": // handle newest postings
-		ph.handleRoot(tail, pageData, aWriter /*, aRequest*/)
+	case `n`: // handle newest postings
+		ph.handleRoot(tail, pageData, aWriter)
 
-	case "p", "pp": // handle a single posting
+	case `np`:
+		http.Redirect(aWriter, aRequest, "/n/"+tail,
+			http.StatusMovedPermanently)
+
+	case `p`: // handle a single posting
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(rID, tail)
+
+		p := NewPosting(rID, "")
 		if err := p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handleGET()",
+			apachelogger.Err("TPageHandler.handleGET(p)",
 				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
+
 		date := p.Date()
 		err := ph.userList.IsAuthenticated(aRequest)
 		aWriter.Header().Set(`Cache-Control`, `private, max-age=864000`) // 10 days
@@ -491,13 +527,18 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("weekURL", "/w/"+date)
 		ph.handleReply("article", aWriter, pageData)
 
+	case `pp`:
+		http.Redirect(aWriter, aRequest, "/p/"+tail,
+			http.StatusMovedPermanently)
+
 	case "postings": // this files are handled internally
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/n/",
+			http.StatusMovedPermanently)
 
 	case "privacy", "datenschutz":
 		ph.handleReply(`privacy`, aWriter, pageData)
 
-	case `pv`, `v`: // update the Screenshot images
+	case `pv`: // page preview
 		if AppArgs.Screenshot {
 			ph.handleReply(`pv`, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
@@ -506,20 +547,27 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				http.StatusMovedPermanently)
 		}
 
-	case "q":
+	case `q`: // search text
 		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
 
-	case "r", "rp": // posting's removal
+	case `r`: // remove posting
+		http.Redirect(aWriter, aRequest, "/rp/"+tail, http.StatusMovedPermanently)
+
+	case `rp`: // posting's removal
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, `/n/`,
 				http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(rID, tail)
-		if !p.Exists() {
+
+		p := NewPosting(rID, "")
+		if err := p.Load(); nil != err {
+			apachelogger.Err("TPageHandler.handleGET(rp)",
+				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
+
 		t := p.Time()
 		date := p.Date()
 		pageData = pageData.Set(`HMS`,
@@ -565,6 +613,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "static": // deliver a static resource
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
+
+	case `v`: // page preview
+		http.Redirect(aWriter, aRequest, "/pv/"+tail,
+			http.StatusMovedPermanently)
 
 	case "views": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -613,9 +665,9 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if val = aRequest.FormValue("p"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/p/"+val)
 		} else if val = aRequest.FormValue("q"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter /*, aRequest*/)
+			ph.handleSearch(val, pageData, aWriter)
 		} else if val = aRequest.FormValue("s"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter /*, aRequest*/)
+			ph.handleSearch(val, pageData, aWriter)
 		} else if val = aRequest.FormValue("share"); 0 < len(val) {
 			if 0 < len(aRequest.URL.RawQuery) {
 				// we need this for e.g. YouTube URLs
@@ -625,7 +677,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		} else if val = aRequest.FormValue("w"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/w/"+val)
 		} else {
-			ph.handleRoot("30", pageData, aWriter /*, aRequest*/)
+			ph.handleRoot("30", pageData, aWriter)
 		}
 
 	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`, `.env`, `vendor`, `wp-content`:
@@ -733,7 +785,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 		p := NewPosting(rID, "")
 		if err = p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handlePOST('e')",
+			apachelogger.Err("TPageHandler.handlePOST(ep)",
 				fmt.Sprintf("TPosting.Load(%s): %v", p.IDstr(), err))
 		} else {
 			old = p.Markdown()
@@ -773,7 +825,7 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 				return
 			}
 
-			UpdateScreenshots(PostingBaseDirectory())
+			UpdateScreenshots() // background operation
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
@@ -879,8 +931,8 @@ func (ph *TPageHandler) handleRoot(aNumStr string,
 
 // `handleSearch()` serves the search results.
 func (ph *TPageHandler) handleSearch(aTerm string,
-	aData *TemplateData,
-	aWriter http.ResponseWriter /*, aRequest *http.Request*/) {
+	aData *TemplateData, aWriter http.ResponseWriter) {
+
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
 
 	ph.handleReply(`searchresult`, aWriter,
