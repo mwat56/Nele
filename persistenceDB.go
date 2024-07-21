@@ -7,11 +7,13 @@ Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 package nele
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"math"
 	"path/filepath"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -57,10 +59,10 @@ const (
 type (
 	// `TDBpersistence` is a database-based `IPersistence` implementation.
 	TDBpersistence struct {
-		_  struct{}
-		db *sql.DB // the database to use
-		// mtx *sync.RWMutex // pointer to avoid copying warnings
-		fts5 bool // whether SQLite supports full-text search
+		_    struct{}
+		db   *sql.DB       // the database to use
+		mtx  *sync.RWMutex // pointer to avoid copying warnings
+		fts5 bool          // whether SQLite supports full-text search
 	}
 )
 
@@ -85,8 +87,8 @@ func NewDBpersistence(aName string) *TDBpersistence {
 	}
 
 	return &TDBpersistence{
-		db: dbInstance,
-		// mtx: new(sync.RWMutex),
+		db:   dbInstance,
+		mtx:  new(sync.RWMutex),
 		fts5: hasFTS,
 	}
 } // NewDBpersistence()
@@ -94,29 +96,14 @@ func NewDBpersistence(aName string) *TDBpersistence {
 // --------------------------------------------------------------------------
 // private helper functions:
 
-// `dbInt2time()` returns a date/time represented by `aID`.
+// `dbInt2id()` converts a 64-bit integer to a uint64, handling
+// potential overflow.
 //
 // Parameters:
-// - `aID`: A posting's ID to be converted to a `time.Time`.
+//   - `aInt`: The 64-bit integer to convert.
 //
 // Returns:
-// - `time.Time`: The UnixNano value of the provided time.Time.
-func dbInt2time(aInt int64) time.Time {
-	return time.Unix(0, aInt)
-} //dbInt2time ()
-
-func time2dbInt(aTime time.Time) int64 {
-	return aTime.UnixNano()
-} // time2dbInt()
-
-func id2dbInt(aID uint64) int64 {
-	if aID > uint64(maxSqliteInt) {
-		return int64(aID - u2iOffset)
-	}
-
-	return int64(aID)
-} // id2dbInt()
-
+//   - `uint64`: The input integer, potentially with an offset applied.
 func dbInt2id(aInt int64) uint64 {
 	if 0 > aInt {
 		offset := u2iOffset
@@ -125,6 +112,52 @@ func dbInt2id(aInt int64) uint64 {
 
 	return uint64(aInt)
 } //dbInt2id ()
+
+// `dbInt2time()` converts a signed 64-bit integer from SQLite to
+// a Go `time.Time` value.
+//
+// Parameters:
+//   - `aInt`: A 64-bit integer ID to be converted.
+//
+// Returns:
+//   - `time.Time`: The UnixNano value of the provided time.Time.
+func dbInt2time(aInt int64) time.Time {
+	return time.Unix(0, aInt)
+} //dbInt2time ()
+
+// `id2dbInt()` converts a 64-bit integer to a database-compatible integer.
+//
+// This function is used to convert the unsigned 64-bit integer IDs used
+// in the application to the 64-bit integer IDs used in the SQLite database.
+// If the provided `aID` is larger than the maximum SQLite integer
+// (9223372036854775807), the function subtracts the offset `u2iOffset`
+// (1 << 63) to ensure that the resulting integer is within the valid
+// range for SQLite integers.
+//
+// Parameters:
+//   - `aID`: The unsigned 64-bit integer ID to be converted.
+//
+// Returns:
+//   - `int64`: The converted integer.
+func id2dbInt(aID uint64) int64 {
+	if aID > uint64(maxSqliteInt) {
+		return int64(aID - u2iOffset)
+	}
+
+	return int64(aID)
+} // id2dbInt()
+
+// `time2dbInt()` converts a `time.Time` value to a signed 64-bit integer
+// value suitable for SQLite's INTEGER field.
+//
+// Parameters:
+//   - `aTime`: A time.Time value to be converted to a 64-bit integer.
+//
+// Returns:
+//   - `int64`: The converted integer.
+func time2dbInt(aTime time.Time) int64 {
+	return aTime.UnixNano()
+} // time2dbInt()
 
 // --------------------------------------------------------------------------
 
@@ -138,8 +171,8 @@ func init() {
 
 // --------------------------------------------------------------------------
 
-// The SQL statements to create the database table
-const dbCreationSQL = `
+// The SQL statement to create the database table
+const dbCreateTable = `
 	CREATE TABLE IF NOT EXISTS postings (
 		id INTEGER PRIMARY KEY,
 		lastModified INTEGER NOT NULL,
@@ -187,7 +220,7 @@ func initDatabase(aPathFile string) (*sql.DB, bool, error) {
 	}
 
 	// Create the table
-	if _, err = db.Exec(dbCreationSQL); err != nil {
+	if _, err = db.Exec(dbCreateTable); err != nil {
 		db.Close()
 		return nil, false, se.Wrap(err, 2)
 	}
@@ -275,7 +308,10 @@ const dbGetCount = `SELECT COUNT(*) FROM postings`
 func (dbp TDBpersistence) Count() int {
 	var result int
 
-	if err := dbp.db.QueryRow(dbGetCount).Scan(&result); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
+	defer cancel()
+
+	if err := dbp.db.QueryRowContext(ctx, dbGetCount).Scan(&result); err != nil {
 		return 0 //, fmt.Errorf("error counting rows: %v", err)
 	}
 
@@ -296,11 +332,20 @@ const dbCreateRow = `INSERT INTO postings(id, lastModifies, markdown) VALUES(?, 
 //   - `int`: The number of bytes stored.
 //   - 'error`:` A possible error, or `nil` on success.
 func (dbp TDBpersistence) Create(aPost *TPosting) (int, error) {
+	if nil == aPost {
+		return 0, se.Wrap(ErrEmptyPosting, 1)
+	}
+	dbp.mtx.Lock()
+	defer dbp.mtx.Unlock()
+
 	dbID := id2dbInt(aPost.id)
 	dbLM := time2dbInt(aPost.lastModified)
 	dbText := string(aPost.markdown)
 
-	result, err := dbp.db.Exec(dbCreateRow, dbID, dbLM, dbText)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
+	defer cancel()
+
+	result, err := dbp.db.ExecContext(ctx, dbCreateRow, dbID, dbLM, dbText)
 	if err != nil {
 		return 0, se.Wrap(err, 3)
 	}
@@ -328,8 +373,14 @@ const dbDelRecord = `DELETE FROM postings WHERE id = ?`
 // Side Effects:
 //   - Invalidates the internal count cache.
 func (dbp TDBpersistence) Delete(aID uint64) error {
+	dbp.mtx.Lock()
+	defer dbp.mtx.Unlock()
+
 	dbID := id2dbInt(aID)
-	res, err := dbp.db.Exec(dbDelRecord, dbID)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
+	defer cancel()
+
+	res, err := dbp.db.ExecContext(ctx, dbDelRecord, dbID)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}
@@ -359,11 +410,15 @@ const dbExistRecord = `SELECT EXISTS(SELECT 1 FROM postings WHERE id = ?)`
 // Returns:
 //   - `bool`: `true` if the file exists, `false` otherwise.
 func (dbp TDBpersistence) Exists(aID uint64) bool {
-	var result bool
+	dbp.mtx.RLock()
+	defer dbp.mtx.RUnlock()
 
-	err := dbp.db.QueryRow(dbExistRecord, aID).Scan(&result)
-	if err != nil {
-		return false //, err
+	var result bool
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
+	defer cancel()
+
+	if err := dbp.db.QueryRowContext(ctx, dbExistRecord, aID).Scan(&result); err != nil {
+		return false
 	}
 
 	return result
@@ -395,12 +450,17 @@ const dbReadRecord = `SELECT id, lastModified, markdown FROM postings WHERE id =
 //   - `*TPosting`: The `TPosting` instance containing the article's data, or `nil` if the record doesn't exist.
 //   - 'error`: A possible I/O error, or `nil` on success.
 func (dbp TDBpersistence) Read(aID uint64) (*TPosting, error) {
+	dbp.mtx.RLock()
+	defer dbp.mtx.RUnlock()
+
 	var (
 		dbID, dbLM int64
 		dbText     string
 	)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
+	defer cancel()
 
-	err := dbp.db.QueryRow(dbReadRecord, id2dbInt(aID)).
+	err := dbp.db.QueryRowContext(ctx, dbReadRecord, id2dbInt(aID)).
 		Scan(&dbID, &dbLM, &dbText)
 	if err != nil {
 		return nil, se.Wrap(err, 3)
@@ -425,9 +485,14 @@ const dbRenRecord = `UPDATE postings SET id = ? WHERE id = ?"`
 // Returns:
 //   - `error`: An error if the operation fails, or `nil` on success.
 func (dbp TDBpersistence) Rename(aOldID, aNewID uint64) error {
-	dbOldID, dbNewID := id2dbInt(aOldID), id2dbInt(aNewID)
+	dbp.mtx.Lock()
+	defer dbp.mtx.Unlock()
 
-	result, err := dbp.db.Exec(dbRenRecord, dbNewID, dbOldID)
+	dbOldID, dbNewID := id2dbInt(aOldID), id2dbInt(aNewID)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
+	defer cancel()
+
+	result, err := dbp.db.ExecContext(ctx, dbRenRecord, dbNewID, dbOldID)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}
@@ -440,12 +505,48 @@ func (dbp TDBpersistence) Rename(aOldID, aNewID uint64) error {
 	return nil
 } // Rename()
 
-const dbSearchText = `SELECT id, lastModified, markup FROM postings WHERE postings MATCH ? ORDER BY id DESC`
+const (
+	dbSearchLIKE = `SELECT id, lastModified, markup FROM postings WHERE markup LIKE %?% LIMIT ? OFFSET ? ORDER BY id DESC`
 
-func (dbp TDBpersistence) Search(aText string) (*TPostList, error) {
-	rows, err := dbp.db.Query(dbSearchText, aText)
-	if err != nil {
-		return nil, se.Wrap(err, 2)
+	dbSearchMATCH = `SELECT id, lastModified, markup FROM postings WHERE markup MATCH ? LIMIT ? OFFSET ? ORDER BY id DESC`
+)
+
+// `Search()` retrieves a list of postings based on a search term.
+//
+// The method uses SQLite's FTS5 (Full-Text Search) feature to perform
+// the search. If the underlying database does not support FTS5, the
+// method falls back to a LIKE-based search.
+//
+// The returned `TPostList` type is a slice of `TPosting` instances, where
+// `TPosting` is a struct representing a single posting.
+//
+// Parameters:
+//   - `aText`: The search query string.
+//   - `aOffset`: An offset in the database result set of the search results.
+//   - `aLimit`: The maximum number of search results to return.
+//
+// Returns:
+//   - `*TPostList`: The list of search results, or `nil` in case of errors.
+//   - `error`: If the search operation fails, or `nil` on success.
+func (dbp TDBpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList, error) {
+	dbp.mtx.RLock()
+	defer dbp.mtx.RUnlock()
+
+	var (
+		err    error
+		rows   *sql.Rows
+		search string
+	)
+	if dbp.fts5 {
+		search = dbSearchMATCH
+	} else {
+		search = dbSearchLIKE
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
+	defer cancel()
+
+	if rows, err = dbp.db.QueryContext(ctx, search, aText, aLimit, aOffset); err != nil {
+		return nil, se.Wrap(err, 1)
 	}
 	defer rows.Close()
 
@@ -455,7 +556,7 @@ func (dbp TDBpersistence) Search(aText string) (*TPostList, error) {
 			dbID, dbLM int64
 			dbText     string
 		)
-		if err := rows.Scan(&dbID, &dbLM, &dbText); err != nil {
+		if err = rows.Scan(&dbID, &dbLM, &dbText); err != nil {
 			return nil, se.Wrap(err, 1)
 		}
 		post := &TPosting{
@@ -466,7 +567,7 @@ func (dbp TDBpersistence) Search(aText string) (*TPostList, error) {
 		postlist.insert(post)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, se.Wrap(err, 1)
 	}
 
@@ -492,11 +593,16 @@ const dbUpdRecord = `UPDATE postings SET lastModified = ?, markdown = ? WHERE id
 // Side Effects:
 // - Invalidates the internal count cache.
 func (dbp TDBpersistence) Update(aPost *TPosting) (int, error) {
+	dbp.mtx.Lock()
+	defer dbp.mtx.Unlock()
+
 	dbID := id2dbInt(aPost.id)
 	dbLM := time2dbInt(aPost.lastModified)
 	dbText := string(aPost.markdown)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
+	defer cancel()
 
-	result, err := dbp.db.Exec(dbUpdRecord, dbLM, dbText, dbID)
+	result, err := dbp.db.ExecContext(ctx, dbUpdRecord, dbLM, dbText, dbID)
 	if err != nil {
 		return 0, se.Wrap(err, 2)
 	}
@@ -522,14 +628,16 @@ const dbWalkRecords = `SELECT id FROM postings ORDER BY id DESC;`
 // Returns:
 //   - `error`: a possible error occurring the traversal process.
 func (dbp TDBpersistence) Walk(aWalkFunc TWalkFunc) error {
-	rows, err := dbp.db.Query(dbWalkRecords)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<3)
+	defer cancel()
+
+	rows, err := dbp.db.QueryContext(ctx, dbWalkRecords)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}
 	defer rows.Close()
 
-dirLoop:
-	// Iterate over rows
+dirLoop: // Iterate over rows
 	for rows.Next() {
 
 		// Call the callback function with the row data
@@ -544,7 +652,7 @@ dirLoop:
 			if errors.Is(err, ErrSkipAll) {
 				break dirLoop
 			}
-			return se.Wrap(err, 7)
+			return se.Wrap(err, 4)
 		}
 	}
 
@@ -555,77 +663,5 @@ dirLoop:
 
 	return nil
 } // Walk()
-
-/*
-func iterateTable(db *sql.DB, callback func(map[string]interface{}) error) error {
-	// Query to get all rows from the table
-
-	// Execute the query
-	rows, err := db.Query(dbWalkRecords)
-	if err != nil {
-		return se.Wrap(err, 2)
-	}
-	defer rows.Close()
-
-	// Get column names
-	columns, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-
-	// Prepare a slice to hold the column values
-	values := make([]interface{}, len(columns))
-	for i := range values {
-		values[i] = new(interface{})
-	}
-
-	// Iterate over rows
-	for rows.Next() {
-		// Scan the row into the values slice
-		err := rows.Scan(values...)
-		if err != nil {
-			return err
-		}
-
-		// Create a map to hold the row data
-		rowData := make(map[string]interface{})
-		for i, col := range columns {
-			rowData[col] = *(values[i].(*interface{}))
-		}
-
-		// Call the callback function with the row data
-		err = callback(rowData)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Check for any errors encountered during iteration
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-*/
-
-/*
-func main() {
-	db, err := sql.Open("sqlite3", "path/to/your/database.db")
-	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
-	}
-	defer db.Close()
-
-	results, err := SearchDocuments(db, "your search query")
-	if err != nil {
-		log.Fatalf("Search failed: %v", err)
-	}
-
-	for _, doc := range results {
-		fmt.Printf("Title: %s\nBody: %s\n\n", doc.Title, doc.Body)
-	}
-}
-*/
 
 /* _EoF_ */
