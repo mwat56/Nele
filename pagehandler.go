@@ -370,11 +370,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(rID, tail)
-		if !p.Exists() {
+		p := NewPosting(rID, "")
+		if err := p.Load(); nil != err {
 			http.NotFound(aWriter, aRequest)
 			return
 		}
+
 		t := p.Time()
 		date := p.Date()
 		pageData = pageData.Set(`HMS`, fmt.Sprintf("%02d:%02d:%02d",
@@ -536,7 +537,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "s": // handle a query/search
 		if 0 < len(tail) {
-			ph.handleSearch(tail, pageData, aWriter /*, aRequest*/)
+			ph.handleSearch(tail, pageData, aWriter)
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
@@ -848,7 +849,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 } // handlePOST()
 
 // `handleReply()` sends `aPage` with `aData` to `aWriter`.
-func (ph *TPageHandler) handleReply(aPage string, aWriter http.ResponseWriter, aData *TemplateData) {
+func (ph *TPageHandler) handleReply(aPage string,
+	aWriter http.ResponseWriter, aData *TemplateData) {
 	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
 		apachelogger.Err("TPageHandler.handleReply()",
 			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
@@ -867,7 +869,6 @@ func (ph *TPageHandler) handleRoot(aNumStr string,
 	pl := NewPostList()
 	_ = pl.Newest(num, start) // ignore fs errors here
 
-	// not needed: pl.Sort()
 	aData = aData.Set(`Postings`, pl).
 		Set("Robots", "noindex,follow")
 	if pl.Len() >= num {
