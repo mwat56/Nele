@@ -1,9 +1,10 @@
 /*
 Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -41,6 +42,7 @@ type (
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
 		Rename(aOldID, aNewID uint64) error
+		Search(aText string, aOffset, aLimit uint) (*TPostList, error)
 		Walk(aWalkFunc TWalkFunc) error
 	}
 )
@@ -352,7 +354,11 @@ func (p *TPosting) Set(aMarkdown []byte) *TPosting {
 //   - 'error`: A possible error, or `nil` on success.
 func (p *TPosting) Store() (int, error) {
 	if nil == p {
-		return 0, se.Wrap(errors.New("nil point"), 1)
+		return 0, se.Wrap(errors.New("nil pointer"), 1)
+	}
+
+	if p.Exists() {
+		return poPersistence.Update(p)
 	}
 
 	return poPersistence.Create(p)
