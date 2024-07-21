@@ -42,10 +42,11 @@ type (
 		Update(aPost *TPosting) (int, error)
 		Delete(aID uint64) error
 
-		Count() uint32
+		Count() int
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
 		Rename(aOldID, aNewID uint64) error
+		Search(aText string, aOffset, aLimit uint) (*TPostList, error)
 		Walk(aWalkFunc TWalkFunc) error
 	}
 )
@@ -173,11 +174,11 @@ func init() {
 // --------------------------------------------------------------------------
 
 // The SQL statement to create the database table
-const dbCreateTable = `
-	CREATE TABLE IF NOT EXISTS postings (
-		id INTEGER PRIMARY KEY,
-		lastModified INTEGER NOT NULL,
-		markdown TEXT NOT NULL
+const dbInitTable = `
+	CREATE TABLE IF NOT EXISTS "postings" (
+		"id" INTEGER PRIMARY KEY,
+		"lastModified" INTEGER NOT NULL,
+		"markdown" TEXT NOT NULL
 	);
 `
 
@@ -221,7 +222,7 @@ func initDatabase(aPathFile string) (*sql.DB, bool, error) {
 	}
 
 	// Create the table
-	if _, err = db.Exec(dbCreateTable); err != nil {
+	if _, err = db.Exec(dbInitTable); err != nil {
 		db.Close()
 		return nil, false, se.Wrap(err, 2)
 	}
@@ -259,9 +260,11 @@ func initFTS5(aDB *sql.DB) (bool, error) {
 	if err := aDB.QueryRow(check4FTS5).Scan(&fts); nil != err {
 		return false, se.Wrap(err, 1)
 	}
+	if "1" != fts {
+		return false, nil
+	}
 
-	if "1" == fts {
-		const dbAddFTS5 = `
+	const dbAddFTS5 = `
 	-- FTS virtual table referencing the regular table
 	CREATE VIRTUAL TABLE IF NOT EXISTS postings_FTS USING FTS5(
 		markdown,
@@ -283,15 +286,11 @@ func initFTS5(aDB *sql.DB) (bool, error) {
 		INSERT INTO postings_FTS(rowid, markdown) VALUES (new.id, new.markdown);
 	END;
 `
-
-		if _, err := aDB.Exec(dbAddFTS5); nil != err {
-			return false, se.Wrap(err, 1)
-		}
-
-		return true, nil
+	if _, err := aDB.Exec(dbAddFTS5); nil != err {
+		return false, se.Wrap(err, 1)
 	}
 
-	return false, nil
+	return true, nil
 } // initFTS5()
 
 // --------------------------------------------------------------------------
@@ -360,7 +359,7 @@ func (dbp TDBpersistence) Create(aPost *TPosting) (int, error) {
 		aPost.Len(), nil
 } // Create()
 
-const dbDelRecord = `DELETE FROM postings WHERE id = ?`
+const dbDeleteRow = `DELETE FROM postings WHERE id = ?`
 
 // `Delete()` removes the posting/article from the filesystem
 // and returns a possible I/O error.
@@ -381,7 +380,7 @@ func (dbp TDBpersistence) Delete(aID uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
 	defer cancel()
 
-	res, err := dbp.db.ExecContext(ctx, dbDelRecord, dbID)
+	res, err := dbp.db.ExecContext(ctx, dbDeleteRow, dbID)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}
@@ -399,7 +398,7 @@ func (dbp TDBpersistence) Delete(aID uint64) error {
 	return nil
 } // Delete()
 
-const dbExistRecord = `SELECT EXISTS(SELECT 1 FROM postings WHERE id = ?)`
+const dbExistRow = `SELECT EXISTS(SELECT 1 FROM postings WHERE id = ?)`
 
 // `Exists()` checks if a file with the given ID exists in the filesystem.
 //
@@ -418,7 +417,7 @@ func (dbp TDBpersistence) Exists(aID uint64) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
 	defer cancel()
 
-	if err := dbp.db.QueryRowContext(ctx, dbExistRecord, aID).Scan(&result); err != nil {
+	if err := dbp.db.QueryRowContext(ctx, dbExistRow, aID).Scan(&result); err != nil {
 		return false
 	}
 
@@ -440,7 +439,7 @@ func (dbp TDBpersistence) PathFileName(aID uint64) string {
 	return poPostingBaseDirectory
 } // PathFileName()
 
-const dbReadRecord = `SELECT id, lastModified, markdown FROM postings WHERE id = ?`
+const dbReadRow = `SELECT id, lastModified, markdown FROM postings WHERE id = ?`
 
 // `Read()` reads the posting from disk, returning a possible I/O error.
 //
@@ -461,7 +460,7 @@ func (dbp TDBpersistence) Read(aID uint64) (*TPosting, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
 	defer cancel()
 
-	err := dbp.db.QueryRowContext(ctx, dbReadRecord, id2dbInt(aID)).
+	err := dbp.db.QueryRowContext(ctx, dbReadRow, id2dbInt(aID)).
 		Scan(&dbID, &dbLM, &dbText)
 	if err != nil {
 		return nil, se.Wrap(err, 3)
@@ -475,7 +474,7 @@ func (dbp TDBpersistence) Read(aID uint64) (*TPosting, error) {
 	return post, nil
 } // Read()
 
-const dbRenRecord = `UPDATE postings SET id = ? WHERE id = ?"`
+const dbRenameRow = `UPDATE postings SET id = ? WHERE id = ?"`
 
 // `Rename()` renames a posting from its old ID to a new ID.
 //
@@ -493,7 +492,7 @@ func (dbp TDBpersistence) Rename(aOldID, aNewID uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<1)
 	defer cancel()
 
-	result, err := dbp.db.ExecContext(ctx, dbRenRecord, dbNewID, dbOldID)
+	result, err := dbp.db.ExecContext(ctx, dbRenameRow, dbNewID, dbOldID)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}
@@ -518,8 +517,12 @@ const (
 // the search. If the underlying database does not support FTS5, the
 // method falls back to a LIKE-based search.
 //
+// A zero value of `aLimit` means: no limit alt all.
+//
 // The returned `TPostList` type is a slice of `TPosting` instances, where
-// `TPosting` is a struct representing a single posting.
+// `TPosting` is a struct representing a single posting. If the returned
+// slice is an empty list then no matching postings were found; if it is
+// `nil` it means there was an error retrieving the matches.
 //
 // Parameters:
 //   - `aText`: The search query string.
@@ -534,7 +537,7 @@ func (dbp TDBpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList
 	defer dbp.mtx.RUnlock()
 
 	if 0 == aLimit {
-		aLimit = 1 << 31
+		aLimit = 1 << 15 // 64K
 	}
 
 	var (
@@ -579,24 +582,24 @@ func (dbp TDBpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList
 	return postlist, nil
 } // Search()
 
-const dbUpdRecord = `UPDATE postings SET lastModified = ?, markdown = ? WHERE id = ?"`
+const dbUpdateRow = `UPDATE postings SET lastModified = ?, markdown = ? WHERE id = ?"`
 
-// `Update()` updates the article's Markdown on disk.
+// `Update()` updates the article's Markdown in the database.
 //
-// It returns the number of bytes written to the file and a possible I/O error.
+// It returns the number of bytes stored and a possible I/O error.
 //
 // If the provided `aPost` is `nil`, an `ErrEmptyPosting` error
 // is returned.
 //
 // Parameters:
-// - `aPost`: A `TPosting` instance containing the article's data.
+//   - `aPost`: A `TPosting` instance containing the article's data.
 //
 // Returns:
-// - `int`: The number of bytes written to the file.
-// - 'error`:` A possible I/O error, or `nil` on success.
+//   - `int`: The number of bytes written to the file.
+//   - 'error`:` A possible I/O error, or `nil` on success.
 //
 // Side Effects:
-// - Invalidates the internal count cache.
+//   - Invalidates the internal count cache.
 func (dbp TDBpersistence) Update(aPost *TPosting) (int, error) {
 	dbp.mtx.Lock()
 	defer dbp.mtx.Unlock()
@@ -607,7 +610,7 @@ func (dbp TDBpersistence) Update(aPost *TPosting) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
 	defer cancel()
 
-	result, err := dbp.db.ExecContext(ctx, dbUpdRecord, dbLM, dbText, dbID)
+	result, err := dbp.db.ExecContext(ctx, dbUpdateRow, dbLM, dbText, dbID)
 	if err != nil {
 		return 0, se.Wrap(err, 2)
 	}
@@ -622,7 +625,7 @@ func (dbp TDBpersistence) Update(aPost *TPosting) (int, error) {
 		aPost.Len(), nil
 } // Update()
 
-const dbWalkRecords = `SELECT id FROM postings ORDER BY id DESC;`
+const dbWalkRows = `SELECT id FROM postings ORDER BY id DESC;`
 
 // `Walk()` visits all existing postings, calling `aWalkFunc`
 // for each posting.
@@ -636,7 +639,7 @@ func (dbp TDBpersistence) Walk(aWalkFunc TWalkFunc) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<3)
 	defer cancel()
 
-	rows, err := dbp.db.QueryContext(ctx, dbWalkRecords)
+	rows, err := dbp.db.QueryContext(ctx, dbWalkRows)
 	if err != nil {
 		return se.Wrap(err, 2)
 	}

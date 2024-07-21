@@ -51,6 +51,7 @@ type (
 		Exists(aID uint64) bool
 		PathFileName(aID uint64) string
 		Rename(aOldID, aNewID uint64) error
+		Search(aText string, aOffset, aLimit uint) (*TPostList, error)
 		Walk(aWalkFunc TWalkFunc) error
 	}
 )
@@ -486,8 +487,12 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 
 // `Search()` retrieves a list of postings based on a search term.
 //
+// A zero value of `aLimit` means: no limit alt all.
+//
 // The returned `TPostList` type is a slice of `TPosting` instances, where
-// `TPosting` is a struct representing a single posting.
+// `TPosting` is a struct representing a single posting. If the returned
+// slice is an empty list then no matching postings were found; if it is
+// `nil` it means there was an error retrieving the matches.
 //
 // Parameters:
 //   - `aText`: The search query string.
@@ -498,13 +503,16 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 //   - `*TPostList`: The list of search results, or `nil` in case of errors.
 //   - `error`: If the search operation fails, or `nil` on success.
 func (fsp TFSpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList, error) {
-	fsp.mtx.RLock()
-	defer fsp.mtx.RUnlock()
+	// fsp.mtx.RLock()
+	// locking here will cause a deadlock because the called
+	// `posting.Load()` method will call our `Read()` method
+	// which in turn wait for a lock as well ...
+	// defer fsp.mtx.RUnlock()
 
 	var lCnt, oCnt uint
 	result := NewPostList()
 	if 0 == aLimit {
-		aLimit = 1 << 31
+		aLimit = 1 << 15 // 64K
 	}
 
 	wf := func(aID uint64) error {
@@ -515,14 +523,19 @@ func (fsp TFSpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList
 		}
 		lCnt++
 		if lCnt > aLimit {
+			// reached the requested limit
 			return ErrSkipAll
 		}
 		post := NewPosting(aID, "")
-		if err := post.Load(); nil != err {
+		if err := post.Load(); nil != err { // this calls `Read()` ...
 			lCnt--
 			return nil
 		}
-		result.insert(post)
+
+		re := regexp.MustCompile("(?i)" + aText)
+		if hit := re.Find(post.markdown); nil != hit {
+			result.insert(post)
+		}
 
 		return nil
 	} // wf()

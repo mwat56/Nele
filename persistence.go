@@ -143,12 +143,17 @@ type (
 		//
 		// `Search()` retrieves a list of postings based on a search term.
 		//
+		// A zero value of `aLimit` means: no limit alt all.
+		//
 		// The returned `TPostList` type is a slice of `TPosting` instances,
-		// where `TPosting` is a struct representing a single posting.
+		// where `TPosting` is a struct representing a single posting. If
+		// the returned slice is an empty list then no matching postings were
+		// found; if it is `nil` it means there was an error retrieving the
+		// matches.
 		//
 		// Parameters:
-		//   - `aText`: The search query string.
-		//   - `aOffset`: An offset in the database result set of the search results.
+		//   - `aText`: The search term to look for.
+		//   - `aOffset`: An offset in the result set of the search results.
 		//   - `aLimit`: The maximum number of search results to return.
 		//
 		// Returns:
