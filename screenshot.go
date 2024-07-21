@@ -1,9 +1,10 @@
 /*
 Copyright © 2022, 2024 M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -39,8 +40,7 @@ type (
 // in the text of `aPosting` actually exists locally.
 //
 // Parameters:
-//
-//	`aPosting` The posting the text of which is searched for a local image link.
+//   - `aPosting` The posting the text of which is searched for a local image link.
 func checkScreenshots(aPosting *TPosting) {
 	if nil == aPosting {
 		return
@@ -68,8 +68,7 @@ var (
 // returning a list of the two link URLs.
 //
 // Parameters:
-//
-//	`aTxt` is the text to search.
+//   - `aTxt` is the text to search.
 func checkScreenshotURLs(aTxt []byte) (rList tImgURLlist) {
 	matches := ssImageRE.FindAllSubmatch(aTxt, -1)
 	for idx, l := 0, len(matches); idx < l; idx++ {
@@ -84,8 +83,7 @@ func checkScreenshotURLs(aTxt []byte) (rList tImgURLlist) {
 // `goCreateScreenshot()` generates a screenshot of `aURL` in background.
 //
 // Parameters:
-//
-//	`aURL`: The URL for which to create a screenshot image.
+//   - `aURL`: The URL for which to create a screenshot image.
 func goCreateScreenshot(aURL string) {
 	// `screenshot.CreateImage()` checks whether the file exists
 	// and whether it's too old.
@@ -100,8 +98,7 @@ func goCreateScreenshot(aURL string) {
 // of `aPosting` to include a page screenshot image (if available).
 //
 // Parameters:
-//
-//	`aPosting`: The posting the text of which is going to be processed.
+//   - `aPosting`: The posting the text of which is going to be processed.
 func goSetLinkScreenshots(aPosting *TPosting) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
@@ -154,10 +151,9 @@ func goUpdateAllLinkScreenshots() {
 // in the text of `aPosting` to embed a link into the image.
 //
 // Parameters:
-//
-//	`aPosting`: The posting the text of which is going to be updated.
-//	`aLink`: The link parts to use.
-//	`aImageURLdir:` The URL directory for page screenshot images.
+//   - `aPosting`: The posting the text of which is going to be updated.
+//   - `aLink`: The link parts to use.
+//   - `aImageURLdir`: The URL directory for page screenshot images.
 func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 	imgName, err := screenshot.CreateImage(aLink.linkURL)
 	if (nil != err) || (0 == len(imgName)) {
@@ -181,10 +177,9 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 // `[link-text](link-url)` by `[![alt-text](image-URL)](link-URL)`.
 //
 // Parameters:
-//
-//	`aPosting`: The posting the text of which is going to be updated.
-//	`aLink`: The link parts to use.
-//	`aImageURLdir`: The URL directory for page screenshot images.
+//   - `aPosting`: The posting the text of which is going to be updated.
+//   - `aLink`: The link parts to use.
+//   - `aImageURLdir`: The URL directory for page screenshot images.
 func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string) (rText []byte) {
 	search := regexp.QuoteMeta(aLink.link)
 	if re, err := regexp.Compile(search); nil == err {
@@ -199,7 +194,7 @@ func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string
 
 // // `validateScreenshot()` implements two purposes:
 // // (a) it checks whether a certain article contains screenshots;
-// // (b) it checks whether the screenshot image is  formally correct
+// // (b) it checks whether the screenshot image is formally correct
 // // (e.g. `png` vs. `jpeg`).
 // func validateScreenshot(aImgDir string) {
 // 	/*
@@ -231,8 +226,7 @@ var (
 // `CreateScreenshot()` generates a screenshot of `aURL` in background.
 //
 // Parameters:
-//
-//	`aURL`: The URL for which to create a screenshot image.
+//   - `aURL`: The URL for which to create a screenshot image.
 func CreateScreenshot(aURL string) {
 	go goCreateScreenshot(aURL)
 
@@ -243,8 +237,7 @@ func CreateScreenshot(aURL string) {
 // to include page screenshot image(s) (if available).
 //
 // Parameters:
-//
-//	`aPosting`: The posting the text of which is going to be processed.
+//   - `aPosting`: The posting the text of which is going to be processed.
 func PrepareLinkScreenshots(aPosting *TPosting) {
 	go goSetLinkScreenshots(aPosting)
 
@@ -254,8 +247,7 @@ func PrepareLinkScreenshots(aPosting *TPosting) {
 // `RemovePageScreenshots()` deletes the images used in `aPosting`.
 //
 // Parameters:
-//
-//	`aPosting`: The posting the image(s) of which are going to be deleted.
+//   - `aPosting`: The posting the image(s) of which are going to be deleted.
 func RemovePageScreenshots(aPosting *TPosting) {
 	if (nil == aPosting) || (0 == aPosting.Len()) {
 		return
@@ -282,13 +274,9 @@ func RemovePageScreenshots(aPosting *TPosting) {
 	}
 } // RemovePageScreenshots()
 
-// UpdateScreenshots starts the process to update the screenshot images
-// in all postings.
-//
-// Parameters:
-//
-//	`aPostingBaseDir`: The base directory used for storing articles/postings.
-func UpdateScreenshots(aPostingBaseDir string) {
+// `UpdateScreenshots()` starts the process to update the screenshot
+// images in all postings.
+func UpdateScreenshots() {
 	go goUpdateAllLinkScreenshots()
 
 	runtime.Gosched() // get the background operation started

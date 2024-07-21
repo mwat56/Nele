@@ -1,12 +1,11 @@
 /*
 Copyright © 2022, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
-package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
+package nele
 
 import (
 	"reflect"
@@ -16,6 +15,8 @@ import (
 
 	"github.com/mwat56/screenshot"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func Test_checkScreenshotURLs(t *testing.T) {
 	var t1 []byte
