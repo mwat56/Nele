@@ -506,7 +506,7 @@ func (dbp TDBpersistence) Rename(aOldID, aNewID uint64) error {
 } // Rename()
 
 const (
-	dbSearchLIKE = `SELECT id, lastModified, markup FROM postings WHERE markup LIKE %?% LIMIT ? OFFSET ? ORDER BY id DESC`
+	dbSearchLIKE = `SELECT id, lastModified, markup FROM postings WHERE markup LIKE ? LIMIT ? OFFSET ? ORDER BY id DESC`
 
 	dbSearchMATCH = `SELECT id, lastModified, markup FROM postings WHERE markup MATCH ? LIMIT ? OFFSET ? ORDER BY id DESC`
 )
@@ -548,6 +548,7 @@ func (dbp TDBpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList
 	if dbp.fts5 {
 		search = dbSearchMATCH
 	} else {
+		aText = fmt.Sprintf("%%%s%%", aText)
 		search = dbSearchLIKE
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second<<2)
