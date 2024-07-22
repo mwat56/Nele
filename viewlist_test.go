@@ -151,7 +151,7 @@ func TestTViewList_render(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.vl.render(tt.args.aName, tt.aWriter, tt.args.aData)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TViewList.render() error = %v, wantErr %v",
+				t.Errorf("%q: TViewList.render() error = %v, wantErr %v",
 					tt.name, err, tt.wantErr)
 				return
 			}
