@@ -1,9 +1,10 @@
 /*
 Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -26,7 +27,7 @@ func Test_NewViewList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewViewList(); !got.equals(tt.want) {
+			if got, _ := NewViewList(); !got.equals(tt.want) {
 				t.Errorf("NewViewList() = %v, want %v", got, tt.want)
 			}
 		})
@@ -36,10 +37,11 @@ func Test_NewViewList(t *testing.T) {
 func Test_TViewList_Add(t *testing.T) {
 	prep4Tests()
 
-	vw1, _ := NewView("./views/", "index")
+	vw1, _ := NewView("index")
 
-	vl1 := NewViewList()
-	rl1 := NewViewList().Add(vw1)
+	vl1, _ := NewViewList()
+	rl1, _ := NewViewList()
+	vl1.Add(vw1)
 
 	tests := []struct {
 		name string
@@ -47,8 +49,8 @@ func Test_TViewList_Add(t *testing.T) {
 		view *TView
 		want *TViewList
 	}{
-		// TODO: Add test cases.
 		{" 1", vl1, vw1, rl1},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -62,12 +64,14 @@ func Test_TViewList_Add(t *testing.T) {
 func Test_TViewList_equals(t *testing.T) {
 	prep4Tests()
 
-	vl0 := NewViewList()
-	tv1, _ := NewView("./views/", "index")
-	vl1 := NewViewList().Add(tv1)
+	vl0, _ := NewViewList()
+	tv1, _ := NewView("index")
+	vl1, _ := NewViewList()
+	vl1.Add(tv1)
 
-	tv2, _ := NewView("./views/", "404")
-	vl2 := NewViewList().Add(tv2)
+	tv2, _ := NewView("404")
+	vl2, _ := NewViewList()
+	vl2.Add(tv2)
 
 	tests := []struct {
 		name  string
@@ -91,12 +95,13 @@ func Test_TViewList_equals(t *testing.T) {
 } // Test_TViewList_equals()
 
 func TestTViewList_render(t *testing.T) {
-	SetPostingBaseDirectory("/tmp/postings/")
+	prepareTestFiles()
+
 	vname1, vname2 := "index", "article"
-	vw1, _ := NewView("./views/", vname1)
-	vw2, _ := NewView("./views/", vname2)
-	vl1 := NewViewList().
-		Add(vw1).
+	vw1, _ := NewView(vname1)
+	vw2, _ := NewView(vname2)
+	vl1, _ := NewViewList()
+	vl1.Add(vw1).
 		Add(vw2)
 
 	id1 := time2id(time.Date(2019, 3, 19, 0, 0, 0, 0, time.Local))

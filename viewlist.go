@@ -1,18 +1,22 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
-package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
+package nele
 
 import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
+
+	se "github.com/mwat56/sourceerror"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 type (
 	// `TViewList` is a list of `TView` instances (to be used as a
@@ -24,11 +28,34 @@ type (
 // --------------------------------------------------------------------------
 // constructor function:
 
-// `NewViewList()` returns a new (empty) `TViewList` instance.
-func NewViewList() *TViewList {
-	result := make(TViewList, 16)
+// `NewViewList()` creates a new `TViewList` instance with all available views.
+//
+// Returns:
+//   - `*TViewList`: A new `TViewList` instance.
+//   - `error`: A possible error during processing.
+func NewViewList() (*TViewList, error) {
+	var ( // re-use variables
+		err   error
+		files []string
+		fName string
+		v     *TView
+	)
+	list := make(TViewList, 32)
+	result := &list
 
-	return &result
+	if files, err = filepath.Glob("views/*.gohtml"); err != nil {
+		return nil, se.Wrap(err, 1)
+	}
+
+	for _, fName = range files {
+		fName = filepath.Base(fName[:len(fName)-7]) // remove extension
+		if v, err = NewView(fName); nil != err {
+			return nil, err
+		}
+		result = result.Add(v)
+	}
+
+	return result, nil
 } // NewViewlist()
 
 // --------------------------------------------------------------------------
@@ -40,10 +67,10 @@ func NewViewList() *TViewList {
 // is used as the view's key in this list.
 //
 // Parameters:
-//
 //   - `aView` is the view to add to this list.
 //
 // Returns:
+//   - `*TViewList`: The updated list.
 func (vl *TViewList) Add(aView *TView) *TViewList {
 	(*vl)[aView.vName] = aView
 
@@ -54,11 +81,9 @@ func (vl *TViewList) Add(aView *TView) *TViewList {
 // equality. It checks if the symbolic names of both views are identical.
 //
 // Parameters:
-//
-//   - `aViewList`: The `TView` instance to compare with the current one.
+//   - `aViewList`: The `TViewList` instance to compare with.
 //
 // Returns:
-//
 //   - `bool`: `true` if the symbolic names of both viewlists are identical.
 func (vl *TViewList) equals(aViewList *TViewList) bool {
 	if nil == vl {
@@ -89,10 +114,11 @@ func (vl *TViewList) equals(aViewList *TViewList) bool {
 // exists in the list, and `false` if not.
 //
 // Parameters:
-//
-//   - `aName` is the name (key) of the `TView` object to retrieve.
+//   - `aName`: The name of the `TView` instance to retrieve.
 //
 // Returns:
+//   - `*TView`: The `TView` instance.
+//   - `bool`: `true` if `aName` exists in the list, or `false` otherwise.
 func (vl *TViewList) Get(aName string) (*TView, bool) {
 	if result, ok := (*vl)[aName]; ok {
 		return result, true
@@ -105,14 +131,18 @@ func (vl *TViewList) Get(aName string) (*TView, bool) {
 // (`io.Writer` instead of `http.ResponseWriter`) for easier testing.
 //
 // Parameters:
+//   - `aName`: The view's name to render
+//   - `aWriter`: A `Writer` to handle the executed template.
+//   - `aData`: The data to be put into the view.
 //
 // Returns:
+//   - `error`: A possible error during processing.
 func (vl *TViewList) render(aName string, aWriter io.Writer, aData *TemplateData) error {
 	if view, ok := (*vl)[aName]; ok {
 		return view.render(aWriter, aData)
 	}
 
-	return fmt.Errorf("template/view '%s' not found", aName)
+	return fmt.Errorf("TViewList.Render(%q) not found", aName)
 } // render()
 
 // `Render()` executes the template with the key `aName`.
@@ -122,12 +152,12 @@ func (vl *TViewList) render(aName string, aWriter io.Writer, aData *TemplateData
 // to the output `aWriter`.
 //
 // Parameters:
-//
 //   - `aName`: The name of the template/view to use.
 //   - `aWriter`: A `http.ResponseWriter` to handle the executed template.
 //   - `aData`: A list of data to be injected into the template.
 //
 // Returns:
+//   - `error`: A possible error during processing.
 func (vl *TViewList) Render(aName string, aWriter http.ResponseWriter, aData *TemplateData) error {
 	return vl.render(aName, aWriter, aData)
 } // Render()
@@ -135,18 +165,18 @@ func (vl *TViewList) Render(aName string, aWriter http.ResponseWriter, aData *Te
 // `RenderedPage()` returns the rendered template/page with the key `aName`.
 //
 // Parameters:
-//
-//   - `aName` is the name of the template/view to use.
-//   - `aData` is a list of data to be injected into the template.
+//   - `aName`: The name of the template/view to use.
+//   - `aData`: A list of data to be injected into the template.
 //
 // Returns:
+//   - `error`: A possible error during processing.
 func (vl *TViewList) RenderedPage(aName string, aData *TemplateData) ([]byte, error) {
 
 	if view, ok := (*vl)[aName]; ok {
 		return view.RenderedPage(aData)
 	}
 
-	return nil, fmt.Errorf("template/view '%s' not found", aName)
+	return nil, fmt.Errorf("TViewList.RenderedPage(%q) not found", aName)
 } // RenderedPage()
 
 /* _EoF_ */
