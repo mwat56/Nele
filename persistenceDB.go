@@ -7,6 +7,10 @@ Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
 package nele
 
+// #cgo CFLAGS: -I/usr/include/
+// #cgo LDFLAGS: -lsqlite3 -lm
+import "C"
+
 import (
 	"context"
 	"database/sql"
