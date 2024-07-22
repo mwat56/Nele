@@ -1,15 +1,15 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
-package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
+package nele
 
 import (
 	"bytes"
+	"embed"
 	"html/template"
 	"io"
 	"net/http"
@@ -19,6 +19,8 @@ import (
 	se "github.com/mwat56/sourceerror"
 	"github.com/mwat56/whitespace"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 type (
 	// `TView` combines a template and its logical name.
@@ -36,6 +38,9 @@ type (
 	}
 )
 
+//go:embed views/*
+var viewsFS embed.FS
+
 // --------------------------------------------------------------------------
 // constructor functions:
 
@@ -46,31 +51,36 @@ type (
 // w/o `.gohtml`).
 //
 // Parameters:
+//   - `aName`: The name of the template file providing the page's main body.
 //
-//	`aBaseDir` is the path to the directory storing the template files.
-//	- `aName` is the name of the template file providing the page's main body.
-func NewView(aBaseDir, aName string) (*TView, error) {
+// Returns:
+//   - `*TView`: A new `TView` instance.
+//   - `error`: A possible error during processing.
+func NewView(aName string) (*TView, error) {
 	var (
-		bd    string
 		err   error
+		fc    []byte // file contents
+		fn    string // file name
 		files []string
 		tpl   *template.Template
 	)
 
-	if bd, err = filepath.Abs(aBaseDir); nil != err {
+	// Get the files defining the overall page layout
+	if files, err = filepath.Glob("views/layout/*.gohtml"); nil != err {
 		return nil, se.Wrap(err, 1)
 	}
+	files = append(files, `views/`+aName+`.gohtml`)
 
-	if files, err = filepath.Glob(bd + "/layout/*.gohtml"); nil != err {
-		return nil, se.Wrap(err, 1)
-	}
-
-	files = append(files, bd+`/`+aName+`.gohtml`)
-
-	if tpl, err = template.New(aName).
-		Funcs(viewFunctionMap).
-		ParseFiles(files...); nil != err {
-		return nil, se.Wrap(err, 3)
+	tpl = template.New(aName)
+	for _, fn = range files {
+		if fc, err = viewsFS.ReadFile(fn); nil != err {
+			return nil, se.Wrap(err, 1)
+		}
+		if tpl, err = tpl.New(fn).
+			Funcs(viewFunctionMap).
+			Parse(string(fc)); nil != err {
+			return nil, se.Wrap(err, 3)
+		}
 	}
 
 	return &TView{
@@ -157,39 +167,62 @@ func (v *TView) equals(aView *TView) bool {
 
 // `render()` is the core of `Render()` with a slightly different API
 // (`io.Writer` instead of `http.ResponseWriter`) for easier testing.
-func (v *TView) render(aWriter io.Writer, aData *TemplateData) (rErr error) {
-	var page []byte
+//
+// Parameters:
+//   - `aName`: The view's name to render
+//   - `aWriter`: A `http.ResponseWriter` to handle the executed template.
+//   - `aData`: The data to be put into the view.
+//
+// Returns:
+//   - `error`: A possible error during processing.
+func (v *TView) render(aWriter io.Writer, aData *TemplateData) error {
+	var (
+		err  error
+		page []byte
+	)
 
-	if page, rErr = v.RenderedPage(aData); nil != rErr {
-		return
+	if page, err = v.RenderedPage(aData); nil != err {
+		return err
 	}
-	_, rErr = aWriter.Write(addExternURLtargets(whitespace.Remove(page)))
 
-	return
+	if _, err = aWriter.Write(addExternURLtargets(whitespace.Remove(page))); nil != err {
+		return se.Wrap(err, 1)
+	}
+
+	return nil
 } // render()
 
-// Render executes the template using the TView's properties.
+// `Render()` executes the template using the TView's properties.
 //
 // `aWriter` is a http.ResponseWriter, or e.g. `os.Stdout` in console apps.
-//
-// `aData` is a list of data to be injected into the template.
 //
 // If an error occurs executing the template or writing its output,
 // execution stops, and the method returns without writing anything
 // to the output `aWriter`.
+//
+// Parameters:
+//   - `aWriter`: A `http.ResponseWriter` to handle the executed template.
+//   - `aData`: A list of data to be injected into the template.
+//
+// Returns:
+//   - `error`: A possible error during processing.
 func (v *TView) Render(aWriter http.ResponseWriter, aData *TemplateData) error {
 	return v.render(aWriter, aData)
 } // Render()
 
-// RenderedPage returns the rendered template/page and a possible Error
+// `RenderedPage()` returns the rendered template/page and a possible Error
 // executing the template.
 //
+// Parameters:
 // `aData` is a list of data to be injected into the template.
+//
+// Returns:
+//   - `error`: A possible error during processing.
 func (v *TView) RenderedPage(aData *TemplateData) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
 	if err := v.vTpl.ExecuteTemplate(buf, v.vName, aData); nil != err {
-		return nil, err
+		return nil, se.Wrap(err, 1)
 	}
 
 	return buf.Bytes(), nil
