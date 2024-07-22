@@ -28,40 +28,38 @@ type (
 // --------------------------------------------------------------------------
 // constructor function:
 
-// `NewViewList()` creates a new `TViewList` instance with all available views.
+// `NewViewList()` creates a new `TViewList` instance with all
+// available views.
 //
 // Returns:
 //   - `*TViewList`: A new `TViewList` instance.
 //   - `error`: A possible error during processing.
 func NewViewList() (*TViewList, error) {
-	var ( // re-use variables
-		err   error
-		files []string
-		fName string
-		v     *TView
-	)
-	list := make(TViewList, 32)
-	result := &list
+	var view *TView
 
-	if files, err = filepath.Glob("views/*.gohtml"); err != nil {
-		return nil, se.Wrap(err, 1)
+	files, err := filepath.Glob("views/*.gohtml")
+	if err != nil {
+		return nil, se.Wrap(err, 2)
 	}
 
-	for _, fName = range files {
-		fName = filepath.Base(fName[:len(fName)-7]) // remove extension
-		if v, err = NewView(fName); nil != err {
+	result := make(TViewList, len(files))
+	for _, fName := range files {
+		vName := filepath.Base(fName[:len(fName)-7]) // remove extension
+		if view, err = NewView(vName); nil != err {
 			return nil, err
 		}
-		result = result.Add(v)
+		if nil != view {
+			result[view.vName] = view
+		}
 	}
 
-	return result, nil
+	return &result, nil
 } // NewViewlist()
 
 // --------------------------------------------------------------------------
 // TViewList methods
 
-// `Add()` appends `aView` to the list.
+// `add()` appends `aView` to the list.
 //
 // The view's name (as specified in the `NewView()` function call)
 // is used as the view's key in this list.
@@ -71,8 +69,10 @@ func NewViewList() (*TViewList, error) {
 //
 // Returns:
 //   - `*TViewList`: The updated list.
-func (vl *TViewList) Add(aView *TView) *TViewList {
-	(*vl)[aView.vName] = aView
+func (vl *TViewList) add(aView *TView) *TViewList {
+	if nil != aView {
+		(*vl)[aView.vName] = aView
+	}
 
 	return vl
 } // Add()
@@ -145,7 +145,7 @@ func (vl *TViewList) render(aName string, aWriter io.Writer, aData *TemplateData
 	return fmt.Errorf("TViewList.Render(%q) not found", aName)
 } // render()
 
-// `Render()` executes the template with the key `aName`.
+// `Render()` executes the template identified by `aName`.
 //
 // If an error occurs executing the template or writing its output,
 // execution stops, and the method returns without writing anything
