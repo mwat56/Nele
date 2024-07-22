@@ -1,9 +1,10 @@
 /*
-Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
-	    All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
@@ -35,7 +36,6 @@ func NewTemplateData() *TemplateData {
 // value will be `false`.
 //
 // Parameters:
-//
 //   - `aKey`: The value's identifier (as used as placeholder in the template).
 //
 // Returns:
@@ -53,7 +53,6 @@ func (dl TemplateData) Get(aKey string) (rValue any, rOK bool) {
 // gets replaced by `aValue`.
 //
 // Parameters:
-//
 //   - `aKey`: The value's identifier (as used as placeholder in the template).
 //   - `aValue`: The data entry's value.
 //
