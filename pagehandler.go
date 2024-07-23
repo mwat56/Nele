@@ -48,10 +48,14 @@ type (
 // --------------------------------------------------------------------------
 // constructor function:
 
-// `NewPageHandler()` returns a new `TPageHandler` instance.
+// `NewPageHandler()` creates a new `TPageHandler` instance.
 //
 // The returned object implements the `errorhandler.TErrorPager`,
-// `http.Handler`, `and `passlist.TAuthDecider` interfaces.
+// `http.Handler`, and `passlist.TAuthDecider` interfaces.
+//
+// Returns:
+//   - `*TPageHandler`: The handler for HTTP request/response.
+//   - `error`: A possible processing error.
 func NewPageHandler() (*TPageHandler, error) {
 	var (
 		err error
@@ -59,8 +63,7 @@ func NewPageHandler() (*TPageHandler, error) {
 	)
 	result := new(TPageHandler)
 
-	if result.viewList, err = newViewList(
-		filepath.Join(AppArgs.DataDir, "views")); nil != err {
+	if result.viewList, err = NewViewList(); nil != err {
 		msg = fmt.Sprintf("Error: views problem: %v", err)
 		log.Println(`NewPageHandler()`, msg)
 
@@ -71,7 +74,6 @@ func NewPageHandler() (*TPageHandler, error) {
 	result.cssFS = cssfs.FileServer(AppArgs.DataDir + `/`)
 
 	if 0 < len(AppArgs.HashFile) {
-		// hashtags.UseBinaryStorage = false //TODO REMOVE
 		if result.hashList, err = ht.New(AppArgs.HashFile, true); nil != err {
 			result.hashList = nil
 		} else {
@@ -165,46 +167,21 @@ func getYMD(aDate string) (rYear int, rMonth time.Month, rDay int) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// `newViewList()` returns a list of views found in `aDirectory`
-// and a possible I/O error.
-func newViewList(aDirectory string) (*TViewList, error) {
-	var ( // re-use variables
-		err   error
-		files []string
-		fName string
-		v     *TView
-	)
-	result := NewViewList()
-
-	if files, err = filepath.Glob(aDirectory + "/*.gohtml"); err != nil {
-		return nil, err
-	}
-
-	for _, fName = range files {
-		fName = filepath.Base(fName[:len(fName)-7]) // remove extension
-		if v, err = NewView(aDirectory, fName); nil != err {
-			return nil, err
-		}
-		result = result.Add(v)
-	}
-
-	return result, nil
-} // newViewList()
-
 var (
 	// RegEx to extract number and start of articles shown
 	phNumStartRE = regexp.MustCompile(`^(\d*)(\D*(\d*)?)?`)
+	//                                   111------333-----
 )
 
 // `numStart()` extracts two numbers from `aString`.
-func numStart(aString string) (rNum, rStart int) {
+func numStart(aString string) (rLimit, rOffset int) {
 	matches := phNumStartRE.FindStringSubmatch(aString)
 	if 3 < len(matches) {
 		if 0 < len(matches[1]) {
-			rNum, _ = strconv.Atoi(matches[1])
+			rLimit, _ = strconv.Atoi(matches[1])
 		}
 		if 0 < len(matches[3]) {
-			rStart, _ = strconv.Atoi(matches[3])
+			rOffset, _ = strconv.Atoi(matches[3])
 		}
 	}
 
@@ -231,27 +208,34 @@ var (
 	idRE = regexp.MustCompile(`.*([0-9a-fA-F]{16}).*`)
 )
 
-// `URLparts()` returns three parts: `rDir` holds the base-directory of
-// `aURL`, `rPath` holds the remaining part of `aURL`, and `rID` provides
-// a posting ID.
+// `URLparts()` returns three parts: the base-directory of `aURL`,
+// the remaining part of `aURL`, and a possible posting ID.
 //
 // Depending on the actual value of `aURL` all return values may be empty
-// or all may be filled; none of thw first two will hold a leading slash.
-func URLparts(aURL string) (rDir, rPath string, rID uint64) {
+// or all may be filled; none of the first two will hold a leading slash.
+//
+// Parameters:
+//   - `aURL`: The URL as specified by a HTTP request.
+//
+// Returns:
+//   - `rPath`: The base-directory of `aURL`.
+//   - `rTail`: The remaining part of `aURL`.
+//   - `rID`: A user ID (if art of the URL).
+func URLparts(aURL string) (rPath, rTail string, rID uint64) {
 	if result, err := url.QueryUnescape(aURL); nil == err {
 		aURL = result
 	}
 
 	matches := phURLpartsRE.FindStringSubmatch(aURL)
 	if 2 < len(matches) {
-		rDir = matches[1]
-		rPath = strings.TrimSpace(matches[2])
-		idStr := idRE.FindString(rPath)
+		rPath = strings.ToLower(matches[1])
+		rTail = strings.TrimSpace(matches[2])
+		idStr := idRE.FindString(rTail)
 		if 0 < len(idStr) {
 			rID = str2id(idStr)
 		}
 	} else {
-		rDir = aURL
+		rPath = aURL
 	}
 
 	return
@@ -299,8 +283,15 @@ func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
 	return pageData
 } // basicPageData()
 
-// GetErrorPage returns an error page for `aStatus`,
+// `GetErrorPage()` returns an error page for `aStatus`,
 // implementing the `TErrorPager` interface.
+//
+// Parameters:
+//   - `aData`: An error page to use.
+//   - `aStatus`: The HTTP status to handle.
+//
+// Returns:
+//   - `[]byte`: The complete error page to send to the remote caller.
 func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	var (
 		empty  []byte
@@ -316,7 +307,7 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 			return result
 		}
 
-	//TODO implement other status codes
+	//TODO: implement other status codes
 
 	default:
 		pageData = pageData.Set("Error", template.HTML(aData)) // #nosec G203
@@ -328,18 +319,28 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 	return empty
 } // GetErrorPage()
 
+// `finishReply()` sends `aPage` with `aData` to `aWriter`.
+func (ph *TPageHandler) finishReply(aPage string,
+	aWriter http.ResponseWriter, aData *TemplateData) {
+	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
+		apachelogger.Err("TPageHandler.handleReply()",
+			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
+	}
+} // finishReply()
+
 // `handleGET()` processes the HTTP GET requests.
-func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Request) {
+func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
+	aRequest *http.Request) {
 	pageData := ph.basicPageData(aRequest)
 	path, tail, rID := URLparts(aRequest.URL.Path)
-	switch strings.ToLower(path) { // handle URLs case-insensitive
+	switch path { // handle URLs case-insensitive
 
 	case `a`:
 		http.Redirect(aWriter, aRequest, "/ap/",
 			http.StatusMovedPermanently)
 
 	case `ap`: // add a new post
-		ph.handleReply(`ap`, aWriter,
+		ph.finishReply(path, aWriter,
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "certs": // this files are handled internally
@@ -354,7 +355,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case `dp`: // change date
 		if 0 == len(tail) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 
@@ -376,14 +378,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow").
 			Set("weekURL", "/w/"+date).
 			Set("YMD", date) // #nosec G203
-		ph.handleReply("dp", aWriter, pageData)
+		ph.finishReply(path, aWriter, pageData)
 
 	case `e`:
 		http.Redirect(aWriter, aRequest, "/ep/"+tail, http.StatusMovedPermanently)
 
 	case `ep`: // edit a single posting
 		if 0 == len(tail) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 		p := NewPosting(rID, "")
@@ -404,10 +407,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set("Robots", "noindex,nofollow").
 			Set("weekURL", "/w/"+date).
 			Set("YMD", date) // #nosec G203
-		ph.handleReply("ep", aWriter, pageData)
+		ph.finishReply(path, aWriter, pageData)
 
 	case `faq`:
-		ph.handleReply(`faq`, aWriter, pageData)
+		ph.finishReply(`faq`, aWriter, pageData)
 
 	case `faq.html`:
 		http.Redirect(aWriter, aRequest, "/faq/",
@@ -422,10 +425,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case "hl": // #hashtag list
 		if 0 < len(tail) {
-			ph.handleTagMentions(ph.hashList.HashList(string(ht.MarkHash)+tail),
+			ph.handleTagMentions(
+				ph.hashList.HashList(string(ht.MarkHash)+tail),
 				pageData, aWriter)
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 		}
 
 	case `i`:
@@ -434,7 +439,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case `il`: // (re-)init the hashList
 		if nil != ph.hashList {
-			ph.handleReply(`il`, aWriter,
+			ph.finishReply(`il`, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/",
@@ -445,7 +450,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
 	case "imprint", "impressum":
-		ph.handleReply(`imprint`, aWriter, pageData)
+		ph.finishReply(`imprint`, aWriter, pageData)
 
 	case `index`, `index.html`, `index.php`, `index.shtml`:
 		http.Redirect(aWriter, aRequest, "/n/",
@@ -457,7 +462,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		*/
 
 	case "licence", "license", "lizenz":
-		ph.handleReply(`licence`, aWriter, pageData)
+		ph.finishReply(`licence`, aWriter, pageData)
 
 	case `m`: // handle a given month
 		var (
@@ -477,7 +482,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Month(y, m)
-		ph.handleReply(`searchresult`, aWriter,
+		ph.finishReply(`searchresult`, aWriter,
 			pageData.Set(`Matches`, pl.Len()).
 				Set(`monthURL`, "/m/"+date).
 				Set(`Postings`, pl). // .Sort()
@@ -485,14 +490,16 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set(`weekURL`, "/w/"+date))
 
 	case `mw`:
-		http.Redirect(aWriter, aRequest, "/m/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/m/",
+			http.StatusMovedPermanently)
 
 	case "ml": // @mention list
 		if 0 < len(tail) {
 			ph.handleTagMentions(ph.hashList.MentionList("@"+tail),
 				pageData, aWriter)
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 		}
 
 	case `n`: // handle newest postings
@@ -504,14 +511,15 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 
 	case `p`: // handle a single posting
 		if 0 == len(tail) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 
 		p := NewPosting(rID, "")
 		if err := p.Load(); nil != err {
 			apachelogger.Err("TPageHandler.handleGET(p)",
-				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
+				fmt.Sprintf("TPosting.Load(%q): %v", p.IDstr(), err))
 			http.NotFound(aWriter, aRequest)
 			return
 		}
@@ -525,7 +533,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set(`monthURL`, `/m/`+date).
 			Set("Posting", p).
 			Set("weekURL", "/w/"+date)
-		ph.handleReply("article", aWriter, pageData)
+		ph.finishReply("article", aWriter, pageData)
 
 	case `pp`:
 		http.Redirect(aWriter, aRequest, "/p/"+tail,
@@ -536,11 +544,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			http.StatusMovedPermanently)
 
 	case "privacy", "datenschutz":
-		ph.handleReply(`privacy`, aWriter, pageData)
+		ph.finishReply(`privacy`, aWriter, pageData)
 
 	case `pv`: // page preview
 		if AppArgs.Screenshot {
-			ph.handleReply(`pv`, aWriter,
+			ph.finishReply(path, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
 			http.Redirect(aWriter, aRequest, `/n/`,
@@ -548,10 +556,12 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 
 	case `q`: // search text
-		http.Redirect(aWriter, aRequest, "/s/"+tail, http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/s/"+tail,
+			http.StatusMovedPermanently)
 
 	case `r`: // remove posting
-		http.Redirect(aWriter, aRequest, "/rp/"+tail, http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/rp/"+tail,
+			http.StatusMovedPermanently)
 
 	case `rp`: // posting's removal
 		if 0 == len(tail) {
@@ -578,7 +588,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			Set(`Robots`, `noindex,nofollow`).
 			Set("weekURL", "/w/"+date).
 			Set("YMD", date) // #nosec G203
-		ph.handleReply("rp", aWriter, pageData)
+		ph.finishReply(path, aWriter, pageData)
 
 	case "robots.txt":
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
@@ -604,11 +614,11 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		ph.handleShare(tail, aWriter, aRequest)
 
 	case "si": // store images
-		ph.handleReply(`si`, aWriter,
+		ph.finishReply(path, aWriter,
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "ss": // store static
-		ph.handleReply(`ss`, aWriter,
+		ph.finishReply(path, aWriter,
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case "static": // deliver a static resource
@@ -639,7 +649,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 		}
 		date := fmt.Sprintf("%d-%02d-%02d", y, m, d)
 		pl := NewPostList().Week(y, m, d)
-		ph.handleReply(`searchresult`, aWriter,
+		ph.finishReply(`searchresult`, aWriter,
 			pageData.Set(`Matches`, pl.Len()).
 				Set(`monthURL`, `/m/`+date).
 				Set(`Postings`, pl). // .Sort()
@@ -647,7 +657,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 				Set(`weekURL`, "/w/"+date))
 
 	case `x`, `xp`, `xt`: // eXchange #tags/@mentions
-		ph.handleReply(`xt`, aWriter,
+		ph.finishReply(`xt`, aWriter,
 			pageData.Set(`Robots`, `noindex,nofollow`))
 
 	case ``:
@@ -680,7 +690,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter, aRequest *http.Re
 			ph.handleRoot("30", pageData, aWriter)
 		}
 
-	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`, `.env`, `vendor`, `wp-content`:
+	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`,
+		`.env`, `vendor`, `wp-content`:
 		// Redirect spyware to the NSA:
 		http.Redirect(aWriter, aRequest, `https://www.nsa.gov/`,
 			http.StatusMovedPermanently)
@@ -709,7 +720,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 	switch path {
 	case `ap`: // add a new post
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 
@@ -724,19 +736,23 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 			}
 			AddTagID(ph.hashList, p)
 
-			http.Redirect(aWriter, aRequest, "/p/"+p.IDstr(), http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/p/"+p.IDstr(),
+				http.StatusSeeOther)
 		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 		}
 
 	case `dp`: // change date of posting
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
-			http.Redirect(aWriter, aRequest, "/p/"+tail, http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/p/"+tail,
+				http.StatusSeeOther)
 			return
 		}
 
 		if 0 == len(tail) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 		}
 
 		op := NewPosting(rID, "")
@@ -865,7 +881,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case `ss`: // store static
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 
@@ -877,7 +894,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 
 	case `xt`: // eXchange #tags/@mentions
 		if val = aRequest.FormValue("abort"); 0 < len(val) {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
 			return
 		}
 
@@ -888,7 +906,8 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 					strings.TrimSpace(r)) // background operation
 			}
 		}
-		http.Redirect(aWriter, aRequest, "/x/", http.StatusSeeOther)
+		http.Redirect(aWriter, aRequest, "/x/",
+			http.StatusSeeOther)
 
 	default:
 		// // If nothing matched (above) reply to the request
@@ -896,37 +915,26 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 		// http.NotFound(aWriter, aRequest)
 
 		// Redirect all invalid URLs to the NSA:
-		http.Redirect(aWriter, aRequest, "https://www.nsa.gov/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "https://www.nsa.gov/",
+			http.StatusMovedPermanently)
 	}
 } // handlePOST()
 
-// `handleReply()` sends `aPage` with `aData` to `aWriter`.
-func (ph *TPageHandler) handleReply(aPage string,
-	aWriter http.ResponseWriter, aData *TemplateData) {
-	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
-		apachelogger.Err("TPageHandler.handleReply()",
-			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
-	}
-} // handleReply()
-
 // `handleRoot()` serves the logical web-root directory.
 func (ph *TPageHandler) handleRoot(aNumStr string,
-	aData *TemplateData,
-	aWriter http.ResponseWriter /* ,aRequest *http.Request*/) {
-	num, start := numStart(aNumStr)
-	if 0 == num {
-		num = 30
-	}
+	aData *TemplateData, aWriter http.ResponseWriter) {
+	limit, offset := numStart(aNumStr)
 
 	pl := NewPostList()
-	_ = pl.Newest(num, start) // ignore fs errors here
+	_ = pl.Newest(limit, offset) // ignore fs errors here
 
 	aData = aData.Set(`Postings`, pl).
 		Set("Robots", "noindex,follow")
-	if pl.Len() >= num {
-		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", num, num+start+1))
+	if pl.Len() >= limit {
+		aData.Set("nextLink", fmt.Sprintf("/n/%d,%d", limit, limit+offset+1))
 	}
-	ph.handleReply("index", aWriter, aData)
+
+	ph.finishReply("index", aWriter, aData)
 } // handleRoot()
 
 // `handleSearch()` serves the search results.
@@ -935,7 +943,7 @@ func (ph *TPageHandler) handleSearch(aTerm string,
 
 	pl := SearchPostings(regexp.QuoteMeta(strings.Trim(aTerm, `"`)))
 
-	ph.handleReply(`searchresult`, aWriter,
+	ph.finishReply(`searchresult`, aWriter,
 		aData.Set(`Robots`, `noindex,follow`).
 			Set(`Matches`, pl.Len()).
 			Set(`Postings`, pl)) // .Sort()
@@ -943,8 +951,9 @@ func (ph *TPageHandler) handleSearch(aTerm string,
 
 // `handleShare()` serves the edit page for a shared URL.
 //
-//	`aShare` The URL to share with the new posting.
-//	`aWriter` The writer to respond to the remote user.
+// Parameters:
+//   - `aShare`: The URL to share with the new posting.
+//   - `aWriter`: The writer to respond to the remote user.
 func (ph *TPageHandler) handleShare(aShare string, aWriter http.ResponseWriter, aRequest *http.Request) {
 	p := NewPosting(0, "\n\n> [ ]("+aShare+")\n")
 	if _, err := p.Store(); nil != err {
@@ -976,7 +985,7 @@ func (ph *TPageHandler) handleTagMentions(aList []uint64, aData *TemplateData, a
 		}
 	}
 
-	ph.handleReply(`searchresult`, aWriter,
+	ph.finishReply(`searchresult`, aWriter,
 		aData.Set(`Robots`, `index,follow`).
 			Set(`Matches`, pl.Len()).
 			Set(`Postings`, pl)) // .Sort()
@@ -1008,15 +1017,22 @@ func (ph *TPageHandler) handleUpload(aWriter http.ResponseWriter, aRequest *http
 	}
 } // handleUpload()
 
-// Len returns the length of the internal views list.
+// `Len()` returns the length of the internal views list.
+//
+// Returns:
+//   - `int`: The number of available views/pages.
 func (ph *TPageHandler) Len() int {
-	return len(*(ph.viewList))
+	return ph.viewList.Len()
 } // Len()
 
-// NeedAuthentication returns `true` if authentication is needed,
+// `NeedAuthentication()` returns `true` if authentication is needed,
 // or `false` otherwise.
 //
-//	`aRequest` is the request to check.
+// Parameters:
+//   - `aRequest`: The request to check.
+//
+// Returns:
+//   - `bool`: Whether or not to require authentication.
 func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	path, _, _ := URLparts(aRequest.URL.Path)
 	switch path {
@@ -1024,7 +1040,7 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 		`d`, `dp`, // change post's date
 		`e`, `ep`, // edit post
 		`i`, `il`, // init hash list
-		`r`, `rp`, // posting's removal
+		`r`, `rp`, // remove post
 		`share`,    // share another URL
 		`si`, `ss`, // store images, store static data
 		`v`, `pv`, // update Screenshot
@@ -1033,6 +1049,21 @@ func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	}
 
 	var s string // re-use variable
+	if s = aRequest.FormValue("ap"); 0 < len(s) {
+		return true
+	}
+	if s = aRequest.FormValue("dp"); 0 < len(s) {
+		return true
+	}
+	if s = aRequest.FormValue("ep"); 0 < len(s) {
+		return true
+	}
+	if s = aRequest.FormValue("il"); 0 < len(s) {
+		return true
+	}
+	if s = aRequest.FormValue("rp"); 0 < len(s) {
+		return true
+	}
 	if s = aRequest.FormValue("share"); 0 < len(s) {
 		return true
 	}
@@ -1053,13 +1084,13 @@ func (ph *TPageHandler) reDir(aWriter http.ResponseWriter, aRequest *http.Reques
 	ph.handleGET(aWriter, aRequest)
 } // reDir()
 
-// ServeHTTP handles the incoming HTTP requests.
+// `ServeHTTP()` handles the incoming HTTP requests.
 func (ph *TPageHandler) ServeHTTP(aWriter http.ResponseWriter, aRequest *http.Request) {
 	defer func() { // make sure a `panic` won't kill the program
 		if err := recover(); err != nil {
 			var msg string
 			if AppArgs.LogStack {
-				msg = fmt.Sprintf("caught panic: %v – %s", err, debug.Stack())
+				msg = fmt.Sprintf("caught panic: %v - %s", err, debug.Stack())
 			} else {
 				msg = fmt.Sprintf("caught panic: %v", err)
 			}
