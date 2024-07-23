@@ -9,8 +9,11 @@ package nele
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	se "github.com/mwat56/sourceerror"
@@ -272,6 +275,25 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 // --------------------------------------------------------------------------
 // internal helper functions:
 
+// `id2str()` converts a given uint64 to a hexadecimal string.
+//
+// The function returns a hexadecimal string representation of the
+// provided uint64.
+//
+// Parameters:
+//   - `aID`: The uint64 value to be converted to a hexadecimal string.
+//
+// Returns:
+//   - `string`: The hexadecimal string representation of `aID`.
+func id2str(aID uint64) (rStr string) {
+	return fmt.Sprintf("%016x", aID)
+	// rStr = fmt.Sprintf("%x", aID)
+	// if 16 > len(rStr) {
+	// 	rStr = strings.Repeat("0", 16-len(rStr)) + rStr
+	// }
+	// return
+} // id2str
+
 // `id2time()` returns a date/time represented by `aID`.
 //
 // Parameters:
@@ -282,6 +304,29 @@ func SetPostingBaseDirectory(aBaseDir string) error {
 func id2time(aID uint64) time.Time {
 	return time.Unix(0, int64(aID))
 } // id2time()
+
+// `str2id()` converts a given hexadecimal string to a `uint64` integer.
+//
+// The function takes a hexadecimal string representation of a `uint64`
+// value and attempts to parse that string into a `uint64` value.
+//
+// Parameters:
+//   - `aHexString`: The string to be converted.
+//
+// Returns:
+//   - (uint64) The `uint64` identifier corresponding to the input string.
+//   - (0) If an error occurs during parsing.
+func str2id(aHexString string) uint64 {
+	if aHexString = strings.TrimSpace(aHexString); 16 > len(aHexString) {
+		return 0 // invalid string
+	}
+
+	if ui64, err := strconv.ParseUint(aHexString, 16, 64); nil == err {
+		return ui64
+	}
+
+	return 0
+} // str2id()
 
 // `time2id()` converts a given `aTime` to an integer representation.
 //

@@ -16,8 +16,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -189,26 +187,6 @@ func id2filename(aID uint64) string {
 	return path.Join(dir, fname) + `.md`
 } // id2filename()
 
-// `id2str()` converts a given uint64 to a hexadecimal string.
-//
-// The function returns a hexadecimal string representation of the
-// provided uint64.
-//
-// Parameters:
-//   - `aID`: The uint64 value to be converted to a hexadecimal string.
-//
-// Returns:
-//   - `string`: The hexadecimal string representation of `aID`.
-func id2str(aID uint64) (rStr string) {
-	return fmt.Sprintf("%016x", aID)
-	// rStr = fmt.Sprintf("%x", aID)
-	// if 16 > len(rStr) {
-	// 	rStr = strings.Repeat("0", 16-len(rStr)) + rStr
-	// }
-
-	// return
-} // id2str
-
 // `mkDir()` creates the directory for storing an article
 // returning the created directory.
 //
@@ -229,29 +207,6 @@ func mkDir(aID uint64) (string, error) {
 
 	return dirname, nil
 } // mkDir()
-
-// `str2id()` converts a given hexadecimal string to a `uint64` integer.
-//
-// The function takes a hexadecimal string representation of a `uint64`
-// value and attempts to parse that string into a `uint64` value.
-//
-// Parameters:
-//   - `aHexString`: The string to be converted.
-//
-// Returns:
-//   - (uint64) The `uint64` identifier corresponding to the input string.
-//   - (0) If an error occurs during parsing.
-func str2id(aHexString string) uint64 {
-	if aHexString = strings.TrimSpace(aHexString); 16 > len(aHexString) {
-		return 0 // invalid string
-	}
-
-	if ui64, err := strconv.ParseUint(aHexString, 16, 64); nil == err {
-		return ui64
-	}
-
-	return 0
-} // str2id()
 
 // --------------------------------------------------------------------------
 
@@ -631,7 +586,7 @@ func (fsp TFSpersistence) Walk(aWalkFunc TWalkFunc) error {
 
 	dNames, err := filepath.Glob(poPostingBaseDirectory + "/*")
 	if nil != err {
-		return se.Wrap(err, 1)
+		return se.Wrap(err, 2)
 	}
 
 	// Sort the directory names to have the youngest entry first:
@@ -654,7 +609,6 @@ dirLoop:
 		}
 		slices.SortFunc(fNames, sortStr)
 
-		// fileLoop:
 		for _, fName := range fNames {
 			fn := path.Base(fName)
 			if !filenameRE.Match([]byte(fn)) {
@@ -666,9 +620,6 @@ dirLoop:
 				if errors.Is(err, ErrSkipAll) {
 					break dirLoop
 				}
-				// if errors.Is(err, ErrSkipFiles) {
-				// 	break fileLoop
-				// }
 				return se.Wrap(err, 7)
 			}
 		}
