@@ -127,6 +127,17 @@ func (vl *TViewList) Get(aName string) (*TView, bool) {
 	return nil, false
 } // Get()
 
+// `Len()` returns the number of views in the `TViewList`.
+//
+// This method implements the `Len()` function from the [sort.Interface]
+// interface, which is used for sorting TViewList instances.
+//
+// Returns:
+//   - `int`: The number of views in the TViewList.
+func (vl *TViewList) Len() int {
+	return len(*vl)
+} // Len()
+
 // `render()` is the core of `Render()` with a slightly different API
 // (`io.Writer` instead of `http.ResponseWriter`) for easier testing.
 //
