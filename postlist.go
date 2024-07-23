@@ -266,27 +266,44 @@ func (pl *TPostList) Month(aYear int, aMonth time.Month) *TPostList {
 	return pl.doTimeWalk(tLo, tHi)
 } // Month()
 
-// `Newest()` adds the last `aNumber` of postings to the list.
+// `Newest()` adds the last `aLimit` of postings to the list.
 //
 // The resulting list is sorted in descending order (newest first)
-// with at most `aNumber` posts.
+// with at most `aLimit` posts.
 //
 // Parameters:
-//   - `aNumber` The number of articles to show.
-//   - `aStart` The start number to use.
+//   - `aLimit`: The number of articles to show.
+//   - `aOffset`: The start number to use.
 //
 // Returns:
 //   - `error`: A possible error during processing of the request.
-func (pl *TPostList) Newest(aNumber, aStart int) error {
+func (pl *TPostList) Newest(aLimit, aOffset int) error {
+	var lCnt, oCnt int
+
+	if 0 == aLimit {
+		aLimit = 1 << 15 // 64K
+	} else {
+		// make sure to get a "next" post to generate a limitLink:
+		aLimit++
+	}
+
+	pln := NewPostList()
 	wf := func(aID uint64) error {
-		if len(*pl) < aNumber {
-			bgAddPosting(pl, aID)
-		} else {
+		oCnt++
+		if oCnt < aOffset {
+			// starting offset not reached yet
+			return nil
+		}
+		lCnt++
+		if lCnt > aLimit {
+			// reached the requested limit
 			return ErrSkipAll
 		}
+		bgAddPosting(pln, aID)
 
 		return nil
 	} // wf()
+	(*pl) = (*pln)
 
 	return poPersistence.Walk(wf)
 } // Newest()
@@ -378,7 +395,7 @@ func bgAddPosting(aPostList *TPostList, aID uint64) {
 
 	if err := post.Load(); nil != err {
 		apachelogger.Err("TPostList.bgAddPosting()",
-			fmt.Sprintf("TPosting.Load(%s): %v", id2str(aID), err))
+			fmt.Sprintf("TPosting.Load(%q): %v", id2str(aID), err))
 	} else {
 		aPostList.insert(post)
 	}

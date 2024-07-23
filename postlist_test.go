@@ -289,7 +289,7 @@ func TestTPostList_Month(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.pl.Month(tt.args.aYear, tt.args.aMonth); got.Len() != tt.want {
-				t.Errorf("TPostList.Month() = %v, want %v", got.Len(), tt.want)
+				t.Errorf("%q: TPostList.Month() = %v, want %v", tt.name, got.Len(), tt.want)
 			}
 		})
 	}
@@ -299,30 +299,31 @@ func TestTPostList_Newest(t *testing.T) {
 	prepareTestFiles()
 
 	pl1 := NewPostList()
-	type args struct {
+	type tArgs struct {
 		aNumber int
 		aStart  int
 	}
 	tests := []struct {
 		name    string
 		pl      *TPostList
-		args    args
+		args    tArgs
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"1", pl1, args{10, 0}, false},
-		{"2", pl1, args{10, 10}, false},
+		{"1", pl1, tArgs{10, 0}, false},
+		{"2", pl1, tArgs{10, 10}, false},
+		{"3", pl1, tArgs{5, 15}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.pl.Newest(tt.args.aNumber, tt.args.aStart); (err != nil) != tt.wantErr {
-				t.Errorf("TPostList.Newest() error = %v, wantErr %v",
-					err, tt.wantErr)
+				t.Errorf("%q: TPostList.Newest() error = %v, wantErr %v",
+					tt.name, err, tt.wantErr)
 				return
 			}
-			if pLen := tt.pl.Len(); tt.args.aNumber < pLen {
-				t.Errorf("TPostList.Newest() number = %d, wanted %d",
-					tt.pl.Len(), tt.args.aNumber)
+			if pLen := tt.pl.Len() - 1; tt.args.aNumber < pLen {
+				t.Errorf("%q: TPostList.Newest() number = %d, wanted %d",
+					tt.name, pLen, tt.args.aNumber)
 			}
 		})
 	}
