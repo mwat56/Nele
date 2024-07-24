@@ -1,9 +1,10 @@
 /*
 Copyright © 2024 M.Watermann, 10247 Berlin, Germany
 
-		All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -44,6 +45,9 @@ func TestTDBpersistence_init(t *testing.T) {
 				var dbp *TDBpersistence
 				var _ IPersistence = dbp
 				dbp = NewDBpersistence("test.db")
+				if nil == dbp {
+					return nil
+				}
 				return nil
 			}(),
 		},
