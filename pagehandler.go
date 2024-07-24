@@ -7,9 +7,6 @@ Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
 
 package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
-//lint:file-ignore ST1005 - I prefer capitalisation
-
 import (
 	"errors"
 	"fmt"
@@ -31,6 +28,9 @@ import (
 	"github.com/mwat56/passlist"
 	"github.com/mwat56/uploadhandler"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
+//lint:file-ignore ST1005 - I prefer capitalisation
 
 type (
 	// TPageHandler provides the handling of HTTP request/response.
@@ -87,6 +87,10 @@ func NewPageHandler() (*TPageHandler, error) {
 		msg = fmt.Sprintf("%v", err)
 		log.Println(`NewPageHandler()`, msg)
 		return nil, err
+	}
+
+	if 0 == AppArgs.PageLength {
+		AppArgs.PageLength = 20 //TODO: make this configurable
 	}
 
 	result.staticFS = jffs.FileServer(AppArgs.DataDir + `/`)
@@ -266,10 +270,12 @@ func (ph *TPageHandler) basicPageData(aRequest *http.Request) *TemplateData {
 
 	y, m, d := time.Now().Date()
 	now := fmt.Sprintf("%d-%02d-%02d", y, m, d)
+	err := ph.userList.IsAuthenticated(aRequest)
 	pageData := NewTemplateData().
 		Set("Blogname", AppArgs.BlogName).
 		Set(`CSS`, template.HTML(`<link rel="stylesheet" type="text/css" title="mwat's styles" href="/css/stylesheet.css"><link rel="stylesheet" type="text/css" href="/css/`+theme+`.css"><link rel="stylesheet" type="text/css" href="/css/fonts.css">`)).
 		Set("HashCount", ph.hashList.HashCount()).
+		Set(`isAuth`, nil == err).
 		Set(`Lang`, lang).
 		Set("MentionCount", ph.hashList.MentionCount()).
 		Set("monthURL", "/m/"+now).
@@ -323,7 +329,7 @@ func (ph *TPageHandler) GetErrorPage(aData []byte, aStatus int) []byte {
 func (ph *TPageHandler) finishReply(aPage string,
 	aWriter http.ResponseWriter, aData *TemplateData) {
 	if err := ph.viewList.Render(aPage, aWriter, aData); nil != err {
-		apachelogger.Err("TPageHandler.handleReply()",
+		apachelogger.Err("TPageHandler.finishReply()",
 			fmt.Sprintf("viewList.Render('%s'): %v", aPage, err))
 	}
 } // finishReply()
@@ -333,6 +339,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 	aRequest *http.Request) {
 	pageData := ph.basicPageData(aRequest)
 	path, tail, rID := URLparts(aRequest.URL.Path)
+
 	switch path { // handle URLs case-insensitive
 
 	case `a`:
@@ -340,8 +347,13 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 			http.StatusMovedPermanently)
 
 	case `ap`: // add a new post
-		ph.finishReply(path, aWriter,
-			pageData.Set(`Robots`, `noindex,nofollow`))
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			ph.finishReply(path, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
+		}
 
 	case "certs": // this files are handled internally
 		http.Redirect(aWriter, aRequest, "/n/",
@@ -354,17 +366,24 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		http.Redirect(aWriter, aRequest, "/dp/"+tail, http.StatusMovedPermanently)
 
 	case `dp`: // change date
-		if 0 == len(tail) {
+		if (0 == len(tail)) || (0 == rID) {
 			http.Redirect(aWriter, aRequest, "/n/",
 				http.StatusSeeOther)
 			return
 		}
 
-		p := NewPosting(rID, "")
-		if err := p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handleGET(dp)",
-				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
-			http.NotFound(aWriter, aRequest)
+		var p *TPosting
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			p = NewPosting(rID, "")
+			if err := p.Load(); nil != err {
+				apachelogger.Err("TPageHandler.handleGET(dp)",
+					fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
+				http.NotFound(aWriter, aRequest)
+				return
+			}
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
 			return
 		}
 
@@ -384,16 +403,24 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		http.Redirect(aWriter, aRequest, "/ep/"+tail, http.StatusMovedPermanently)
 
 	case `ep`: // edit a single posting
-		if 0 == len(tail) {
+		if (0 == len(tail)) || (0 == rID) {
 			http.Redirect(aWriter, aRequest, "/n/",
 				http.StatusSeeOther)
 			return
 		}
-		p := NewPosting(rID, "")
-		if err := p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handleGET(ep)",
-				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
-			http.NotFound(aWriter, aRequest)
+
+		var p *TPosting
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			p = NewPosting(rID, "")
+			if err := p.Load(); nil != err {
+				apachelogger.Err("TPageHandler.handleGET(ep)",
+					fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
+				http.NotFound(aWriter, aRequest)
+				return
+			}
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
 			return
 		}
 
@@ -438,12 +465,17 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 			http.StatusMovedPermanently)
 
 	case `il`: // (re-)init the hashList
-		if nil != ph.hashList {
+		if nil == ph.hashList {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusSeeOther)
+		}
+
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
 			ph.finishReply(`il`, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/",
-				http.StatusSeeOther)
+				http.StatusUnauthorized)
 		}
 
 	case "img":
@@ -453,7 +485,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		ph.finishReply(`imprint`, aWriter, pageData)
 
 	case `index`, `index.html`, `index.php`, `index.shtml`:
-		http.Redirect(aWriter, aRequest, "/n/",
+		http.Redirect(aWriter, aRequest, "/n/30",
 			http.StatusMovedPermanently)
 
 		/*
@@ -464,7 +496,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 	case "licence", "license", "lizenz":
 		ph.finishReply(`licence`, aWriter, pageData)
 
-	case `m`: // handle a given month
+	case `m`, `mm`: // handle a given month
 		var (
 			d, y   int
 			m      time.Month
@@ -503,6 +535,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		}
 
 	case `n`: // handle newest postings
+		// `tail` can be a string like `10,30` meaning:
+		// show 10 postings, starting with (list-)position 30.
 		ph.handleRoot(tail, pageData, aWriter)
 
 	case `np`:
@@ -510,7 +544,7 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 			http.StatusMovedPermanently)
 
 	case `p`: // handle a single posting
-		if 0 == len(tail) {
+		if (0 == len(tail)) || (0 == rID) {
 			http.Redirect(aWriter, aRequest, "/n/",
 				http.StatusSeeOther)
 			return
@@ -525,12 +559,10 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		}
 
 		date := p.Date()
-		err := ph.userList.IsAuthenticated(aRequest)
 		aWriter.Header().Set(`Cache-Control`, `private, max-age=864000`) // 10 days
 		aWriter.Header().Set(`Last-Modified`, p.LastModified())
 
-		pageData = pageData.Set(`isAuth`, nil == err).
-			Set(`monthURL`, `/m/`+date).
+		pageData = pageData.Set(`monthURL`, `/m/`+date).
 			Set("Posting", p).
 			Set("weekURL", "/w/"+date)
 		ph.finishReply("article", aWriter, pageData)
@@ -547,34 +579,51 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 		ph.finishReply(`privacy`, aWriter, pageData)
 
 	case `pv`: // page preview
-		if AppArgs.Screenshot {
-			ph.finishReply(path, aWriter,
-				pageData.Set(`Robots`, `noindex,nofollow`))
+		auth, ok := pageData.Get(`isAuth`)
+		if ok && (true == auth) {
+			if AppArgs.Screenshot {
+				ph.finishReply(path, aWriter,
+					pageData.Set(`Robots`, `noindex,nofollow`))
+			} else {
+				http.Redirect(aWriter, aRequest, `/n/`,
+					http.StatusMovedPermanently)
+			}
 		} else {
 			http.Redirect(aWriter, aRequest, `/n/`,
-				http.StatusMovedPermanently)
+				http.StatusUnauthorized)
 		}
 
-	case `q`: // search text
-		http.Redirect(aWriter, aRequest, "/s/"+tail,
-			http.StatusMovedPermanently)
+	case `q`: // handle a query/search
+		if 0 < len(tail) {
+			ph.handleSearch(tail, pageData, aWriter)
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
+		}
 
 	case `r`: // remove posting
 		http.Redirect(aWriter, aRequest, "/rp/"+tail,
 			http.StatusMovedPermanently)
 
 	case `rp`: // posting's removal
-		if 0 == len(tail) {
+		if (0 == len(tail)) || (0 == rID) {
 			http.Redirect(aWriter, aRequest, `/n/`,
 				http.StatusSeeOther)
 			return
 		}
 
-		p := NewPosting(rID, "")
-		if err := p.Load(); nil != err {
-			apachelogger.Err("TPageHandler.handleGET(rp)",
-				fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
-			http.NotFound(aWriter, aRequest)
+		var p *TPosting
+		auth, ok := pageData.Get(`isAuth`)
+		if ok && (true == auth) {
+			p = NewPosting(rID, "")
+			if err := p.Load(); nil != err {
+				apachelogger.Err("TPageHandler.handleGET(rp)",
+					fmt.Sprintf("TPosting.Load('%s'): %v", p.IDstr(), err))
+				http.NotFound(aWriter, aRequest)
+				return
+			}
+		} else {
+			http.Redirect(aWriter, aRequest, `/n/`,
+				http.StatusUnauthorized)
 			return
 		}
 
@@ -593,33 +642,48 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 	case "robots.txt":
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
 
-	case "s": // handle a query/search
-		if 0 < len(tail) {
-			ph.handleSearch(tail, pageData, aWriter)
-		} else {
-			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
-		}
+	case `s`: // search text => `q`
+		http.Redirect(aWriter, aRequest, "/q/"+tail,
+			http.StatusMovedPermanently)
 
 	case "share":
 		if 0 == len(tail) {
 			http.Redirect(aWriter, aRequest, "/n/", http.StatusSeeOther)
 		}
-		if 0 < len(aRequest.URL.RawQuery) {
-			// we need this for e.g. YouTube URLs
-			tail += "?" + aRequest.URL.RawQuery
+
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			if 0 < len(aRequest.URL.RawQuery) {
+				// we need this for e.g. YouTube URLs
+				tail += "?" + aRequest.URL.RawQuery
+			}
+			if 0 < len(aRequest.URL.Fragment) {
+				tail += "#" + aRequest.URL.Fragment
+			}
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
+			return
 		}
-		if 0 < len(aRequest.URL.Fragment) {
-			tail += "#" + aRequest.URL.Fragment
-		}
+
 		ph.handleShare(tail, aWriter, aRequest)
 
 	case "si": // store images
-		ph.finishReply(path, aWriter,
-			pageData.Set(`Robots`, `noindex,nofollow`))
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			ph.finishReply(path, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
+		}
 
 	case "ss": // store static
-		ph.finishReply(path, aWriter,
-			pageData.Set(`Robots`, `noindex,nofollow`))
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			ph.finishReply(path, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
+		}
 
 	case "static": // deliver a static resource
 		ph.staticFS.ServeHTTP(aWriter, aRequest)
@@ -629,7 +693,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 			http.StatusMovedPermanently)
 
 	case "views": // this files are handled internally
-		http.Redirect(aWriter, aRequest, "/n/", http.StatusMovedPermanently)
+		http.Redirect(aWriter, aRequest, "/n/",
+			http.StatusMovedPermanently)
 
 	case `w`, `ww`: // handle a given week
 		var (
@@ -657,40 +722,39 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 				Set(`weekURL`, "/w/"+date))
 
 	case `x`, `xp`, `xt`: // eXchange #tags/@mentions
-		ph.finishReply(`xt`, aWriter,
-			pageData.Set(`Robots`, `noindex,nofollow`))
+		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
+			ph.finishReply(`xt`, aWriter,
+				pageData.Set(`Robots`, `noindex,nofollow`))
+		} else {
+			http.Redirect(aWriter, aRequest, "/n/",
+				http.StatusUnauthorized)
+		}
 
 	case ``:
 		var val string // re-use variable
-		if val = aRequest.FormValue("ht"); 0 < len(val) {
-			ph.handleTagMentions(ph.hashList.HashList("#"+val),
-				pageData, aWriter)
+		if val = aRequest.FormValue("hl"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/hl/"+val)
 		} else if val = aRequest.FormValue("m"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/m/"+val)
-		} else if val = aRequest.FormValue("mt"); 0 < len(val) {
-			ph.handleTagMentions(ph.hashList.MentionList("@"+val),
-				pageData, aWriter)
+		} else if val = aRequest.FormValue("ml"); 0 < len(val) {
+			ph.reDir(aWriter, aRequest, "/ml/"+val)
 		} else if val = aRequest.FormValue("n"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/n/"+val)
 		} else if val = aRequest.FormValue("p"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/p/"+val)
 		} else if val = aRequest.FormValue("q"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter)
+			ph.reDir(aWriter, aRequest, "/q/"+val)
 		} else if val = aRequest.FormValue("s"); 0 < len(val) {
-			ph.handleSearch(val, pageData, aWriter)
+			ph.reDir(aWriter, aRequest, "/q/"+val)
 		} else if val = aRequest.FormValue("share"); 0 < len(val) {
-			if 0 < len(aRequest.URL.RawQuery) {
-				// we need this for e.g. YouTube URLs
-				val += "?" + aRequest.URL.RawQuery
-			}
-			ph.handleShare(val, aWriter, aRequest)
+			ph.reDir(aWriter, aRequest, "/share/"+val)
 		} else if val = aRequest.FormValue("w"); 0 < len(val) {
 			ph.reDir(aWriter, aRequest, "/w/"+val)
 		} else {
-			ph.handleRoot("30", pageData, aWriter)
+			ph.handleRoot("", pageData, aWriter)
 		}
 
-	case `admin`, `echo.php`, `cgi-bin`, `config`, `console`,
+	case `admin`, `cgi-bin`, `config`, `console`, `echo.php`,
 		`.env`, `vendor`, `wp-content`:
 		// Redirect spyware to the NSA:
 		http.Redirect(aWriter, aRequest, `https://www.nsa.gov/`,
@@ -924,6 +988,9 @@ func (ph *TPageHandler) handlePOST(aWriter http.ResponseWriter, aRequest *http.R
 func (ph *TPageHandler) handleRoot(aNumStr string,
 	aData *TemplateData, aWriter http.ResponseWriter) {
 	limit, offset := numStart(aNumStr)
+	if 0 == limit {
+		limit = int(AppArgs.PageLength)
+	}
 
 	pl := NewPostList()
 	_ = pl.Newest(limit, offset) // ignore fs errors here
@@ -946,7 +1013,7 @@ func (ph *TPageHandler) handleSearch(aTerm string,
 	ph.finishReply(`searchresult`, aWriter,
 		aData.Set(`Robots`, `noindex,follow`).
 			Set(`Matches`, pl.Len()).
-			Set(`Postings`, pl)) // .Sort()
+			Set(`Postings`, pl))
 } // handleSearch()
 
 // `handleShare()` serves the edit page for a shared URL.
@@ -1036,14 +1103,14 @@ func (ph *TPageHandler) Len() int {
 func (ph *TPageHandler) NeedAuthentication(aRequest *http.Request) bool {
 	path, _, _ := URLparts(aRequest.URL.Path)
 	switch path {
-	case `a`, `ap`, // add new post
-		`d`, `dp`, // change post's date
-		`e`, `ep`, // edit post
-		`i`, `il`, // init hash list
-		`r`, `rp`, // remove post
-		`share`,    // share another URL
-		`si`, `ss`, // store images, store static data
-		`v`, `pv`, // update Screenshot
+	case `ap`, // add new post
+		`dp`,            // change post's date
+		`ep`,            // edit post
+		`il`,            // init hash list
+		`rp`,            // remove post
+		`share`,         // share another URL
+		`ss`,            // store images, store static data
+		`pv`,            // update Screenshot
 		`x`, `xp`, `xt`: // eXchange #tags/@mentions
 		return true
 	}
