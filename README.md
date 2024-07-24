@@ -440,53 +440,35 @@ The actual location of which you can configure with the `datadir` INI entry and/
 
 Second, there are the URLs any normal user might see and use:
 
-* `/` defines the logical root of the presentation; it's effectively the same as `/n/` (see below).
-* `/faq`, `/imprint`, `/licence`, and `/privacy` serve static files which have to be filled with content according to your personal and legal needs.
-* `/hl/tagname` allows the users to search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL).
-Provided the given `tagname` was actually used in one or more of your articles a list of the respective postings will be shown.
-* `/m/` shows the articles of the current month.
-One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the articles from April 2019.
-* `/ml/mentionedname` allows the users to search for `@mentionedname` (but one will input it without the at sign `@` because that has a special meaning in an URL).
-Provided the given `mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
-* `/n/` gives you the newest 30 articles.
-The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred.
-If one want to see the articles in slices of, say, 10 per page (instead of the default 30/page) one can use the URL `/n/10,10` and to see the second slice use `/n/10,20`, the third with `/n/10,30` and so on.
-However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for the reader.
-* `/p/1234567890abcdef` shows a single article/posting (the ID is automatically generated).
-This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link in the overview page(s).
-* `/s/searchterm` can be used to search for articles containing a certain word or expression.
-All existing articles will be searched for the given `searchterm`.
-* `/w/` shows the articles of the current week.
-One can, however, specify the week one is interested in by adding a data part defining the week to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the articles from the week in April 2019 containing the 13th.
+* `/` [r/o]: See the root of the presentation; it's effectively the same as `/n/` (see below).
+* `/faq`, `/imprint`, `/licence`, and `/privacy` [r/o]: Static files which have to be filled with content according to your personal and legal needs.
+* `/hl/tagname` [r/o]: Search for `#tagname` (but you'll input it without the number sign `#` because that has a special meaning in an URL). Provided the given `tagname` was actually used in one or more of your articles a list of the respective postings will be shown.
+* `/m/` [r/o]: See the articles of the current month. One can, however, specify the month one is interested in by adding a data part defining the month one wants to see (`/m/yyyy-mm`), like `/m/2019-04` to see the articles from April 2019.
+* `/ml/mentionedname` [r/o]: Search for `@mentionedname` (but one will input it without the at sign `@` because that has a special meaning in an URL).
+* `/ml` [r/o]: See a list of all used `@mentions`. Provided the given `mentionedname` was actually used in one or more of your articles a list of the respective articles will be shown.
+* `/n/` [r/o]: See the chronologically newest postings. The number of articles to show can be added to the URL like `/n/5` to see only five articles, or `/n/100` to see a hundred. If one want to see the articles in slices of, say, 10 per page (instead of the default 30/page) one can use the URL `/n/10,10` and to see the second slice use `/n/10,20`, the third with `/n/10,30` and so on. However, as long as there are more articles available, there will be a `»»` link at the bottom of the page to ease the navigation for the reader.
+* `/p/1234567890abcdef` [r/o]: shows a single article/posting (the ID is automatically generated). This kind of URL your users will see when they choose on another page to see the single article per page by selecting the leading `[*]` link in the overview page(s).
+* `/q/searchterm` [r/o]: can be used to search for articles containing a certain word or expression. All existing articles will be searched for the given `searchterm`.
+* `/w/` [r/o]: See the articles of the current week. One can, however, specify the week one is interested in by adding a data part defining the week to see (`/w/yyyy-mm-dd`), like `/w/2019-04-13` to see the articles from the week in April 2019 containing the 13th.
 
 ### Internal URLs
 
 And, third, there's a group of URLs your users won't see or use, because by design they are reserved for you, the author of your postings.
-These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least twenty years); this is where the username/password file comes in.
+These URLs are protected by an authentication mechanism called _BasicAuth_ (which is supported by browsers for at least thirty years); this is where the username/password file comes in.
 Only users whose credentials (i.e. username and password) are stored in the password file will be given access to the following URLs.
 _So don't forget to set up an appropriate password file_.
-If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefore the system disables all options that might modify your system.
+If you forget that (or the file is not accessible for the program) everybody on the net could read, modify, or delete your articles, or add new ones – which you might not like; therefore the system _disables_ all options that might modify your system.
 
-* `/ap/` add a new posting.
-A simple Web form will allow you to input whatever is on your mind.
-* `/dp/234567890abcdef1` lets you change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons.
-Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/p/234567890abcdef1`) by selecting the respective `[*]` link on the index page and then just prepend the `p` by a `d` in the URL.
-* `/ep/34567890abcdef12` lets you edit the article/posting's _text_ identified by `34567890abcdef12`, e.g. to fix typos or correct the grammar.
-* `/il/` (init list): Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist.
-It clears the current list and reads all postings to extract the #hashtags and @mentions.
-_Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
-* `/pv/` (preview): Assuming you set the `Screenshot` INI-/commandline-option to `true` this shows you a simple HTML form by which you can start a background process checking all postings for page preview/screenshot images.
-Again, this was implemented as a debugging aid and you won't usually use this option.
-* `/rp/4567890abcdef123` lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether.
-_Note_ that there's no `undo` feature: Once you've deleted an article/posting it's gone.
-* `/share/https://some.host.domain/somepage` lets you share another page URL.
-Whatever you write after the initial `/share/` is assumed to be a remote URL, and a new article will be created and shown for you to edit.
-* `/si/` (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory.
-Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
-* `/ss/` (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory.
-Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
-* `/xt/` (eXchange tag): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing.
-_Note_ that the search for the term to replace is done case-insensitive while the replacement string gets inserted as you write it.
+* `/ap/` [r/w]: Add a new posting. A simple Web form will allow you to input whatever is on your mind.
+* `/dp/234567890abcdef1` [r/w]: Change an article/posting's _date/time_ if you feel the need for cosmetic or other reasons. Since you don't usually know/remember the article ID you'll first go to show the article/posting on a single page (`/n/`) by selecting the respective `[*]` link on the index page and then just prepend the `p` by a `d` in the URL.
+* `/ep/34567890abcdef12` [r/w]: Edit the article/posting's _text_ identified by `34567890abcdef12`, e.g. to fix typos or correct the grammar.
+* `/il` [r/w]: Assuming you configured the `hashfile` INI-/commandline-option this shows you a simple HTML form by which you can start a background process re-initialising the hashlist. It clears the current list and reads all postings to extract the `#hashtags` and `@mentions`. _Note_: You will barely (if ever) need this option; it's mostly a debugging aid.
+* `/pv/` [r/w]: Assuming you set the `Screenshot` INI-/commandline-option to `true` this shows a simple HTML form by which you can start a background process checking all postings for page preview/screenshot images. Again, this was implemented as a debugging aid and you won't usually use this option.
+* `/rp/4567890abcdef123` [r/w]: lets you remove (delete) the article/posting identified by `4567890abcdef123` altogether. _Note_ that there's **no** `undo` feature: Once you've deleted an article/posting it's gone.
+* `/share/https://some.host.domain/somepage` [r/w]: lets you share another page URL. Whatever you write after the initial `/share/` is assumed to be a remote URL, and a new article will be created and shown for you to edit.
+* `/si/` [r/w] (store image): This shows you a simple HTML form by which you can upload image files into your `/img/` directory. Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded image is used.
+* `/ss/` [r/w] (store static): This shows you a simple HTML form by which you can upload static files into your `/static/` directory. Once the upload is done you (i.e. the user) will be presented an edit page in which the uploaded file is used.
+* `/xt/` [r/w] (eXchange tag): This shows you a simple HTML form by which you can exchange a `#hashtag`/`@mention` with another one, or correct its writing. _Note_ that the search for the term to replace is done case-insensitive while the replacement string gets inserted as you write it.
 
 ## Files
 
@@ -560,9 +542,8 @@ In fact, the system _expects_ the postings to be using `MarkDown` syntax if any 
 The following external libraries were used building `Nele`:
 
 * [ApacheLogger](https://github.com/mwat56/apachelogger)
-* [BlackFriday](https://gopkg.in/russross/blackfriday.v2)
+* [BlackFriday](https://github.com/russross/blackfriday/v2)
 * [ChromeDP](https://github.com/chromedp/chromedp)
-* [Crypto](https://golang.org/x/crypto)
 * [CSSfs](https://github.com/mwat56/cssfs)
 * [ErrorHandler](https://github.com/mwat56/errorhandler)
 * [GzipHandler](https://github.com/NYTimes/gziphandler)
@@ -577,9 +558,9 @@ The following external libraries were used building `Nele`:
 
 ## Licence
 
-    Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
-                    All rights reserved
-                EMail : <support@mwat.de>
+	Copyright © 2019, 2024  M.Watermann, 10247 Berlin, Germany
+					All rights reserved
+				EMail : <support@mwat.de>
 
 > This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 >
