@@ -1,8 +1,6 @@
 module github.com/mwat56/nele
 
-go 1.22
-
-toolchain go1.22.1
+go 1.22.1
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
@@ -13,7 +11,7 @@ require (
 	github.com/mwat56/hashtags v0.9.6
 	github.com/mwat56/ini v1.9.0
 	github.com/mwat56/jffs v0.1.4
-	github.com/mwat56/passlist v1.3.11
+	github.com/mwat56/passlist v1.4.0
 	github.com/mwat56/screenshot v0.4.9
 	github.com/mwat56/sourceerror v0.2.1
 	github.com/mwat56/uploadhandler v1.1.11
