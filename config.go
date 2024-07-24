@@ -1,12 +1,11 @@
 /*
 Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
 
-	   All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
-package nele
 
-//lint:file-ignore ST1017 - I prefer Yoda conditions
+package nele
 
 import (
 	"flag"
@@ -23,58 +22,15 @@ import (
 	"github.com/mwat56/whitespace"
 )
 
-type (
-	// TAppArgs Collection of commandline arguments and INI values.
-	TAppArgs struct {
-		AccessLog     string // (optional) name of page access logfile
-		Addr          string // listen address ("1.2.3.4:5678")
-		BlogName      string // name/description of this blog
-		CertKey       string // TLS certificate key
-		CertPem       string // private TLS certificate
-		DataDir       string // base directory of application's data
-		delWhitespace bool   // remove whitespace from generated pages
-		Dump          bool   // Debug: dump this structure to `StdOut`
-		ErrorLog      string // (optional) name of page error logfile
-		GZip          bool   // send compressed data to remote browser
-		HashFile      string // file with hashtag/mention database
-		// Intl       string // path/filename of the localisation file
-		Lang     string // default GUI language
-		listen   string // IP of host to listen at
-		LogStack bool   // log stack trace in case of errors
-
-		MaxFileSize int64  // max. upload file size
-		mfs         string // max. upload file size
-
-		Name string // name of the actual program
-
-		PostAdd    bool   // whether to write a posting from commandline
-		PostFile   string // name of file to post
-		port       int    // port to listen to
-		Realm      string // host/domain to secure by BasicAuth
-		Screenshot bool   // whether to use page screenshots or not
-		Theme      string // `dark` or `light` display theme
-		UserAdd    string // username to add to password list
-		UserCheck  string // username to check in password list
-		UserDelete string // username to delete from password list
-		UserFile   string // (optional) name of page access logfile
-		UserList   bool   // print out a list of current users
-		UserUpdate string // username to update in password list
-	}
-)
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 var (
-	// AppArgs holds the commandline arguments and INI values.
-	//
-	// This structure should be considered R/O after it was
-	// set up by a call to `InitConfig()`.
-	AppArgs TAppArgs
-
-	// iniValues is the list for the cmdline arguments and INI values
-	// used during program startup.
+	// `iniValues` is the list for the cmdline arguments and INI
+	// values used during program startup.
 	iniValues *ini.TSection // embedded INI section // tArguments
 )
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// --------------------------------------------------------------------------
 
 // `absolute()` returns `aDir` as an absolute path.
 //
@@ -87,7 +43,6 @@ var (
 // Otherwise `aBaseDir` gets prepended to `aDir` and returned after cleaning.
 //
 // Parameters:
-//
 //   - `aBaseDir` The base directory to prepend to `aDir`.
 //   - `aDir` The directory to make absolute.
 func absolute(aBaseDir, aDir string) string {
@@ -105,26 +60,7 @@ func absolute(aBaseDir, aDir string) string {
 	return filepath.Join(aBaseDir, aDir)
 } // absolute()
 
-// String implements the `Stringer` interface returning a (pretty printed)
-// string representation of the current `TAppArgs` instance.
-//
-// NOTE: This method is meant mostly for debugging purposes.
-//
-// Returns:
-//   - `string`: The string representation of the current app configuration.
-func (aa TAppArgs) String() string {
-	return strings.Replace(
-		strings.Replace(
-			strings.Replace(
-				strings.Replace(
-					fmt.Sprintf("%#v", aa),
-					`, `, ",\n\t", -1),
-				`{`, "{\n\t", -1),
-			`}`, ",\n}", -1),
-		`:`, ` : `, -1) //FIXME this affects property values as well!
-} // String()
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// --------------------------------------------------------------------------
 
 var (
 	// RegEx to match a size value (xxx)
@@ -134,6 +70,7 @@ var (
 // `kmg2Num()` returns a 'B|KB|MB|GB` string as an integer.
 //
 // Returns:
+//   - `int64`: The integer value of `aString`.
 func kmg2Num(aString string) (rInt int64) {
 	matches := cfKmgRE.FindStringSubmatch(aString)
 	if 2 < len(matches) {
@@ -155,7 +92,7 @@ func kmg2Num(aString string) (rInt int64) {
 	return
 } // kmg2Num()
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// --------------------------------------------------------------------------
 
 /*
 func init() {
@@ -165,9 +102,9 @@ func init() {
 } // init()
 */
 
-// `copyAppArgs2IniData()` copies the commandline values into the
-// global `TAppArgs` instance.
-func copyAppArgs2IniData() {
+// `copyIniDataToAppArgs()` copies the commandline and INI values
+// into the global `TAppArgs` instance.
+func copyIniDataToAppArgs() {
 	var ( // re-use variables
 		err error
 		fi  os.FileInfo
@@ -182,9 +119,9 @@ func copyAppArgs2IniData() {
 	}
 	AppArgs.DataDir, _ = filepath.Abs(AppArgs.DataDir)
 	if fi, err = os.Stat(AppArgs.DataDir); nil != err {
-		log.Fatalf("`dataDir` == `%s` problem: %v", AppArgs.DataDir, err)
+		log.Fatalf("`dataDir` == %q problem: %v", AppArgs.DataDir, err)
 	} else if !fi.IsDir() {
-		log.Fatalf("Error: `dataDir` not a directory `%s`", AppArgs.DataDir)
+		log.Fatalf("Error: `dataDir` not a directory %q", AppArgs.DataDir)
 	}
 	// `postingBaseDirectory` defined in `posting.go`:
 	SetPostingBaseDirectory(filepath.Join(AppArgs.DataDir, "./postings"))
@@ -276,9 +213,9 @@ func copyAppArgs2IniData() {
 		// Print out the arguments and terminate:
 		log.Fatalf("runtime arguments:\n%s", AppArgs.String())
 	}
-} // copyAppArgs2IniData()
+} // copyIniDataToAppArgs()
 
-// InitConfig reads both the INI values and the commandline arguments.
+// `InitConfig()` reads both the INI values and the commandline arguments.
 //
 // The steps here are:
 //
@@ -307,12 +244,21 @@ func InitConfig() {
 
 	parseCmdlineArgs()
 
-	copyAppArgs2IniData()
+	copyIniDataToAppArgs()
 
-	// Set a default value for the storage layer
-	fsp := NewFSpersistence()
-	//TODO: make this configurable
-	SetPersistence(IPersistence(*fsp))
+	var persistence IPersistence
+	switch AppArgs.persistence {
+	case `db`:
+		persistence = NewDBpersistence(AppArgs.Name)
+
+	case `fs`:
+		fallthrough
+
+	default:
+		persistence = NewFSpersistence()
+	}
+	SetPersistence(IPersistence(persistence))
+
 } // InitConfig()
 
 // `parseCmdlineArgs()` parses the actual commandline arguments.
@@ -463,7 +409,12 @@ func readCmdlineArgs() {
 	flag.CommandLine.StringVar(&AppArgs.mfs, `mfs`, AppArgs.mfs,
 		"<filesize> Max. accepted size of uploaded files")
 
-	if AppArgs.port, ok = iniValues.AsInt(`port`); (!ok) || (0 == AppArgs.port) {
+	//
+	//TODO: read persistence (db|fs|tee)
+	//
+
+	AppArgs.port, ok = iniValues.AsInt(`port`)
+	if (!ok) || (0 == AppArgs.port) {
 		AppArgs.port = 8181
 	}
 	flag.CommandLine.IntVar(&AppArgs.port, `port`, AppArgs.port,
@@ -492,6 +443,7 @@ func readCmdlineArgs() {
 	}
 	switch AppArgs.Theme {
 	case `dark`, `light`:
+		// these are okay
 	default:
 		AppArgs.Theme = `dark`
 	}
@@ -524,9 +476,9 @@ func readCmdlineArgs() {
 
 // ShowHelp lists the commandline options to `Stderr`.
 func ShowHelp() {
-	fmt.Fprintf(os.Stderr, "\n  Usage: %s [OPTIONS]\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\n\tUsage: %s [OPTIONS]\n\n", os.Args[0])
 	flag.CommandLine.PrintDefaults()
-	fmt.Fprintln(os.Stderr, "\n  Most options can be set in an INI file to keep the command-line short ;-)")
+	fmt.Fprintln(os.Stderr, "\n\tMost options can be set in an INI file to keep the command-line short ;-)")
 } // ShowHelp()
 
 /* _EoF_ */

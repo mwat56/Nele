@@ -1,9 +1,10 @@
 /*
 Copyright © 2019, 2024 M.Watermann, 10247 Berlin, Germany
 
-	   All rights reserved
-	EMail : <support@mwat.de>
+			All rights reserved
+		EMail : <support@mwat.de>
 */
+
 package nele
 
 import (
@@ -12,6 +13,8 @@ import (
 
 	ht "github.com/mwat56/hashtags"
 )
+
+//lint:file-ignore ST1017 - I prefer Yoda conditions
 
 // `prep4Tests()` prepares the environment for testing.
 //
@@ -248,3 +251,5 @@ func TestShowHelp(t *testing.T) {
 	}
 } // TestShowHelp()
 */
+
+/* _EoF_ */
