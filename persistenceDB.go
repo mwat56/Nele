@@ -68,6 +68,7 @@ type (
 		_    struct{}
 		db   *sql.DB       // the database to use
 		mtx  *sync.RWMutex // pointer to avoid copying warnings
+		name string        // name of the database file
 		fts5 bool          // whether SQLite supports full-text search
 	}
 )
@@ -81,12 +82,12 @@ type (
 // returns a `nil` value.
 //
 // Parameters:
-//   - `aName`: The name of the database file to use.
+//   - `aName`: The name of the database to use.
 //
 // Returns:
 //   - `*TDBpersistence`: A persistence instance instance.
 func NewDBpersistence(aName string) *TDBpersistence {
-	fName := filepath.Join(poPostingBaseDirectory, aName)
+	fName := filepath.Join(poPostingBaseDirectory, aName+`.db`)
 	dbInstance, hasFTS, err := initDatabase(fName)
 	if nil != err {
 		return nil
@@ -95,6 +96,7 @@ func NewDBpersistence(aName string) *TDBpersistence {
 	return &TDBpersistence{
 		db:   dbInstance,
 		mtx:  new(sync.RWMutex),
+		name: fName,
 		fts5: hasFTS,
 	}
 } // NewDBpersistence()
@@ -208,9 +210,9 @@ const dbInitTable = `
 //
 // Parameters:
 //   - `aPathFile`: The path to the SQLite database file.
-//   - `*sql.DB`: A pointer to a new SQLite database connection.
 //
 // Returns:
+//   - `*sql.DB`: A pointer to a new SQLite database connection.
 //   - `bool`: An indicator for whether the database supports FTS5.
 //   - `error`: An error if any occurs during the initialisation process.
 func initDatabase(aPathFile string) (*sql.DB, bool, error) {
@@ -432,15 +434,15 @@ func (dbp TDBpersistence) Exists(aID uint64) bool {
 //
 // The returned path-/filename is in the format:
 //
-//	<base_directory>/<posting_id>.md
+//	<base_directory>/<name>.db
 //
 // Parameters:
 //   - `aID`: The unique identifier of the posting to handle.
 //
 // Returns:
-//   - `*string`: The path-/filename associated with `aID`.
+//   - `string`: The path-/filename associated with `aID`.
 func (dbp TDBpersistence) PathFileName(aID uint64) string {
-	return poPostingBaseDirectory
+	return dbp.name
 } // PathFileName()
 
 const dbReadRow = `SELECT id, lastModified, markdown FROM postings WHERE id = ?`
