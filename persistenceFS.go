@@ -242,7 +242,7 @@ func NewFSpersistence() *TFSpersistence {
 // posts stored in the filesystem.
 //
 // Returns:
-//   - `int32`: The number of available postings, or `0` in case of I/O errors.
+//   - `int`: The number of available postings, or `0` in case of I/O errors.
 //
 // Side Effects:
 //   - Updates the count cache.
