@@ -470,8 +470,8 @@ func (ph *TPageHandler) handleGET(aWriter http.ResponseWriter,
 				http.StatusSeeOther)
 		}
 
-		if auth, ok := pageData.Get(`isAuth`); ok && (auth == true) {
-			ph.finishReply(`il`, aWriter,
+		if auth, ok := pageData.Get(`isAuth`); ok && (true == auth) {
+			ph.finishReply(path, aWriter,
 				pageData.Set(`Robots`, `noindex,nofollow`))
 		} else {
 			http.Redirect(aWriter, aRequest, "/n/",

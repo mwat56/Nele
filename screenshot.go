@@ -177,16 +177,16 @@ func preparePost(aPosting *TPosting, aLink *tLink, aImageURLdir string) {
 // `[link-text](link-url)` by `[![alt-text](image-URL)](link-URL)`.
 //
 // Parameters:
-//   - `aPosting`: The posting the text of which is going to be updated.
+//   - `aText`: The posting's text which is going to be updated.
 //   - `aLink`: The link parts to use.
 //   - `aImageURLdir`: The URL directory for page screenshot images.
-func prepPostText(aPosting []byte, aLink *tLink, aImageName, aImageURLdir string) (rText []byte) {
+func prepPostText(aText []byte, aLink *tLink, aImageName, aImageURLdir string) (rText []byte) {
 	search := regexp.QuoteMeta(aLink.link)
 	if re, err := regexp.Compile(search); nil == err {
 		replace := "[![" + aLink.linkText +
 			"](" + filepath.Join(aImageURLdir, aImageName) +
 			")](" + aLink.linkURL + ")"
-		rText = re.ReplaceAllLiteral(aPosting, []byte(replace))
+		rText = re.ReplaceAllLiteral(aText, []byte(replace))
 	}
 
 	return
