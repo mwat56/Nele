@@ -18,6 +18,7 @@ import (
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
 func prepareTestFiles() {
+	AppArgs.persistence = "fs"
 	prep4Tests()
 
 	bd, _ := filepath.Abs(PostingBaseDirectory())
@@ -31,12 +32,12 @@ func prepareTestFiles() {
 func storeNewPost(aBaseDir string, aDay, aHour int) {
 	t := time.Date(1970, 1, aDay, aHour, aHour, aHour, 0, time.Local)
 	p := NewPosting(time2id(t), "")
-	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
+	p.Set([]byte(fmt.Sprintf("\n> %q\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	_, _ = p.Store()
 
 	t = time.Date(2018, 12, aDay, aHour, aHour, aHour, 0, time.Local)
 	p = NewPosting(time2id(t), "")
-	p.Set([]byte(fmt.Sprintf("\n> %s\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
+	p.Set([]byte(fmt.Sprintf("\n> %q\n\n%s\n\n@someone said%02d\n\n\t%02d\n#wewantitall%d", p.Date(), aBaseDir, aDay, aHour, aDay)))
 	_, _ = p.Store()
 } // storeNewPost()
 
@@ -48,8 +49,8 @@ func TestNewPostList(t *testing.T) {
 		name string
 		want *TPostList
 	}{
-		// TODO: Add test cases.
 		{" 1", wl1},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,13 +69,13 @@ func TestSearchPostings(t *testing.T) {
 		text string
 		want int
 	}{
-		// TODO: Add test cases.
 		{"1", "16", 24},
 		{"2", "8", 50},
 		{"3", "1\\d+", 72},
 		{"4", "10\\d+", 0},
 		{"5", "08\\s+08", 2},
 		{"6", "postings", 72},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -93,21 +94,18 @@ func TestTPostList_Add(t *testing.T) {
 	wl1 := &TPostList{
 		*p1,
 	}
-	type args struct {
-		aPosting *TPosting
-	}
 	tests := []struct {
 		name string
 		pl   *TPostList
-		args args
+		post *TPosting
 		want *TPostList
 	}{
+		{" 1", pl1, p1, wl1},
 		// TODO: Add test cases.
-		{" 1", pl1, args{p1}, wl1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.pl.Add(tt.args.aPosting); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.pl.Add(tt.post); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TPostList.Add() = %v, want %v", got, tt.want)
 			}
 		})
@@ -150,12 +148,12 @@ func TestTPostList_Delete(t *testing.T) {
 		want     *TPostList
 		want1    bool
 	}{
-		// TODO: Add test cases.
 		{" 1", pl1, p1, wl1, wb1},
 		{" 2", pl2, p2, wl2, wb2},
 		{" 3", pl3, p3, wl3, wb3},
 		{" 4", pl4, p4, wl4, wb4},
 		{" 5", pl5, p5, wl5, wb5},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -249,9 +247,9 @@ func TestTPostList_Len(t *testing.T) {
 		pl   *TPostList
 		want int
 	}{
-		// TODO: Add test cases.
 		{" 1", pl1, 3},
 		{" 2", pl2, 4},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -280,11 +278,11 @@ func TestTPostList_Month(t *testing.T) {
 		args tArgs
 		want int
 	}{
-		// TODO: Add test cases.
 		{" 1", pl1, tArgs{1970, 1}, 36},
 		{" 2", pl2, tArgs{2018, 12}, 36},
 		{" 3", pl3, tArgs{1970, 6}, 0},
 		{" 4", pl4, tArgs{2018, 12}, 36},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -309,10 +307,10 @@ func TestTPostList_Newest(t *testing.T) {
 		args    tArgs
 		wantErr bool
 	}{
-		// TODO: Add test cases.
 		{"1", pl1, tArgs{10, 0}, false},
 		{"2", pl1, tArgs{10, 10}, false},
 		{"3", pl1, tArgs{5, 15}, false},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -375,16 +373,17 @@ func TestTPostList_Week(t *testing.T) {
 		args args
 		want int
 	}{
-		// TODO: Add test cases.
 		{"1", pl1, args{1, 1, 1}, 0},
 		{"2", pl2, args{1970, 1, 1}, 12},
 		{"3", pl3, args{2018, 12, 1}, 6},
 		{"4", pl4, args{2018, 12, 8}, 21},
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.pl.Week(tt.args.aYear, tt.args.aMonth, tt.args.aDay); got.Len() != tt.want {
-				t.Errorf("TPostList.Week() = %v, want %v", got.Len(), tt.want)
+				t.Errorf("%q: TPostList.Week() = %v, want %v",
+					tt.name, got.Len(), tt.want)
 			}
 		})
 	}
