@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 M.Watermann, 10247 Berlin, Germany
+Copyright © 2024  M.Watermann, 10247 Berlin, Germany
 
 			All rights reserved
 		EMail : <support@mwat.de>
@@ -18,7 +18,14 @@ import (
 
 //lint:file-ignore ST1017 - I prefer Yoda conditions
 
+func prepareDb() {
+	AppArgs.persistence = "db"
+	prepareTestFiles()
+} // prepareDb()
+
 func TestTDBpersistence_init(t *testing.T) {
+	prepareDb()
+
 	tests := []struct {
 		name string
 		dbp  *TDBpersistence
