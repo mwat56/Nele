@@ -33,7 +33,7 @@ type (
 	// into a template/view.
 	TPostList []TPosting
 
-	// This function type is used by `Walk()`.
+	// The function type to use by [Walk].
 	//
 	// Parameters:
 	//	- `aID`: The ID of the posting to handle.
@@ -78,7 +78,7 @@ type (
 		// is returned.
 		//
 		// Parameters:
-		//	- `aPost`: A `TPosting` instance containing the article's data.
+		//	- `aPost`: A `TPosting` instance with the article's updated data.
 		//
 		// Returns:
 		//	- `int`: The number of bytes written.
@@ -146,7 +146,7 @@ type (
 		//
 		// `Search()` retrieves a list of postings based on a search term.
 		//
-		// A zero value of `aLimit` means: no limit alt all.
+		// A zero value of `aLimit` means: no practical limit at all.
 		//
 		// The returned `TPostList` type is a slice of `TPosting` instances,
 		// where `TPosting` is a struct representing a single posting. If

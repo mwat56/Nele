@@ -185,8 +185,11 @@ const dbInitTable = `
 		"id" INTEGER PRIMARY KEY,
 		"lastModified" INTEGER NOT NULL,
 		"markdown" TEXT NOT NULL
-	);
+	) STRICT;
 `
+
+// You should not manually create indexes on PRIMARY KEY columns. At best
+// it will be redundant, and at worst it could make things slower.
 
 // `initDatabase()` initialises a new SQLite database connection and
 // checks whether it supports full-text search (FTS5).
@@ -272,22 +275,22 @@ func initFTS5(aDB *sql.DB) (bool, error) {
 
 	const dbAddFTS5 = `
 	-- FTS virtual table referencing the regular table
-	CREATE VIRTUAL TABLE IF NOT EXISTS postings_FTS USING FTS5(
+	CREATE VIRTUAL TABLE IF NOT EXISTS "postings_FTS" USING FTS5(
 		markdown,
-		content='postings',
-		content_rowid='id'
+		content="postings",
+		content_rowid="id"
 	);
 
 	-- Trigger to keep FTS table in sync
-	CREATE TRIGGER postings_ai AFTER INSERT ON postings BEGIN
+	CREATE TRIGGER "postings_ai" AFTER INSERT ON "postings" BEGIN
 		INSERT INTO postings_FTS(rowid, markdown) VALUES (new.id, new.markdown);
 	END;
 
-	CREATE TRIGGER postings_ad AFTER DELETE ON postings BEGIN
+	CREATE TRIGGER "postings_ad" AFTER DELETE ON "postings" BEGIN
 		INSERT INTO postings_FTS(postings_FTS, rowid, markdown) VALUES('delete', old.id, old.markdown);
 	END;
 
-	CREATE TRIGGER postings_au AFTER UPDATE ON postings BEGIN
+	CREATE TRIGGER "postings_au" AFTER UPDATE ON "postings" BEGIN
 		INSERT INTO postings_FTS(postings_FTS, rowid, markdown) VALUES('delete', old.id, old.markdown);
 		INSERT INTO postings_FTS(rowid, markdown) VALUES (new.id, new.markdown);
 	END;
@@ -375,9 +378,6 @@ const dbDeleteRow = `DELETE FROM postings WHERE id = ?`
 //
 // Returns:
 //   - 'error`: A possible I/O error, or `nil` on success.
-//
-// Side Effects:
-//   - Invalidates the internal count cache.
 func (dbp TDBpersistence) Delete(aID uint64) error {
 	dbp.mtx.Lock()
 	defer dbp.mtx.Unlock()
@@ -486,7 +486,7 @@ const dbRenameRow = `UPDATE postings SET id = ? WHERE id = ?"`
 //
 // Parameters:
 //   - aOldID: The unique identifier of the posting to be renamed.
-//   - aNewID: The new unique identifier for the new posting.
+//   - aNewID: The new unique identifier for the posting.
 //
 // Returns:
 //   - `error`: An error if the operation fails, or `nil` on success.
@@ -523,7 +523,7 @@ const (
 // the search. If the underlying database does not support FTS5, the
 // method falls back to a LIKE-based search.
 //
-// A zero value of `aLimit` means: no limit alt all.
+// A zero value of `aLimit` means: no practical limit at all.
 //
 // The returned `TPostList` type is a slice of `TPosting` instances, where
 // `TPosting` is a struct representing a single posting. If the returned
@@ -599,15 +599,15 @@ const dbUpdateRow = `UPDATE postings SET lastModified = ?, markdown = ? WHERE id
 // is returned.
 //
 // Parameters:
-//   - `aPost`: A `TPosting` instance containing the article's data.
+//   - `aPost`: A `TPosting` instance with the article's updated data.
 //
 // Returns:
 //   - `int`: The number of bytes written to the file.
 //   - 'error`:` A possible I/O error, or `nil` on success.
-//
-// Side Effects:
-//   - Invalidates the internal count cache.
 func (dbp TDBpersistence) Update(aPost *TPosting) (int, error) {
+	if nil == aPost {
+		return 0, se.Wrap(ErrEmptyPosting, 1)
+	}
 	dbp.mtx.Lock()
 	defer dbp.mtx.Unlock()
 

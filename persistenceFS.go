@@ -361,7 +361,7 @@ func (fsp TFSpersistence) Exists(aID uint64) bool {
 //   - `aID`: The unique identifier of the posting to handle.
 //
 // Returns:
-//   - `*string`: The path-/filename associated with `aID`.
+//   - `string`: The path-/filename associated with `aID`.
 func (fsp TFSpersistence) PathFileName(aID uint64) string {
 	return id2filename(aID)
 } // PathFileName()
@@ -375,8 +375,8 @@ func (fsp TFSpersistence) PathFileName(aID uint64) string {
 //   - `*TPosting`: The `TPosting` instance containing the article's data, or `nil` if the file does not exist.
 //   - 'error`: A possible I/O error, or `nil` on success.
 func (fsp TFSpersistence) Read(aID uint64) (*TPosting, error) {
-	fsp.mtx.Lock()
-	defer fsp.mtx.Unlock()
+	fsp.mtx.RLock()
+	defer fsp.mtx.RUnlock()
 
 	var ( // re-use variables
 		bs  []byte
@@ -410,7 +410,7 @@ func (fsp TFSpersistence) Read(aID uint64) (*TPosting, error) {
 //
 // Parameters:
 //   - aOldID: The unique identifier of the posting to be renamed.
-//   - aNewID: The new unique identifier for the new posting.
+//   - aNewID: The new unique identifier for the posting.
 //
 // Returns:
 //   - `error`: An error if the operation fails, or `nil` on success.
@@ -442,7 +442,7 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 
 // `Search()` retrieves a list of postings based on a search term.
 //
-// A zero value of `aLimit` means: no limit alt all.
+// A zero value of `aLimit` means: no practical limit at all.
 //
 // The returned `TPostList` type is a slice of `TPosting` instances, where
 // `TPosting` is a struct representing a single posting. If the returned
@@ -458,11 +458,8 @@ func (fsp TFSpersistence) Rename(aOldID, aNewID uint64) error {
 //   - `*TPostList`: The list of search results, or `nil` in case of errors.
 //   - `error`: If the search operation fails, or `nil` on success.
 func (fsp TFSpersistence) Search(aText string, aOffset, aLimit uint) (*TPostList, error) {
-	// fsp.mtx.RLock()
-	// locking here will cause a deadlock because the called
-	// `posting.Load()` method will call our `Read()` method
-	// which in turn wait for a lock as well ...
-	// defer fsp.mtx.RUnlock()
+	fsp.mtx.RLock()
+	defer fsp.mtx.RUnlock()
 
 	var lCnt, oCnt uint
 	result := NewPostList()
@@ -549,7 +546,7 @@ func (fsp TFSpersistence) store(aPost *TPosting, aMode int) (int, error) {
 // is returned.
 //
 // Parameters:
-// - `aPost`: A `TPosting` instance containing the article's data.
+// - `aPost`: A `TPosting` instance with the article's updated data.
 //
 // Returns:
 // - `int`: The number of bytes written to the file.
